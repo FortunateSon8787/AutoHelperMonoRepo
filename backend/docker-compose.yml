@@ -1,0 +1,59 @@
+# ╔══════════════════════════════════════════════════════════════════════════════╗
+# ║  AutoHelper Backend — Infrastructure-only Compose                           ║
+# ║  Starts PostgreSQL + MinIO for local backend development without Docker.    ║
+# ║  For the full stack (backend + frontend containers) use the root            ║
+# ║  docker-compose.yml two levels up (AutoHelperMonoRepo/).                   ║
+# ║                                                                             ║
+# ║  Usage: docker compose up -d                                                ║
+# ║  Reads credentials from ../../.env (copy .env.example → .env first)        ║
+# ╚══════════════════════════════════════════════════════════════════════════════╝
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: autohelper-postgres
+    restart: unless-stopped
+    env_file:
+      - path: ../../.env
+        required: false   # falls back to defaults below if .env is absent
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-autohelper}
+      POSTGRES_USER: ${POSTGRES_USER:-autohelper}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-autohelper_dev_only}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-autohelper} -d ${POSTGRES_DB:-autohelper}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  minio:
+    image: minio/minio:latest
+    container_name: autohelper-minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    env_file:
+      - path: ../../.env
+        required: false
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin_dev_only}
+    ports:
+      - "9000:9000"   # S3 API
+      - "9001:9001"   # MinIO Console UI
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+volumes:
+  postgres_data:
+  minio_data:

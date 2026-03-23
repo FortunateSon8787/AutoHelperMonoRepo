@@ -1,0 +1,52 @@
+{
+  "common": {
+    "or": "или",
+    "loading": "Загрузка...",
+    "appName": "AutoHelper"
+  },
+  "auth": {
+    "login": {
+      "title": "Добро пожаловать",
+      "subtitle": "Войдите в свой аккаунт",
+      "emailLabel": "Email",
+      "emailPlaceholder": "you@example.com",
+      "passwordLabel": "Пароль",
+      "passwordPlaceholder": "••••••••",
+      "submitButton": "Войти",
+      "submittingButton": "Входим...",
+      "googleButton": "Войти через Google",
+      "noAccount": "Нет аккаунта?",
+      "registerLink": "Зарегистрироваться"
+    },
+    "register": {
+      "title": "Создать аккаунт",
+      "subtitle": "Заполните форму для регистрации",
+      "emailLabel": "Email",
+      "emailPlaceholder": "you@example.com",
+      "passwordLabel": "Пароль",
+      "passwordPlaceholder": "••••••••",
+      "passwordHint": "Минимум 8 символов",
+      "confirmPasswordLabel": "Подтвердите пароль",
+      "confirmPasswordPlaceholder": "••••••••",
+      "submitButton": "Зарегистрироваться",
+      "submittingButton": "Создаём аккаунт...",
+      "googleButton": "Зарегистрироваться через Google",
+      "hasAccount": "Уже есть аккаунт?",
+      "loginLink": "Войти"
+    },
+    "errors": {
+      "emailRequired": "Email обязателен",
+      "emailInvalid": "Введите корректный email",
+      "passwordRequired": "Пароль обязателен",
+      "passwordMinLength": "Минимум 8 символов",
+      "passwordMaxLength": "Максимум 100 символов",
+      "confirmPasswordRequired": "Подтвердите пароль",
+      "passwordsMismatch": "Пароли не совпадают",
+      "invalidCredentials": "Неверный email или пароль",
+      "emailTaken": "Пользователь с таким email уже существует",
+      "badRequest": "Проверьте правильность введённых данных",
+      "serverError": "Ошибка сервера. Попробуйте позже",
+      "unknown": "Что-то пошло не так. Попробуйте ещё раз"
+    }
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "common": {
+    "or": "or",
+    "loading": "Loading...",
+    "appName": "AutoHelper"
+  },
+  "auth": {
+    "login": {
+      "title": "Welcome back",
+      "subtitle": "Sign in to your account",
+      "emailLabel": "Email",
+      "emailPlaceholder": "you@example.com",
+      "passwordLabel": "Password",
+      "passwordPlaceholder": "••••••••",
+      "submitButton": "Sign in",
+      "submittingButton": "Signing in...",
+      "googleButton": "Sign in with Google",
+      "noAccount": "Don't have an account?",
+      "registerLink": "Sign up"
+    },
+    "register": {
+      "title": "Create an account",
+      "subtitle": "Fill in the form to register",
+      "emailLabel": "Email",
+      "emailPlaceholder": "you@example.com",
+      "passwordLabel": "Password",
+      "passwordPlaceholder": "••••••••",
+      "passwordHint": "At least 8 characters",
+      "confirmPasswordLabel": "Confirm password",
+      "confirmPasswordPlaceholder": "••••••••",
+      "submitButton": "Sign up",
+      "submittingButton": "Creating account...",
+      "googleButton": "Sign up with Google",
+      "hasAccount": "Already have an account?",
+      "loginLink": "Sign in"
+    },
+    "errors": {
+      "emailRequired": "Email is required",
+      "emailInvalid": "Enter a valid email",
+      "passwordRequired": "Password is required",
+      "passwordMinLength": "At least 8 characters",
+      "passwordMaxLength": "Maximum 100 characters",
+      "confirmPasswordRequired": "Please confirm your password",
+      "passwordsMismatch": "Passwords do not match",
+      "invalidCredentials": "Invalid email or password",
+      "emailTaken": "A user with this email already exists",
+      "badRequest": "Please check your input",
+      "serverError": "Server error. Please try again later",
+      "unknown": "Something went wrong. Please try again"
+    }
+  }
+}

@@ -1,0 +1,65 @@
+# ─── Environment secrets — NEVER commit real values ───────────────────────────
+.env
+.env.*
+!.env.example
+
+# ─── OS ───────────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ─── IDE ──────────────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.suo
+*.user
+*.sln.iml
+
+# ─── .NET / C# ────────────────────────────────────────────────────────────────
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+.vs/
+*.nupkg
+*.snupkg
+**/[Pp]ackages/*
+!**/[Pp]ackages/build/
+project.lock.json
+artifacts/
+appsettings.Development.json
+appsettings.Local.json
+*.pfx
+*.p12
+secrets.json
+
+# ─── Node.js / Next.js ────────────────────────────────────────────────────────
+node_modules/
+.pnp
+.pnp.js
+.next/
+out/
+build/
+dist/
+*.tsbuildinfo
+next-env.d.ts
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.vercel
+
+# ─── Docker ───────────────────────────────────────────────────────────────────
+# (docker-compose.override.yml can be created locally for overrides)
+docker-compose.override.yml
+
+# ─── Internal / migrated artefacts (not for VCS) ─────────────────────────────
+.git_old/
+.claude/
+*.gone

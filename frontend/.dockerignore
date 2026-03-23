@@ -1,0 +1,29 @@
+# Dependencies (will be reinstalled inside the container)
+node_modules/
+
+# Next.js build output
+.next/
+out/
+
+# Git
+.git/
+.gitignore
+
+# Environment secrets — NEVER copy into an image
+.env
+.env.*
+!.env.example
+
+# Docker files themselves
+Dockerfile
+.dockerignore
+
+# Docs / IDE
+README.md
+*.md
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db

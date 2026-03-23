@@ -1,0 +1,54 @@
+## .NET / C# gitignore
+
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+# Visual Studio / Rider
+.vs/
+.idea/
+*.user
+*.suo
+*.sln.iml
+
+# NuGet
+*.nupkg
+*.snupkg
+**/[Pp]ackages/*
+!**/[Pp]ackages/build/
+
+# Test results
+[Tt]est[Rr]esult*/
+TestResult.xml
+nunit-*.xml
+
+# .NET Core artifacts
+project.lock.json
+artifacts/
+
+# Secrets / local config
+appsettings.Development.json
+appsettings.Local.json
+*.pfx
+*.p12
+secrets.json
+.env
+.env.*
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Temp git dir
+.git_old/
+.claude/
