@@ -139,6 +139,31 @@ AutoHelperMonoRepo/
 
 ---
 
+## Рабочий процесс AI-агента
+
+### Использование скиллов (ОБЯЗАТЕЛЬНО)
+
+Перед написанием кода — выбрать и вызвать подходящий скилл, не писать код напрямую:
+
+| Задача | Скиллы |
+|--------|--------|
+| Реализация .NET/C# кода | `dotnet-senior-dev` → затем `dotnet-code-reviewer` |
+| Next.js страница (SSR, Server Component) | `nextjs-server-client-components`, `nextjs-app-router-fundamentals` |
+| Server Actions, cookies, форmy | `nextjs-advanced-routing`, `nextjs-client-cookie-pattern` |
+| useSearchParams, Suspense | `nextjs-use-search-params-suspense` |
+
+### Git-коммиты
+
+- **Не упоминать Claude** в сообщениях коммитов (ни `Co-Authored-By`, ни в теле).
+
+### После завершения каждой Story
+
+1. Обновить статус задачи в Jira → **Готово**
+2. Добавить комментарий в Jira с описанием что сделано
+3. Актуализировать связанные файлы в `.claude/`: `API.md`, `DOMAIN.md`, `CONVENTIONS.md`
+
+---
+
 ## Быстрый старт (локально)
 
 ```bash
