@@ -52,5 +52,19 @@
       "serverError": "Ошибка сервера. Попробуйте позже",
       "unknown": "Что-то пошло не так. Попробуйте ещё раз"
     }
+  },
+  "profile": {
+    "title": "Профиль",
+    "subscription": "Подписка",
+    "provider": "Провайдер",
+    "nameLabel": "Имя",
+    "namePlaceholder": "Иван Иванов",
+    "emailLabel": "Email",
+    "emailReadOnly": "Email нельзя изменить",
+    "contactsLabel": "Контакты",
+    "contactsPlaceholder": "Телефон, Telegram и т.д.",
+    "submitButton": "Сохранить",
+    "submittingButton": "Сохраняем...",
+    "saveSuccess": "Профиль успешно обновлён"
   }
 }

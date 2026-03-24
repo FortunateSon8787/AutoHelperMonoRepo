@@ -52,5 +52,19 @@
       "serverError": "Server error. Please try again later",
       "unknown": "Something went wrong. Please try again"
     }
+  },
+  "profile": {
+    "title": "Profile",
+    "subscription": "Subscription",
+    "provider": "Provider",
+    "nameLabel": "Name",
+    "namePlaceholder": "John Doe",
+    "emailLabel": "Email",
+    "emailReadOnly": "Email cannot be changed",
+    "contactsLabel": "Contacts",
+    "contactsPlaceholder": "Phone, Telegram, etc.",
+    "submitButton": "Save",
+    "submittingButton": "Saving...",
+    "saveSuccess": "Profile updated successfully"
   }
 }
