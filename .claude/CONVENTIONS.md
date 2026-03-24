@@ -1,0 +1,312 @@
+# AutoHelper — Conventions & Workflow
+
+## Актуализация контекстных файлов (ОБЯЗАТЕЛЬНО после выполнения Story)
+
+После завершения каждой Story-задачи Jira необходимо обновить все контекстные файлы репозитория, которые связаны с реализованным функционалом:
+
+| Что изменилось | Какие файлы обновить |
+|----------------|----------------------|
+| Новый API-эндпоинт | `.claude/API.md` |
+| Новая доменная сущность / агрегат | `.claude/DOMAIN.md` |
+| Новая/изменённая бизнес-логика | `.claude/AutoHelper_Requirements_v1.3.md` |
+| Общие соглашения / конвенции | `.claude/CONVENTIONS.md` |
+| Декомпозиция задач Jira | `.claude/JIRA_DECOMPOSITION.md` |
+
+**Правило:** Перемещай реализованные сущности/эндпоинты из раздела «планируется» в раздел «реализовано» и дополняй описание актуальными деталями.
+
+---
+
+## Jira Workflow (ОБЯЗАТЕЛЬНО после выполнения задачи)
+
+Если задача выдана со ссылкой на Jira-тикет или с явным упоминанием таски (например, "выполни AUT-44"), то **после мержа в main** необходимо актуализировать таску в Jira:
+
+1. Перевести таску в соответствующий статус (`In Review` или `Done`) через `transitionJiraIssue`
+2. При необходимости — частично обновить описание таски через `editJiraIssue`
+3. Добавить комментарий через `addCommentToJiraIssue`, который обязательно включает:
+   - Краткое описание **что было сделано**
+   - На что **обратить внимание** (нетривиальные решения, edge-cases, ограничения)
+   - Что **изменилось в структуре и взаимоотношении компонентов** (новые зависимости, изменённые контракты, side-эффекты для других модулей)
+4. Если есть worklog — залогировать потраченное время через `addWorklogToJiraIssue`
+
+Используй MCP-инструменты Atlassian (`transitionJiraIssue`, `editJiraIssue`, `addCommentToJiraIssue`, `addWorklogToJiraIssue`) для этих действий.
+
+---
+
+## Git + Jira Workflow (ОБЯЗАТЕЛЬНО при выполнении Jira-таски)
+
+### Шаг 0: Подготовка ветки main перед началом работы
+
+Перед тем как приступить к выполнению задачи:
+
+```bash
+# Переключиться на main и актуализировать
+git checkout main
+git pull origin main
+
+# Собрать проект
+cd backend
+dotnet build
+
+# Запустить тесты
+dotnet test
+```
+
+- Если сборка **сломана** или тесты **не прошли** — исправить проблему, закоммитить исправление в `main`, снова выполнить `git push origin main` и убедиться что всё зелёное.
+- Только после этого переходить к шагу 1.
+
+### Шаг 1: Создать feature-ветку
+
+```bash
+# Название ветки — по заголовку таски (kebab-case, номер таски в префиксе)
+# Примеры: feature/aut-13-vehicle-crud, feature/aut-44-service-records
+git checkout -b feature/aut-<номер>-<краткое-описание>
+```
+
+### Шаг 2: Реализация задачи
+
+Писать код согласно скиллам и соглашениям. Промежуточные коммиты разрешены.
+
+### Шаг 3: Финальная сборка и тесты перед мержем
+
+```bash
+cd backend
+dotnet build
+```
+
+Коммит допускается **только при 0 ошибках сборки**.
+
+```bash
+dotnet test
+```
+
+Коммит допускается **только при прохождении всех тестов**.
+
+### Шаг 4: Финальный коммит в feature-ветке
+
+Сообщение коммита должно содержать:
+- Заголовок таски (номер + название)
+- Краткое описание выполненной работы
+
+```
+AUT-13: Add vehicle CRUD endpoints
+
+Implement create/update/delete commands with FluentValidation,
+EF Core configuration and migration for Vehicle aggregate.
+```
+
+### Шаг 5: Мерж в main
+
+```bash
+git checkout main
+git pull origin main          # актуализировать перед мержем
+git merge feature/aut-<номер>-<краткое-описание>
+git push origin main
+```
+
+### Шаг 6: Проверка миграций (если менялись Domain-модели или DbContext)
+
+```bash
+# Посмотреть список миграций
+dotnet ef migrations list \
+  --project src/AutoHelper.Infrastructure \
+  --startup-project src/AutoHelper.Api
+
+# Создать тестовую миграцию
+dotnet ef migrations add CheckMigration \
+  --project src/AutoHelper.Infrastructure \
+  --startup-project src/AutoHelper.Api \
+  --output-dir Persistence/Migrations
+
+# Если пустая — snapshot актуален, удалить
+dotnet ef migrations remove \
+  --project src/AutoHelper.Infrastructure \
+  --startup-project src/AutoHelper.Api
+```
+
+Если `CheckMigration` **не пустая** → есть незафиксированные изменения → нужен ревью вручную.
+
+**Если выполнить шаги автоматически невозможно** — уведомить разработчика и попросить сделать это вручную.
+
+---
+
+## EF Core Миграции
+
+### ⚠️ КРИТИЧНО: всегда использовать `--output-dir`
+
+```bash
+dotnet ef migrations add <MigrationName> \
+  --project src/AutoHelper.Infrastructure \
+  --startup-project src/AutoHelper.Api \
+  --output-dir Persistence/Migrations
+```
+
+Без `--output-dir Persistence/Migrations` EF Core положит файлы в `Infrastructure/Migrations/` (неверный путь).
+
+**Правильный путь миграций:** `backend/src/AutoHelper.Infrastructure/Persistence/Migrations/`
+
+### Прочие команды
+
+```bash
+# Применить миграции вручную
+dotnet ef database update \
+  --project src/AutoHelper.Infrastructure \
+  --startup-project src/AutoHelper.Api
+
+# Откатить последнюю миграцию
+dotnet ef migrations remove \
+  --project src/AutoHelper.Infrastructure \
+  --startup-project src/AutoHelper.Api
+
+# Сгенерировать SQL-скрипт
+dotnet ef migrations script \
+  --project src/AutoHelper.Infrastructure \
+  --startup-project src/AutoHelper.Api
+```
+
+---
+
+## Backend Conventions (C#/.NET)
+
+### Именование
+
+| Элемент | Конвенция | Пример |
+|---------|-----------|--------|
+| Команда MediatR | `<Action><Entity>Command` | `RegisterCustomerCommand` |
+| Запрос MediatR | `Get<Entity>Query` | `GetVehicleByVinQuery` |
+| Handler | `<Command/Query>Handler` | `RegisterCustomerHandler` |
+| Repository interface | `I<Entity>Repository` | `ICustomerRepository` |
+| Repository impl | `<Entity>Repository` | `CustomerRepository` |
+| Endpoint map method | `Map<Feature>Endpoints` | `MapVehicleEndpoints` |
+| EF configuration | `<Entity>Configuration` | `CustomerConfiguration` |
+
+### Структура новой фичи (бэкенд)
+
+```
+Application/Features/<ModuleName>/
+  <Action>/
+    <Action><Entity>Command.cs      # или Query
+    <Action><Entity>Handler.cs
+    <Action><Entity>Validator.cs    # FluentValidation (если нужна)
+
+Api/Features/<ModuleName>/
+  <ModuleName>Endpoints.cs          # Minimal API endpoints
+```
+
+### Result паттерн
+
+```csharp
+// Handler возвращает Result<T>, никаких исключений для бизнес-логик
+public async Task<Result<Guid>> Handle(RegisterCustomerCommand request, CancellationToken ct)
+{
+    if (await _repo.ExistsByEmailAsync(request.Email, ct))
+        return Result.Failure<Guid>("Email already taken.");
+
+    var customer = Customer.CreateWithPassword(request.Name, request.Email, hash);
+    await _repo.AddAsync(customer, ct);
+    await _uow.SaveChangesAsync(ct);
+    return Result.Success(customer.Id);
+}
+```
+
+### Domain Events
+
+Агрегаты публикуют события через `AddDomainEvent(...)`. `AppDbContext.SaveChangesAsync` автоматически диспатчит их через MediatR после коммита.
+
+```csharp
+// В методе агрегата
+customer.AddDomainEvent(new CustomerRegisteredEvent(customer.Id, customer.Email));
+```
+
+### Конфигурации EF Core
+
+Каждая сущность имеет свой `IEntityTypeConfiguration<T>` в `Infrastructure/Persistence/Configurations/`. Нельзя использовать Data Annotations на доменных классах.
+
+---
+
+## Frontend Conventions (Next.js / TypeScript)
+
+### i18n — СТРОГОЕ ПРАВИЛО
+
+**Все текстовые строки в UI хранятся только в файлах переводов.** Хардкод строк в компонентах — **запрещён**.
+
+```typescript
+// ✅ Правильно
+const t = useTranslations('auth.login');
+return <h1>{t('title')}</h1>;
+
+// ❌ Запрещено
+return <h1>Вход в систему</h1>;
+```
+
+Файлы переводов: `frontend/messages/ru.json`, `frontend/messages/en.json`
+
+Структура ключей по модулям:
+```json
+{
+  "auth": {
+    "login": { "title": "...", "subtitle": "...", "emailLabel": "..." },
+    "register": { "title": "...", "subtitle": "...", ... },
+    "errors": { "invalidCredentials": "...", "emailTaken": "..." }
+  },
+  "common": { "submit": "...", "loading": "...", "or": "..." }
+}
+```
+
+### Server vs Client Components
+
+- **Server Components** — по умолчанию. Для SSR страниц (публичные страницы авто, профили партнёров).
+- **`'use client'`** — только если нужны: хуки состояния, события браузера, useTranslations (если нет server-side версии).
+- **Server Actions** (`'use server'`) — в `app/actions/` или `actions.ts` рядом с фичей.
+
+### Middleware (auth guard)
+
+`frontend/middleware.ts` — проверяет наличие `refreshToken` cookie. Публичные маршруты добавляются в массив `PUBLIC_ROUTES`.
+
+```typescript
+const PUBLIC_ROUTES = ["/auth/login", "/auth/register"];
+// Добавлять сюда новые публичные маршруты: /vehicles/[vin], /partners/[id], etc.
+```
+
+### Именование файлов
+
+| Тип | Конвенция | Пример |
+|-----|-----------|--------|
+| Page | `page.tsx` | `app/dashboard/page.tsx` |
+| Layout | `layout.tsx` | `app/(dashboard)/layout.tsx` |
+| Server Action | `actions.ts` | `app/vehicles/actions.ts` |
+| Component | `PascalCase.tsx` | `VehicleCard.tsx` |
+| Service | `camelCase.ts` | `vehicleService.ts` |
+| Types | `camelCase.ts` | `vehicle.ts` в `/types/` |
+
+### HTTP-клиент
+
+Используется `axios` (`services/authService.ts` как пример). Каждый модуль имеет свой сервис:
+
+```typescript
+// services/vehicleService.ts
+export const vehicleService = {
+  async getByVin(vin: string): Promise<Vehicle> { ... },
+  async create(data: CreateVehicleRequest): Promise<Vehicle> { ... },
+};
+```
+
+---
+
+## Docker Compose
+
+```bash
+# Запустить всё
+docker compose up -d
+
+# Только инфраструктура (postgres + minio)
+docker compose up -d postgres minio
+
+# Перебилдить конкретный сервис
+docker compose up -d --build backend
+
+# Логи
+docker compose logs -f backend
+docker compose logs -f frontend
+```
+
+**Env-переменные:** `docker-compose.yml` в корне монорепы читает `.env` файл. Пример: `.env.example` (нужно создать).
