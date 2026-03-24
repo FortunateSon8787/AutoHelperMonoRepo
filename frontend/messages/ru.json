@@ -76,6 +76,18 @@
     "contactsPlaceholder": "Телефон, Telegram и т.д.",
     "submitButton": "Сохранить",
     "submittingButton": "Сохраняем...",
-    "saveSuccess": "Профиль успешно обновлён"
+    "saveSuccess": "Профиль успешно обновлён",
+    "validation": {
+      "nameRequired": "Имя обязательно",
+      "nameTooLong": "Максимум 256 символов",
+      "contactsTooLong": "Максимум 512 символов"
+    },
+    "errors": {
+      "unauthorized": "Необходима авторизация",
+      "notFound": "Профиль не найден",
+      "badRequest": "Проверьте правильность введённых данных",
+      "serverError": "Ошибка сервера. Попробуйте позже",
+      "unknown": "Что-то пошло не так. Попробуйте ещё раз"
+    }
   }
 }

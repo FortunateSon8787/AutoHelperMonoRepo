@@ -9,11 +9,10 @@ public sealed class RefreshTokenRepository(AppDbContext db) : IRefreshTokenRepos
     public Task<RefreshToken?> GetByTokenAsync(string token, CancellationToken ct) =>
         db.RefreshTokens.FirstOrDefaultAsync(rt => rt.Token == token, ct);
 
-    public Task<IList<RefreshToken>> GetByCustomerIdAsync(Guid customerId, CancellationToken ct) =>
-        db.RefreshTokens
+    public async Task<IList<RefreshToken>> GetByCustomerIdAsync(Guid customerId, CancellationToken ct) =>
+        await db.RefreshTokens
             .Where(rt => rt.CustomerId == customerId)
-            .ToListAsync(ct)
-            .ContinueWith<IList<RefreshToken>>(t => t.Result, ct);
+            .ToListAsync(ct);
 
     public void Add(RefreshToken refreshToken) =>
         db.RefreshTokens.Add(refreshToken);

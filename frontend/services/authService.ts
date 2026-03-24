@@ -14,17 +14,31 @@ const api = axios.create({
   withCredentials: true, // for httpOnly cookie (refresh token)
 });
 
-// ─── Error Helper ────────────────────────────────────────────────────────────
+// ─── Error Types ─────────────────────────────────────────────────────────────
 
-function resolveErrorMessage(error: unknown): string {
+export type AuthErrorCode =
+  | "invalidCredentials"
+  | "emailTaken"
+  | "badRequest"
+  | "serverError"
+  | "unknown";
+
+export class AuthServiceError extends Error {
+  constructor(public readonly code: AuthErrorCode) {
+    super(code);
+    this.name = "AuthServiceError";
+  }
+}
+
+function resolveErrorCode(error: unknown): AuthErrorCode {
   if (error instanceof AxiosError) {
     const status = error.response?.status;
-    if (status === 401) return "Неверный email или пароль";
-    if (status === 409) return "Пользователь с таким email уже существует";
-    if (status === 400) return "Проверьте правильность введённых данных";
-    if (status && status >= 500) return "Ошибка сервера. Попробуйте позже";
+    if (status === 401) return "invalidCredentials";
+    if (status === 409) return "emailTaken";
+    if (status === 400) return "badRequest";
+    if (status !== undefined && status >= 500) return "serverError";
   }
-  return "Что-то пошло не так. Попробуйте ещё раз";
+  return "unknown";
 }
 
 // ─── Auth Service ────────────────────────────────────────────────────────────
@@ -35,7 +49,7 @@ export const authService = {
       const response = await api.post<TokenResponse>("/api/auth/login", data);
       return response.data;
     } catch (error) {
-      throw new Error(resolveErrorMessage(error));
+      throw new AuthServiceError(resolveErrorCode(error));
     }
   },
 
@@ -47,7 +61,7 @@ export const authService = {
       );
       return response.data;
     } catch (error) {
-      throw new Error(resolveErrorMessage(error));
+      throw new AuthServiceError(resolveErrorCode(error));
     }
   },
 
@@ -58,7 +72,7 @@ export const authService = {
       });
       return response.data;
     } catch (error) {
-      throw new Error(resolveErrorMessage(error));
+      throw new AuthServiceError(resolveErrorCode(error));
     }
   },
 
@@ -66,7 +80,7 @@ export const authService = {
     try {
       await api.post("/api/auth/logout", { refreshToken: token });
     } catch (error) {
-      throw new Error(resolveErrorMessage(error));
+      throw new AuthServiceError(resolveErrorCode(error));
     }
   },
 };

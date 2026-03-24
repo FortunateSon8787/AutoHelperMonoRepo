@@ -1,4 +1,4 @@
-import axios, { AxiosError } from "axios";
+import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
 import type { ClientProfile, UpdateProfileRequest } from "@/types/client";
 
 // ─── Axios Instance ───────────────────────────────────────────────────────────
@@ -10,7 +10,7 @@ const api = axios.create({
 });
 
 // Attach the stored access token to every request
-api.interceptors.request.use((config) => {
+api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   const token = localStorage.getItem("accessToken");
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
@@ -18,17 +18,31 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// ─── Error Helper ────────────────────────────────────────────────────────────
+// ─── Error Types ─────────────────────────────────────────────────────────────
 
-function resolveErrorMessage(error: unknown): string {
+export type ProfileErrorCode =
+  | "unauthorized"
+  | "notFound"
+  | "badRequest"
+  | "serverError"
+  | "unknown";
+
+export class ProfileServiceError extends Error {
+  constructor(public readonly code: ProfileErrorCode) {
+    super(code);
+    this.name = "ProfileServiceError";
+  }
+}
+
+function resolveErrorCode(error: unknown): ProfileErrorCode {
   if (error instanceof AxiosError) {
     const status = error.response?.status;
-    if (status === 401) return "Необходима авторизация";
-    if (status === 404) return "Профиль не найден";
-    if (status === 400) return "Проверьте правильность введённых данных";
-    if (status && status >= 500) return "Ошибка сервера. Попробуйте позже";
+    if (status === 401) return "unauthorized";
+    if (status === 404) return "notFound";
+    if (status === 400) return "badRequest";
+    if (status !== undefined && status >= 500) return "serverError";
   }
-  return "Что-то пошло не так. Попробуйте ещё раз";
+  return "unknown";
 }
 
 // ─── Profile Service ─────────────────────────────────────────────────────────
@@ -39,7 +53,7 @@ export const profileService = {
       const response = await api.get<ClientProfile>("/api/clients/me");
       return response.data;
     } catch (error) {
-      throw new Error(resolveErrorMessage(error));
+      throw new ProfileServiceError(resolveErrorCode(error));
     }
   },
 
@@ -47,7 +61,7 @@ export const profileService = {
     try {
       await api.put("/api/clients/me", data);
     } catch (error) {
-      throw new Error(resolveErrorMessage(error));
+      throw new ProfileServiceError(resolveErrorCode(error));
     }
   },
 };

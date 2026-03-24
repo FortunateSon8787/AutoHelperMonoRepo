@@ -76,6 +76,18 @@
     "contactsPlaceholder": "Phone, Telegram, etc.",
     "submitButton": "Save",
     "submittingButton": "Saving...",
-    "saveSuccess": "Profile updated successfully"
+    "saveSuccess": "Profile updated successfully",
+    "validation": {
+      "nameRequired": "Name is required",
+      "nameTooLong": "Maximum 256 characters",
+      "contactsTooLong": "Maximum 512 characters"
+    },
+    "errors": {
+      "unauthorized": "Authorization required",
+      "notFound": "Profile not found",
+      "badRequest": "Please check your input",
+      "serverError": "Server error. Please try again later",
+      "unknown": "Something went wrong. Please try again"
+    }
   }
 }

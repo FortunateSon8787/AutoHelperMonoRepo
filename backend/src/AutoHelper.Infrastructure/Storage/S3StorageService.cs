@@ -60,5 +60,5 @@ public sealed class S3StorageService(IAmazonS3 s3, IOptions<StorageSettings> opt
     }
 
     public string GetPublicUrl(string fileKey) =>
-        $"{_settings.ServiceUrl}/{_settings.BucketName}/{fileKey}";
+        $"{_settings.ServiceUrl.TrimEnd('/')}/{_settings.BucketName}/{fileKey}";
 }

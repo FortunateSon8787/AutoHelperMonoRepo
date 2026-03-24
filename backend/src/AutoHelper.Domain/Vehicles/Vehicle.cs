@@ -1,4 +1,6 @@
+using System.Text.RegularExpressions;
 using AutoHelper.Domain.Common;
+using AutoHelper.Domain.Exceptions;
 
 namespace AutoHelper.Domain.Vehicles;
 
@@ -26,6 +28,15 @@ public sealed class Vehicle : AggregateRoot<Guid>
     /// <summary>FK to the current owner (Customer).</summary>
     public Guid OwnerId { get; private set; }
 
+    // ─── VIN invariant ────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Valid VIN: exactly 17 uppercase alphanumeric chars, excluding I, O, Q
+    /// (ISO 3779 standard).
+    /// </summary>
+    private static readonly Regex VinPattern =
+        new(@"^[A-HJ-NPR-Z0-9]{17}$", RegexOptions.Compiled);
+
     // ─── EF Core ──────────────────────────────────────────────────────────────
 
     private Vehicle() { }
@@ -41,10 +52,16 @@ public sealed class Vehicle : AggregateRoot<Guid>
         string? color = null,
         int mileage = 0)
     {
+        var normalizedVin = vin.Trim().ToUpperInvariant();
+
+        if (!VinPattern.IsMatch(normalizedVin))
+            throw new DomainException(
+                "VIN must be exactly 17 alphanumeric characters (I, O, Q are not allowed).");
+
         return new Vehicle
         {
             Id = Guid.NewGuid(),
-            Vin = vin.Trim().ToUpperInvariant(),
+            Vin = normalizedVin,
             Brand = brand.Trim(),
             Model = model.Trim(),
             Year = year,

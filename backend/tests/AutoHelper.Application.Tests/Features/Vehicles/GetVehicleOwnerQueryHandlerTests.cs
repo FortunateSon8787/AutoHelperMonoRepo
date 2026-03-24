@@ -60,7 +60,7 @@ public class GetVehicleOwnerQueryHandlerTests
     public async Task Handle_WhenOwnerNotFound_ShouldReturnFailure()
     {
         // Arrange
-        var vehicle = Vehicle.Create("VIN123456789", "Toyota", "Camry", 2020, Guid.NewGuid());
+        var vehicle = Vehicle.Create("2T1BURHE0JC123456", "Toyota", "Camry", 2020, Guid.NewGuid());
 
         _vehicles.Setup(r => r.GetByVinAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(vehicle);
@@ -68,7 +68,7 @@ public class GetVehicleOwnerQueryHandlerTests
             .ReturnsAsync((Customer?)null);
 
         // Act
-        var result = await _sut.Handle(new GetVehicleOwnerQuery("VIN123456789"), CancellationToken.None);
+        var result = await _sut.Handle(new GetVehicleOwnerQuery("2T1BURHE0JC123456"), CancellationToken.None);
 
         // Assert
         result.IsFailure.ShouldBeTrue();
@@ -79,7 +79,7 @@ public class GetVehicleOwnerQueryHandlerTests
     public async Task Handle_WhenOwnerHasNoContacts_ShouldReturnNullContacts()
     {
         // Arrange
-        var vehicle = Vehicle.Create("VIN999999999", "BMW", "X5", 2022, Guid.NewGuid());
+        var vehicle = Vehicle.Create("1FTFW1ET5DKE12345", "BMW", "X5", 2022, Guid.NewGuid());
         var owner = Customer.CreateWithPassword("No Contacts", "nocontacts@test.com", "hash");
 
         _vehicles.Setup(r => r.GetByVinAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
@@ -88,7 +88,7 @@ public class GetVehicleOwnerQueryHandlerTests
             .ReturnsAsync(owner);
 
         // Act
-        var result = await _sut.Handle(new GetVehicleOwnerQuery("VIN999999999"), CancellationToken.None);
+        var result = await _sut.Handle(new GetVehicleOwnerQuery("1FTFW1ET5DKE12345"), CancellationToken.None);
 
         // Assert
         result.IsSuccess.ShouldBeTrue();

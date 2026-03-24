@@ -12,7 +12,7 @@ import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { authService } from "@/services/authService";
+import { authService, AuthServiceError } from "@/services/authService";
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
@@ -64,8 +64,8 @@ export default function RegisterPage() {
       });
       router.push("/auth/login");
     } catch (error) {
-      if (error instanceof Error) {
-        setServerError(error.message);
+      if (error instanceof AuthServiceError) {
+        setServerError(tErr(error.code));
       }
     }
   };

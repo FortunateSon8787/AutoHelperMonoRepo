@@ -10,32 +10,37 @@ import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { profileService } from "@/services/profileService";
+import { profileService, ProfileServiceError } from "@/services/profileService";
 import type { ClientProfile } from "@/types/client";
-
-// ─── Schema ───────────────────────────────────────────────────────────────────
-
-const profileSchema = z.object({
-  name: z.string().min(1, "Имя обязательно").max(256, "Максимум 256 символов"),
-  contacts: z
-    .string()
-    .max(512, "Максимум 512 символов")
-    .nullable()
-    .optional()
-    .transform((v) => v || null),
-});
-
-type ProfileFormValues = z.infer<typeof profileSchema>;
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function ProfilePage() {
   const t = useTranslations("profile");
+  const tValidation = useTranslations("profile.validation");
+  const tErrors = useTranslations("profile.errors");
   const [profile, setProfile] = useState<ClientProfile | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [serverError, setServerError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  // ─── Schema (uses translations — must live inside component) ──────────────
+
+  const profileSchema = z.object({
+    name: z
+      .string()
+      .min(1, tValidation("nameRequired"))
+      .max(256, tValidation("nameTooLong")),
+    contacts: z
+      .string()
+      .max(512, tValidation("contactsTooLong"))
+      .nullable()
+      .optional()
+      .transform((v: string | null | undefined) => v || null),
+  });
+
+  type ProfileFormValues = z.infer<typeof profileSchema>;
 
   const {
     register,
@@ -53,7 +58,13 @@ export default function ProfilePage() {
         setProfile(data);
         reset({ name: data.name, contacts: data.contacts ?? "" });
       })
-      .catch((err) => setLoadError(err.message))
+      .catch((err: unknown) => {
+        if (err instanceof ProfileServiceError) {
+          setLoadError(tErrors(err.code));
+        } else {
+          setLoadError(tErrors("unknown"));
+        }
+      })
       .finally(() => setIsLoading(false));
   }, [reset]);
 
@@ -70,7 +81,9 @@ export default function ProfilePage() {
         prev ? { ...prev, name: values.name, contacts: values.contacts ?? null } : prev
       );
     } catch (error) {
-      if (error instanceof Error) setServerError(error.message);
+      if (error instanceof ProfileServiceError) {
+        setServerError(tErrors(error.code));
+      }
     }
   };
 
