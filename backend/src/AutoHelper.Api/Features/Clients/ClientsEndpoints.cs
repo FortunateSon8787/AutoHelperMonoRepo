@@ -1,3 +1,4 @@
+using AutoHelper.Application.Features.Clients.ChangePassword;
 using AutoHelper.Application.Features.Clients.GetMyProfile;
 using AutoHelper.Application.Features.Clients.UpdateMyProfile;
 using MediatR;
@@ -20,6 +21,13 @@ public static class ClientsEndpoints
             .WithSummary("Update the display name and contacts of the currently authenticated customer")
             .Produces(StatusCodes.Status204NoContent)
             .ProducesValidationProblem()
+            .ProducesProblem(StatusCodes.Status404NotFound);
+
+        group.MapPost("/me/password", ChangePassword)
+            .WithSummary("Change the password of the currently authenticated customer (local auth only)")
+            .Produces(StatusCodes.Status204NoContent)
+            .ProducesValidationProblem()
+            .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status404NotFound);
     }
 
@@ -54,6 +62,30 @@ public static class ClientsEndpoints
                 Status = StatusCodes.Status404NotFound,
                 Title = result.Error
             });
+
+        return Results.NoContent();
+    }
+
+    private static async Task<IResult> ChangePassword(
+        [FromBody] ChangePasswordCommand command,
+        ISender mediator,
+        CancellationToken ct)
+    {
+        var result = await mediator.Send(command, ct);
+
+        if (result.IsFailure)
+        {
+            if (result.Error == "Customer not found.")
+                return Results.NotFound(new ProblemDetails
+                {
+                    Status = StatusCodes.Status404NotFound,
+                    Title = result.Error
+                });
+
+            return Results.Problem(
+                statusCode: StatusCodes.Status400BadRequest,
+                title: result.Error);
+        }
 
         return Results.NoContent();
     }

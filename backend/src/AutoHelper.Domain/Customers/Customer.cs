@@ -132,4 +132,17 @@ public sealed class Customer : AggregateRoot<Guid>
         Name = name;
         Contacts = contacts;
     }
+
+    /// <summary>
+    /// Replaces the password hash with a new one.
+    /// Only valid for customers who authenticate locally.
+    /// </summary>
+    public bool ChangePassword(string newPasswordHash)
+    {
+        if (AuthProvider != AuthProvider.Local)
+            return false;
+
+        PasswordHash = newPasswordHash;
+        return true;
+    }
 }
