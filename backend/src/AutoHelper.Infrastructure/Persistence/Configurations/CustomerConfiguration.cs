@@ -58,5 +58,8 @@ public sealed class CustomerConfiguration : IEntityTypeConfiguration<Customer>
 
         builder.Property(c => c.GoogleRefreshToken)
             .HasMaxLength(1024);
+
+        builder.Property(c => c.AvatarUrl)
+            .HasMaxLength(2048);
     }
 }
