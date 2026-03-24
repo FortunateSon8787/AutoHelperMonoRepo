@@ -83,19 +83,25 @@ AutoHelperMonoRepo/
 
 ## Текущий статус разработки
 
-**Реализовано:**
+**Реализовано (Epic AUT-1 — Управление клиентами ✅ Готово):**
 - ✅ Clean Architecture скелет (Domain / Application / Infrastructure / Api)
-- ✅ Customer aggregate (email+password + Google OAuth)
+- ✅ Customer aggregate (email+password + Google OAuth, AvatarUrl)
+- ✅ Vehicle aggregate (VIN уникальность, статусы, OwnerId)
 - ✅ JWT auth: Register / Login / RefreshToken / Logout (MediatR CQRS)
-- ✅ EF Core + PostgreSQL (миграции в `Infrastructure/Persistence/Migrations/`)
-- ✅ MinIO/S3 инфраструктура
-- ✅ Serilog структурированное логирование
+- ✅ Клиентский профиль: GET/PUT /api/clients/me, смена пароля, загрузка аватара
+- ✅ Публичный поиск владельца по VIN: GET /api/vehicles/{vin}/owner
+- ✅ EF Core + PostgreSQL (3 миграции в `Infrastructure/Persistence/Migrations/`)
+- ✅ MinIO/S3 инфраструктура (аватары)
+- ✅ Serilog структурированное логирование + CorrelationId middleware
 - ✅ Next.js App Router + next-intl (ru/en)
 - ✅ Auth UI (login/register страницы)
+- ✅ Profile UI страница (`/profile`)
+- ✅ Публичная SSR-страница владельца авто (`/vehicles/[vin]`)
 - ✅ Docker Compose (postgres + minio + backend + frontend)
+- ✅ Unit-тесты: Domain (Customer, Vehicle), Application (JwtTokenService, GetVehicleOwner handler)
 
 **В работе / Планируется (см. JIRA_DECOMPOSITION.md):**
-- 🔲 Управление автомобилями (Epic AUT-2)
+- 🔲 CRUD автомобилей (Epic AUT-2: AUT-13..15)
 - 🔲 Service Records / история работ (Epic AUT-3)
 - 🔲 AI АвтоПомощник — LLM-чат (Epic AUT-4)
 - 🔲 Биллинг / Stripe (Epic AUT-5)
