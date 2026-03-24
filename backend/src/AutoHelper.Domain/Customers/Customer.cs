@@ -125,4 +125,11 @@ public sealed class Customer : AggregateRoot<Guid>
     {
         Contacts = contacts;
     }
+
+    /// <summary>Updates the customer's display name and contact information.</summary>
+    public void UpdateProfile(string name, string? contacts)
+    {
+        Name = name;
+        Contacts = contacts;
+    }
 }
