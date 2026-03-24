@@ -53,6 +53,17 @@
       "unknown": "Что-то пошло не так. Попробуйте ещё раз"
     }
   },
+  "vehicles": {
+    "ownerCard": {
+      "title": "Владелец автомобиля",
+      "vinLabel": "VIN",
+      "ownerLabel": "Владелец",
+      "contactsLabel": "Контакты",
+      "noContacts": "Контакты не указаны",
+      "notFound": "Автомобиль с таким VIN не найден",
+      "serverError": "Ошибка сервера. Попробуйте позже"
+    }
+  },
   "profile": {
     "title": "Профиль",
     "subscription": "Подписка",

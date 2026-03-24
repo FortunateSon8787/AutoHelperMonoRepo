@@ -1,6 +1,7 @@
 using AutoHelper.Api.Extensions;
 using AutoHelper.Api.Features.Auth;
 using AutoHelper.Api.Features.Clients;
+using AutoHelper.Api.Features.Vehicles;
 using AutoHelper.Api.Middleware;
 using AutoHelper.Infrastructure.Persistence;
 using Scalar.AspNetCore;
@@ -55,6 +56,7 @@ try
     // Feature endpoints
     app.MapAuthEndpoints();
     app.MapClientsEndpoints();
+    app.MapVehicleEndpoints();
 
     await app.RunAsync();
 }
