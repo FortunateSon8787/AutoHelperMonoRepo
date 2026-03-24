@@ -120,10 +120,19 @@ public sealed class Customer : AggregateRoot<Guid>
             GoogleRefreshToken = googleRefreshToken;
     }
 
+    /// <summary>URL of the customer's avatar stored in object storage. Null until first upload.</summary>
+    public string? AvatarUrl { get; private set; }
+
     /// <summary>Updates optional contact information.</summary>
     public void UpdateContacts(string? contacts)
     {
         Contacts = contacts;
+    }
+
+    /// <summary>Sets or replaces the customer's avatar URL.</summary>
+    public void UpdateAvatar(string avatarUrl)
+    {
+        AvatarUrl = avatarUrl;
     }
 
     /// <summary>Updates the customer's display name and contact information.</summary>

@@ -1,8 +1,10 @@
+using Amazon.S3;
 using AutoHelper.Application.Common.Interfaces;
 using AutoHelper.Infrastructure.Common;
 using AutoHelper.Infrastructure.Persistence;
 using AutoHelper.Infrastructure.Persistence.Repositories;
 using AutoHelper.Infrastructure.Security;
+using AutoHelper.Infrastructure.Storage;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -40,8 +42,22 @@ public static class DependencyInjection
         services.Configure<JwtSettings>(configuration.GetSection(JwtSettings.SectionName));
         services.AddSingleton<IJwtTokenService, JwtTokenService>();
 
-        // Storage (S3/MinIO) — placeholder, implement S3StorageService when needed
-        // services.AddScoped<IStorageService, S3StorageService>();
+        // Storage (S3/MinIO)
+        services.Configure<StorageSettings>(configuration.GetSection(StorageSettings.SectionName));
+
+        var storageSettings = configuration.GetSection(StorageSettings.SectionName).Get<StorageSettings>()
+            ?? new StorageSettings();
+
+        services.AddSingleton<IAmazonS3>(_ => new AmazonS3Client(
+            awsAccessKeyId: storageSettings.AccessKey,
+            awsSecretAccessKey: storageSettings.SecretKey,
+            clientConfig: new AmazonS3Config
+            {
+                ServiceURL = storageSettings.ServiceUrl,
+                ForcePathStyle = true // required for MinIO
+            }));
+
+        services.AddScoped<IStorageService, S3StorageService>();
 
         return services;
     }
