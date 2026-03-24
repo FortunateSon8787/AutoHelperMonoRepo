@@ -45,8 +45,10 @@ export default function LoginPage() {
   const onSubmit = async (values: LoginFormValues) => {
     setServerError(null);
     try {
-      await authService.login(values);
-      router.push("/dashboard");
+      const tokenResponse = await authService.login(values);
+      localStorage.setItem("accessToken", tokenResponse.accessToken);
+      document.cookie = `refreshToken=${tokenResponse.refreshToken}; path=/; max-age=${tokenResponse.expiresIn}`;
+      router.push("/profile");
     } catch (error) {
       if (error instanceof Error) {
         setServerError(error.message);
