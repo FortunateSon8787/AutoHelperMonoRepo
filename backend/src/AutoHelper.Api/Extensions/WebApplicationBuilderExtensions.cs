@@ -16,7 +16,7 @@ public static class WebApplicationBuilderExtensions
         var configuration = builder.Configuration;
 
         // Application and Infrastructure layers
-        services.AddApplicationServices();
+        services.AddApplicationServices(configuration);
         services.AddInfrastructureServices(configuration);
 
         // API-level services

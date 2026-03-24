@@ -21,9 +21,7 @@ public static class DependencyInjection
             ?? throw new InvalidOperationException("Connection string 'Database' is not configured.");
 
         services.AddDbContext<AppDbContext>(options =>
-            options.UseNpgsql(
-                connectionString,
-                npgsql => npgsql.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName)));
+            options.UseNpgsql(connectionString));
 
         services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<AppDbContext>());
 
