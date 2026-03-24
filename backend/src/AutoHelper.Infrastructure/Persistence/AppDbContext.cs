@@ -1,6 +1,7 @@
 using AutoHelper.Application.Common.Interfaces;
 using AutoHelper.Domain.Common;
 using AutoHelper.Domain.Customers;
+using AutoHelper.Domain.Vehicles;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,6 +14,7 @@ public sealed class AppDbContext(
 {
     public DbSet<Customer> Customers => Set<Customer>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+    public DbSet<Vehicle> Vehicles => Set<Vehicle>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

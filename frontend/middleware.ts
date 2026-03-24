@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 // Маршруты доступные без авторизации
-const PUBLIC_ROUTES = ["/auth/login", "/auth/register"];
+const PUBLIC_ROUTES = ["/auth/login", "/auth/register", "/vehicles/"];
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
