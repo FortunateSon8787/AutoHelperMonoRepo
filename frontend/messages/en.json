@@ -21,6 +21,8 @@
     "register": {
       "title": "Create an account",
       "subtitle": "Fill in the form to register",
+      "nameLabel": "Name",
+      "namePlaceholder": "John Doe",
       "emailLabel": "Email",
       "emailPlaceholder": "you@example.com",
       "passwordLabel": "Password",
@@ -35,6 +37,8 @@
       "loginLink": "Sign in"
     },
     "errors": {
+      "nameRequired": "Name is required",
+      "nameMaxLength": "Maximum 256 characters",
       "emailRequired": "Email is required",
       "emailInvalid": "Enter a valid email",
       "passwordRequired": "Password is required",

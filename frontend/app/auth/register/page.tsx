@@ -25,6 +25,10 @@ export default function RegisterPage() {
 
   const registerSchema = z
     .object({
+      name: z
+        .string()
+        .min(1, tErr("nameRequired"))
+        .max(256, tErr("nameMaxLength")),
       email: z
         .string()
         .min(1, tErr("emailRequired"))
@@ -54,6 +58,7 @@ export default function RegisterPage() {
     setServerError(null);
     try {
       await authService.register({
+        name: values.name,
         email: values.email,
         password: values.password,
       });
@@ -88,6 +93,22 @@ export default function RegisterPage() {
           )}
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            {/* Name */}
+            <div className="space-y-1.5">
+              <Label htmlFor="name">{t("nameLabel")}</Label>
+              <Input
+                id="name"
+                type="text"
+                placeholder={t("namePlaceholder")}
+                autoComplete="name"
+                {...register("name")}
+                className={errors.name ? "border-red-500" : ""}
+              />
+              {errors.name && (
+                <p className="text-xs text-red-500">{errors.name.message}</p>
+              )}
+            </div>
+
             {/* Email */}
             <div className="space-y-1.5">
               <Label htmlFor="email">{t("emailLabel")}</Label>

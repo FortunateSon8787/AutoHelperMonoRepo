@@ -29,7 +29,7 @@ public static class DatabaseMigrator
         try
         {
             var config = scope.ServiceProvider.GetRequiredService<Microsoft.Extensions.Configuration.IConfiguration>();
-            autoMigrate = config.GetValue<bool>("Database:AutoMigrateOnStartup");
+            autoMigrate = bool.TryParse(config["Database:AutoMigrateOnStartup"], out var val) && val;
         }
         catch
         {

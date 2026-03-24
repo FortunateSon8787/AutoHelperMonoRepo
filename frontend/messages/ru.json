@@ -21,6 +21,8 @@
     "register": {
       "title": "Создать аккаунт",
       "subtitle": "Заполните форму для регистрации",
+      "nameLabel": "Имя",
+      "namePlaceholder": "Иван Иванов",
       "emailLabel": "Email",
       "emailPlaceholder": "you@example.com",
       "passwordLabel": "Пароль",
@@ -35,6 +37,8 @@
       "loginLink": "Войти"
     },
     "errors": {
+      "nameRequired": "Имя обязательно",
+      "nameMaxLength": "Максимум 256 символов",
       "emailRequired": "Email обязателен",
       "emailInvalid": "Введите корректный email",
       "passwordRequired": "Пароль обязателен",
