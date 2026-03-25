@@ -85,4 +85,65 @@ public class VehicleTests
         Should.Throw<DomainException>(() =>
             Vehicle.Create(invalidVin, "Honda", "Accord", 2003, OwnerId));
     }
+
+    // ─── UpdateDetails ────────────────────────────────────────────────────────
+
+    [Fact]
+    public void UpdateDetails_ShouldUpdateMutableFields()
+    {
+        // Arrange
+        var vehicle = Vehicle.Create("1HGCM82633A123456", "Honda", "Accord", 2003, OwnerId);
+
+        // Act
+        vehicle.UpdateDetails("Toyota", "Camry", 2020, "White", 50000);
+
+        // Assert
+        vehicle.Brand.ShouldBe("Toyota");
+        vehicle.Model.ShouldBe("Camry");
+        vehicle.Year.ShouldBe(2020);
+        vehicle.Color.ShouldBe("White");
+        vehicle.Mileage.ShouldBe(50000);
+    }
+
+    [Fact]
+    public void UpdateDetails_ShouldTrimBrandAndModel()
+    {
+        // Arrange
+        var vehicle = Vehicle.Create("2T1BURHE0JC123456", "BMW", "X5", 2022, OwnerId);
+
+        // Act
+        vehicle.UpdateDetails("  Ford  ", "  Focus  ", 2019, null, 0);
+
+        // Assert
+        vehicle.Brand.ShouldBe("Ford");
+        vehicle.Model.ShouldBe("Focus");
+    }
+
+    [Fact]
+    public void UpdateDetails_ShouldNotChangeVinOrStatus()
+    {
+        // Arrange
+        var vehicle = Vehicle.Create("1HGCM82633A123456", "Honda", "Accord", 2003, OwnerId);
+
+        // Act
+        vehicle.UpdateDetails("Toyota", "Camry", 2020, null, 0);
+
+        // Assert — immutable fields unchanged
+        vehicle.Vin.ShouldBe("1HGCM82633A123456");
+        vehicle.Status.ShouldBe(VehicleStatus.Active);
+        vehicle.OwnerId.ShouldBe(OwnerId);
+    }
+
+    [Fact]
+    public void UpdateDetails_WithNullColor_ShouldSetColorToNull()
+    {
+        // Arrange
+        var vehicle = Vehicle.Create("1FTFW1ET5DKE12345", "BMW", "X5", 2022, OwnerId, color: "Black");
+
+        // Act
+        vehicle.UpdateDetails("BMW", "X5", 2022, null, 0);
+
+        // Assert
+        vehicle.Color.ShouldBeNull();
+    }
 }

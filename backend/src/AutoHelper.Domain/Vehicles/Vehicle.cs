@@ -71,4 +71,15 @@ public sealed class Vehicle : AggregateRoot<Guid>
             OwnerId = ownerId
         };
     }
+
+    // ─── Business operations ──────────────────────────────────────────────────
+
+    public void UpdateDetails(string brand, string model, int year, string? color, int mileage)
+    {
+        Brand = brand.Trim();
+        Model = model.Trim();
+        Year = year;
+        Color = color?.Trim();
+        Mileage = mileage;
+    }
 }

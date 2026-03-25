@@ -7,8 +7,14 @@ namespace AutoHelper.Application.Common.Interfaces;
 /// </summary>
 public interface IVehicleRepository
 {
+    /// <summary>Finds a vehicle by its primary key.</summary>
+    Task<Vehicle?> GetByIdAsync(Guid id, CancellationToken ct);
+
     /// <summary>Finds a vehicle by its VIN (case-insensitive).</summary>
     Task<Vehicle?> GetByVinAsync(string vin, CancellationToken ct);
+
+    /// <summary>Returns all vehicles owned by the given customer.</summary>
+    Task<IReadOnlyList<Vehicle>> GetAllByOwnerIdAsync(Guid ownerId, CancellationToken ct);
 
     /// <summary>Checks whether a vehicle with the given VIN already exists.</summary>
     Task<bool> ExistsByVinAsync(string vin, CancellationToken ct);

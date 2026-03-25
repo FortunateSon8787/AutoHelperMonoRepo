@@ -62,6 +62,58 @@
       "noContacts": "Контакты не указаны",
       "notFound": "Автомобиль с таким VIN не найден",
       "serverError": "Ошибка сервера. Попробуйте позже"
+    },
+    "list": {
+      "title": "Мои автомобили",
+      "addButton": "Добавить автомобиль",
+      "emptyState": "У вас ещё нет зарегистрированных автомобилей",
+      "vinLabel": "VIN",
+      "yearLabel": "Год",
+      "mileageLabel": "Пробег",
+      "statusLabel": "Статус",
+      "colorLabel": "Цвет",
+      "editButton": "Редактировать",
+      "km": "км"
+    },
+    "form": {
+      "addTitle": "Добавить автомобиль",
+      "editTitle": "Редактировать автомобиль",
+      "vinLabel": "VIN",
+      "vinPlaceholder": "1HGCM82633A123456",
+      "brandLabel": "Марка",
+      "brandPlaceholder": "Toyota",
+      "modelLabel": "Модель",
+      "modelPlaceholder": "Camry",
+      "yearLabel": "Год выпуска",
+      "yearPlaceholder": "2020",
+      "colorLabel": "Цвет",
+      "colorPlaceholder": "Белый",
+      "mileageLabel": "Пробег (км)",
+      "mileagePlaceholder": "0",
+      "submitButton": "Сохранить",
+      "addButton": "Добавить",
+      "submittingButton": "Сохраняем...",
+      "cancelButton": "Отмена",
+      "saveSuccess": "Автомобиль успешно обновлён",
+      "createSuccess": "Автомобиль успешно добавлен",
+      "validation": {
+        "vinRequired": "VIN обязателен",
+        "vinInvalid": "VIN должен содержать ровно 17 символов (буквы и цифры, I/O/Q запрещены)",
+        "brandRequired": "Марка обязательна",
+        "brandMaxLength": "Максимум 128 символов",
+        "modelRequired": "Модель обязательна",
+        "modelMaxLength": "Максимум 128 символов",
+        "yearRequired": "Год обязателен",
+        "yearInvalid": "Укажите корректный год",
+        "mileageInvalid": "Пробег не может быть отрицательным"
+      },
+      "errors": {
+        "notFound": "Автомобиль не найден",
+        "conflict": "Автомобиль с таким VIN уже существует",
+        "badRequest": "Проверьте правильность введённых данных",
+        "serverError": "Ошибка сервера. Попробуйте позже",
+        "unknown": "Что-то пошло не так. Попробуйте ещё раз"
+      }
     }
   },
   "profile": {
