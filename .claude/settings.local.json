@@ -5,7 +5,9 @@
       "mcp__claude_ai_Atlassian__getJiraIssue",
       "Bash(xargs grep:*)",
       "Bash(dotnet build:*)",
-      "Bash(dotnet test:*)"
+      "Bash(dotnet test:*)",
+      "Bash(docker compose:*)",
+      "Bash(grep -v \"^$\")"
     ]
   }
 }
