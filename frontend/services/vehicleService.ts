@@ -4,6 +4,7 @@ import type {
   VehicleOwner,
   CreateVehicleRequest,
   UpdateVehicleRequest,
+  UpdateVehicleStatusRequest,
 } from "@/types/vehicle";
 
 // ─── Authenticated Axios Instance ─────────────────────────────────────────────
@@ -98,6 +99,20 @@ export const vehicleService = {
   async update(id: string, data: UpdateVehicleRequest): Promise<void> {
     try {
       await api.put(`/api/vehicles/${id}`, data);
+    } catch (error) {
+      throw new VehicleServiceError(resolveErrorCode(error));
+    }
+  },
+
+  async updateStatus(id: string, data: UpdateVehicleStatusRequest): Promise<void> {
+    try {
+      const formData = new FormData();
+      formData.append("status", data.status);
+      if (data.partnerName) formData.append("partnerName", data.partnerName);
+      if (data.document) formData.append("document", data.document);
+      await api.put(`/api/vehicles/${id}/status`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
     } catch (error) {
       throw new VehicleServiceError(resolveErrorCode(error));
     }

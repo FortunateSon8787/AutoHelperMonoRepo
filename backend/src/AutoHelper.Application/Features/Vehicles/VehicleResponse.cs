@@ -11,7 +11,9 @@ public sealed record VehicleResponse(
     string? Color,
     int Mileage,
     string Status,
-    Guid OwnerId)
+    Guid OwnerId,
+    string? PartnerName,
+    string? DocumentUrl)
 {
     public static VehicleResponse FromVehicle(Vehicle vehicle) =>
         new(vehicle.Id,
@@ -22,5 +24,7 @@ public sealed record VehicleResponse(
             vehicle.Color,
             vehicle.Mileage,
             vehicle.Status.ToString(),
-            vehicle.OwnerId);
+            vehicle.OwnerId,
+            vehicle.PartnerName,
+            vehicle.DocumentUrl);
 }

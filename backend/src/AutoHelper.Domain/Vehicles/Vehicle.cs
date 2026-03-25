@@ -72,6 +72,12 @@ public sealed class Vehicle : AggregateRoot<Guid>
         };
     }
 
+    /// <summary>Name of the repair partner when status is InRepair.</summary>
+    public string? PartnerName { get; private set; }
+
+    /// <summary>URL to a PDF document required when status is Recycled or Dismantled.</summary>
+    public string? DocumentUrl { get; private set; }
+
     // ─── Business operations ──────────────────────────────────────────────────
 
     public void UpdateDetails(string brand, string model, int year, string? color, int mileage)
@@ -81,5 +87,42 @@ public sealed class Vehicle : AggregateRoot<Guid>
         Year = year;
         Color = color?.Trim();
         Mileage = mileage;
+    }
+
+    /// <summary>
+    /// Changes the vehicle status applying business rules:
+    /// - InRepair  → partnerName required
+    /// - Recycled / Dismantled → documentUrl required
+    /// - Other statuses → clears partnerName and documentUrl
+    /// </summary>
+    public Result ChangeStatus(VehicleStatus status, string? partnerName, string? documentUrl)
+    {
+        switch (status)
+        {
+            case VehicleStatus.InRepair:
+                if (string.IsNullOrWhiteSpace(partnerName))
+                    return Result.Failure("Partner name is required when status is InRepair.");
+                Status = status;
+                PartnerName = partnerName.Trim();
+                DocumentUrl = null;
+                break;
+
+            case VehicleStatus.Recycled:
+            case VehicleStatus.Dismantled:
+                if (string.IsNullOrWhiteSpace(documentUrl))
+                    return Result.Failure("Document URL is required when status is Recycled or Dismantled.");
+                Status = status;
+                PartnerName = null;
+                DocumentUrl = documentUrl.Trim();
+                break;
+
+            default:
+                Status = status;
+                PartnerName = null;
+                DocumentUrl = null;
+                break;
+        }
+
+        return Result.Success();
     }
 }

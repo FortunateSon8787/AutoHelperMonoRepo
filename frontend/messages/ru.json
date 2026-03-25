@@ -75,6 +75,38 @@
       "editButton": "Редактировать",
       "km": "км"
     },
+    "status": {
+      "sectionTitle": "Статус автомобиля",
+      "currentStatus": "Текущий статус",
+      "changeButton": "Изменить статус",
+      "changingButton": "Сохраняем...",
+      "changeSuccess": "Статус успешно изменён",
+      "statusLabel": "Новый статус",
+      "partnerNameLabel": "Название автосервиса",
+      "partnerNamePlaceholder": "AutoService Plus",
+      "documentLabel": "Документ (PDF)",
+      "documentHint": "Обязателен при утилизации или разборке. Максимум 10 МБ.",
+      "values": {
+        "Active": "Активен",
+        "ForSale": "В продаже",
+        "InRepair": "В ремонте",
+        "Recycled": "Утилизирован",
+        "Dismantled": "Разобран"
+      },
+      "validation": {
+        "partnerNameRequired": "Укажите название автосервиса",
+        "partnerNameMaxLength": "Максимум 256 символов",
+        "documentRequired": "Прикрепите PDF-документ",
+        "documentNotPdf": "Допускаются только PDF-файлы",
+        "documentTooLarge": "Файл не должен превышать 10 МБ"
+      },
+      "errors": {
+        "notFound": "Автомобиль не найден",
+        "badRequest": "Проверьте введённые данные",
+        "serverError": "Ошибка сервера. Попробуйте позже",
+        "unknown": "Что-то пошло не так. Попробуйте ещё раз"
+      }
+    },
     "form": {
       "addTitle": "Добавить автомобиль",
       "editTitle": "Редактировать автомобиль",

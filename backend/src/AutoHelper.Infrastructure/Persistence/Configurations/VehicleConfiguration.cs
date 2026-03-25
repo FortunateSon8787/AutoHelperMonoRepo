@@ -45,5 +45,11 @@ public sealed class VehicleConfiguration : IEntityTypeConfiguration<Vehicle>
             .IsRequired();
 
         builder.HasIndex(v => v.OwnerId);
+
+        builder.Property(v => v.PartnerName)
+            .HasMaxLength(256);
+
+        builder.Property(v => v.DocumentUrl)
+            .HasMaxLength(1024);
     }
 }

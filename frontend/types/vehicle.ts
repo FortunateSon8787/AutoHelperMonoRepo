@@ -21,6 +21,8 @@ export interface Vehicle {
   mileage: number;
   status: VehicleStatus;
   ownerId: string;
+  partnerName: string | null;
+  documentUrl: string | null;
 }
 
 export interface CreateVehicleRequest {
@@ -38,4 +40,10 @@ export interface UpdateVehicleRequest {
   year: number;
   color: string | null;
   mileage: number;
+}
+
+export interface UpdateVehicleStatusRequest {
+  status: VehicleStatus;
+  partnerName?: string;
+  document?: File;
 }

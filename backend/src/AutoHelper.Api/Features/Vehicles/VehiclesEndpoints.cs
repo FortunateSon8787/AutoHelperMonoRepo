@@ -1,9 +1,12 @@
+using AutoHelper.Application.Common.Interfaces;
 using AutoHelper.Application.Features.Vehicles;
+using AutoHelper.Application.Features.Vehicles.ChangeVehicleStatus;
 using AutoHelper.Application.Features.Vehicles.CreateVehicle;
 using AutoHelper.Application.Features.Vehicles.GetMyVehicles;
 using AutoHelper.Application.Features.Vehicles.GetVehicleById;
 using AutoHelper.Application.Features.Vehicles.GetVehicleOwner;
 using AutoHelper.Application.Features.Vehicles.UpdateVehicle;
+using AutoHelper.Domain.Vehicles;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -44,6 +47,14 @@ public static class VehiclesEndpoints
             .Produces(StatusCodes.Status204NoContent)
             .ProducesValidationProblem()
             .ProducesProblem(StatusCodes.Status404NotFound);
+
+        auth.MapPut("/{id:guid}/status", ChangeVehicleStatus)
+            .WithSummary("Change the status of an owned vehicle; InRepair requires partnerName, Recycled/Dismantled require a PDF document upload")
+            .Produces(StatusCodes.Status204NoContent)
+            .ProducesValidationProblem()
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status404NotFound)
+            .DisableAntiforgery();
     }
 
     // ─── Handlers ─────────────────────────────────────────────────────────────
@@ -122,6 +133,49 @@ public static class VehiclesEndpoints
                 Status = StatusCodes.Status404NotFound,
                 Title = result.Error
             });
+
+        return Results.NoContent();
+    }
+
+    private static async Task<IResult> ChangeVehicleStatus(
+        Guid id,
+        [FromForm] string status,
+        [FromForm] string? partnerName,
+        IFormFile? document,
+        ISender mediator,
+        IStorageService storage,
+        CancellationToken ct)
+    {
+        if (!Enum.TryParse<VehicleStatus>(status, ignoreCase: true, out var parsedStatus))
+            return Results.Problem(statusCode: StatusCodes.Status400BadRequest, title: $"Unknown status: '{status}'.");
+
+        string? documentUrl = null;
+
+        if (document is not null)
+        {
+            if (!document.ContentType.Equals("application/pdf", StringComparison.OrdinalIgnoreCase))
+                return Results.Problem(statusCode: StatusCodes.Status400BadRequest, title: "Only PDF documents are accepted.");
+
+            const long maxBytes = 10 * 1024 * 1024; // 10 MB
+            if (document.Length > maxBytes)
+                return Results.Problem(statusCode: StatusCodes.Status400BadRequest, title: "Document must not exceed 10 MB.");
+
+            var fileKey = $"vehicles/documents/{Guid.NewGuid()}.pdf";
+            await using var stream = document.OpenReadStream();
+            documentUrl = await storage.UploadAsync(stream, fileKey, "application/pdf", ct);
+        }
+
+        var command = new ChangeVehicleStatusCommand(id, parsedStatus, partnerName, documentUrl);
+        var result = await mediator.Send(command, ct);
+
+        if (result.IsFailure)
+        {
+            var statusCode = result.Error!.Contains("not found", StringComparison.OrdinalIgnoreCase)
+                ? StatusCodes.Status404NotFound
+                : StatusCodes.Status400BadRequest;
+
+            return Results.Problem(statusCode: statusCode, title: result.Error);
+        }
 
         return Results.NoContent();
     }
