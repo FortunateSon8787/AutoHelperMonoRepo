@@ -2,6 +2,7 @@ import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
 import type {
   Vehicle,
   VehicleOwner,
+  PublicVehicle,
   CreateVehicleRequest,
   UpdateVehicleRequest,
   UpdateVehicleStatusRequest,
@@ -66,6 +67,18 @@ export const vehicleService = {
     if (!res.ok) throw new Error("server_error");
 
     return res.json() as Promise<VehicleOwner>;
+  },
+
+  async getByVin(vin: string): Promise<PublicVehicle> {
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/api/vehicles/${encodeURIComponent(vin)}/details`,
+      { next: { revalidate: 60 } }
+    );
+
+    if (res.status === 404) throw new Error("not_found");
+    if (!res.ok) throw new Error("server_error");
+
+    return res.json() as Promise<PublicVehicle>;
   },
 
   // Authenticated CRUD

@@ -4,6 +4,7 @@ using AutoHelper.Application.Features.Vehicles.ChangeVehicleStatus;
 using AutoHelper.Application.Features.Vehicles.CreateVehicle;
 using AutoHelper.Application.Features.Vehicles.GetMyVehicles;
 using AutoHelper.Application.Features.Vehicles.GetVehicleById;
+using AutoHelper.Application.Features.Vehicles.GetVehicleByVin;
 using AutoHelper.Application.Features.Vehicles.GetVehicleOwner;
 using AutoHelper.Application.Features.Vehicles.UpdateVehicle;
 using AutoHelper.Domain.Vehicles;
@@ -22,6 +23,11 @@ public static class VehiclesEndpoints
         group.MapGet("/{vin}/owner", GetVehicleOwner)
             .WithSummary("Get the public profile of the owner of a vehicle identified by VIN")
             .Produces<VehicleOwnerResponse>(StatusCodes.Status200OK)
+            .ProducesProblem(StatusCodes.Status404NotFound);
+
+        group.MapGet("/{vin}/details", GetVehicleByVin)
+            .WithSummary("Get the public details (brand, model, year, status, mileage) of a vehicle identified by VIN")
+            .Produces<PublicVehicleResponse>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status404NotFound);
 
         // ─── Authenticated ────────────────────────────────────────────────────
@@ -65,6 +71,23 @@ public static class VehiclesEndpoints
         CancellationToken ct)
     {
         var result = await mediator.Send(new GetVehicleOwnerQuery(vin), ct);
+
+        if (result.IsFailure)
+            return Results.NotFound(new ProblemDetails
+            {
+                Status = StatusCodes.Status404NotFound,
+                Title = result.Error
+            });
+
+        return Results.Ok(result.Value);
+    }
+
+    private static async Task<IResult> GetVehicleByVin(
+        string vin,
+        ISender mediator,
+        CancellationToken ct)
+    {
+        var result = await mediator.Send(new GetVehicleByVinQuery(vin), ct);
 
         if (result.IsFailure)
             return Results.NotFound(new ProblemDetails

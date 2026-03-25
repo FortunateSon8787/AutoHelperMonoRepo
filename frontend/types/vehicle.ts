@@ -1,3 +1,16 @@
+// ─── Public Vehicle (no auth required) ────────────────────────────────────────
+
+export interface PublicVehicle {
+  vin: string;
+  brand: string;
+  model: string;
+  year: number;
+  color: string | null;
+  mileage: number;
+  status: VehicleStatus;
+  partnerName: string | null;
+}
+
 // ─── Vehicle Owner ────────────────────────────────────────────────────────────
 
 export interface VehicleOwner {
