@@ -284,22 +284,36 @@ Health Check: `GET /health`
 
 ---
 
-### Планируется (Epic AUT-2)
+### PUT /api/vehicles/{id}/status — **реализовано** (AUT-14)
 
-| Метод | Путь | Описание |
-|-------|------|----------|
-| PUT | `/api/vehicles/{id}/status` | Смена статуса |
-| GET | `/api/vehicles/{vin}/public` | Публичная карточка авто по VIN (SSR/SEO) |
+Смена статуса автомобиля. Требует `Authorization: Bearer`. Принимает `multipart/form-data`.
 
-### Статусы автомобиля
+**Request (form fields):**
+- `status` (string, required): `Active` | `ForSale` | `InRepair` | `Recycled` | `Dismantled`
+- `partnerName` (string, required if status=InRepair): название автосервиса
+- `document` (file, required if status=Recycled or Dismantled): PDF, max 10 МБ
+
+**Response:** `204 No Content`
+
+**Errors:**
+- `400 Bad Request` — нарушение бизнес-правил (нет partnerName / документа)
+- `404 Not Found` — авто не найдено или принадлежит другому пользователю
+
+### Статусы автомобиля — **реализовано** (AUT-14)
 
 | Статус | Доп. данные |
 |--------|-------------|
 | `Active` | — |
 | `ForSale` | — |
-| `InRepair` | `partnerName` (обязательно, планируется AUT-58) |
-| `Recycled` | `documentUrl` PDF (обязательно, планируется AUT-59) |
-| `Dismantled` | `documentUrl` PDF (обязательно, планируется AUT-59) |
+| `InRepair` | `partnerName` (обязательно) |
+| `Recycled` | `documentUrl` PDF (обязательно) |
+| `Dismantled` | `documentUrl` PDF (обязательно) |
+
+### Планируется (Epic AUT-2)
+
+| Метод | Путь | Описание |
+|-------|------|----------|
+| GET | `/api/vehicles/{vin}/public` | Публичная карточка авто по VIN (SSR/SEO) |
 
 ---
 

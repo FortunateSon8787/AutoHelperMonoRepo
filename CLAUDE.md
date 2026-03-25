@@ -101,7 +101,8 @@ AutoHelperMonoRepo/
 - ✅ Unit-тесты: Domain (Customer, Vehicle), Application (JwtTokenService, GetVehicleOwner handler)
 
 **В работе / Планируется (см. JIRA_DECOMPOSITION.md):**
-- 🔲 CRUD автомобилей (Epic AUT-2: AUT-13..15)
+- ✅ CRUD автомобилей (AUT-13) + статусы автомобиля (AUT-14) — реализовано
+- 🔲 Публичный просмотр автомобиля (AUT-15)
 - 🔲 Service Records / история работ (Epic AUT-3)
 - 🔲 AI АвтоПомощник — LLM-чат (Epic AUT-4)
 - 🔲 Биллинг / Stripe (Epic AUT-5)

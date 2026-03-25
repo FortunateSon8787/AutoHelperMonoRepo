@@ -100,10 +100,11 @@ Vehicle : AggregateRoot<Guid>
 │       ↳ throws DomainException если VIN не соответствует формату ISO 3779
 │
 ├── Business operations:
-│   └── UpdateDetails(brand, model, year, color?, mileage)
-│       ↳ обновляет мутабельные поля; VIN и OwnerId неизменны
-│
-└── (StatusDetails — планируется в AUT-57..59)
+│   ├── UpdateDetails(brand, model, year, color?, mileage)
+│   │   ↳ обновляет мутабельные поля; VIN и OwnerId неизменны
+│   └── ChangeStatus(status, partnerName?, documentUrl?) → Result
+│       ↳ InRepair: требует partnerName; Recycled/Dismantled: требует documentUrl
+│       ↳ прочие статусы: обнуляет partnerName и documentUrl
 ```
 
 **VIN-инвариант (ISO 3779):** ровно 17 символов, только A–Z и 0–9, буквы I, O, Q запрещены.
