@@ -54,6 +54,27 @@
     }
   },
   "vehicles": {
+    "vinSearch": {
+      "title": "Vehicle VIN Search",
+      "subtitle": "Enter a VIN number to look up vehicle information",
+      "vinLabel": "VIN number",
+      "vinPlaceholder": "1HGCM82633A123456",
+      "searchButton": "Search"
+    },
+    "publicCard": {
+      "vehicleTitle": "Vehicle Details",
+      "brandLabel": "Brand",
+      "modelLabel": "Model",
+      "yearLabel": "Year",
+      "colorLabel": "Color",
+      "noColor": "Not specified",
+      "mileageLabel": "Mileage",
+      "km": "km",
+      "statusLabel": "Status",
+      "partnerLabel": "In repair at",
+      "notFound": "No vehicle found with this VIN",
+      "serverError": "Server error. Please try again later"
+    },
     "ownerCard": {
       "title": "Vehicle Owner",
       "vinLabel": "VIN",

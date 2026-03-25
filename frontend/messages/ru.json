@@ -54,6 +54,27 @@
     }
   },
   "vehicles": {
+    "vinSearch": {
+      "title": "Поиск автомобиля по VIN",
+      "subtitle": "Введите VIN-номер, чтобы узнать информацию об автомобиле",
+      "vinLabel": "VIN-номер",
+      "vinPlaceholder": "1HGCM82633A123456",
+      "searchButton": "Найти"
+    },
+    "publicCard": {
+      "vehicleTitle": "Информация об автомобиле",
+      "brandLabel": "Марка",
+      "modelLabel": "Модель",
+      "yearLabel": "Год выпуска",
+      "colorLabel": "Цвет",
+      "noColor": "Не указан",
+      "mileageLabel": "Пробег",
+      "km": "км",
+      "statusLabel": "Статус",
+      "partnerLabel": "В ремонте у",
+      "notFound": "Автомобиль с таким VIN не найден",
+      "serverError": "Ошибка сервера. Попробуйте позже"
+    },
     "ownerCard": {
       "title": "Владелец автомобиля",
       "vinLabel": "VIN",
