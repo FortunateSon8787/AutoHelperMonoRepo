@@ -1,10 +1,20 @@
 {
+  "mcpServers": {
+    "claude_ai_Atlassian": {
+      "command": "npx",
+      "args": ["-y", "@atlassian/mcp"]
+    }
+  },
   "permissions": {
     "allow": [
       "Bash(git checkout:*)",
       "Bash(git pull:*)",
       "Skill(nextjs-server-client-components)",
-      "Skill(nextjs-server-client-components:*)"
+      "Skill(nextjs-server-client-components:*)",
+      "Bash(npx tsc:*)",
+      "Read(//c/Users/DNK/.claude/**)",
+      "Read(//c/Users/DNK/AppData/Roaming/**)",
+      "Read(//c/Users/DNK/AppData/Local/Claude/**)"
     ]
   }
 }
