@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git checkout:*)",
+      "Bash(git pull:*)",
+      "Skill(nextjs-server-client-components)",
+      "Skill(nextjs-server-client-components:*)"
+    ]
+  }
+}

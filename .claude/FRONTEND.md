@@ -26,6 +26,10 @@ frontend/
 │   │   └── page.tsx          # Профиль клиента (Client Component, требует авторизации)
 │   ├── vehicles/
 │   │   └── [vin]/page.tsx    # Публичная карточка владельца авто по VIN (Server Component, SSR)
+│   ├── dashboard/
+│   │   └── vehicles/
+│   │       ├── page.tsx      # Список авто + форма добавления (Client Component, требует авторизации)
+│   │       └── [id]/page.tsx # Редактирование авто (Client Component, требует авторизации)
 │   └── actions/              # Server Actions
 │
 ├── components/
@@ -38,7 +42,7 @@ frontend/
 ├── services/
 │   ├── authService.ts        # HTTP-функции для auth API (axios, withCredentials)
 │   ├── profileService.ts     # HTTP-функции для /api/clients/me (axios + Bearer token)
-│   └── vehicleService.ts     # HTTP-функции для /api/vehicles (fetch, SSR-кэш 60s)
+│   └── vehicleService.ts     # HTTP-функции для /api/vehicles (auth CRUD + public SSR getOwnerByVin)
 │
 ├── contexts/
 │   └── AuthContext.tsx       # React Context: user, accessToken, isAuthenticated, login/logout
@@ -46,7 +50,7 @@ frontend/
 ├── types/
 │   ├── auth.ts               # LoginRequest, RegisterRequest, TokenResponse, AuthUser, AuthContextValue
 │   ├── client.ts             # ClientProfile, UpdateProfileRequest
-│   └── vehicle.ts            # VehicleOwner
+│   └── vehicle.ts            # VehicleOwner, Vehicle, VehicleStatus, CreateVehicleRequest, UpdateVehicleRequest
 │
 ├── i18n/
 │   └── request.ts            # next-intl server-side конфиг (locale из cookie)
@@ -82,17 +86,19 @@ const PUBLIC_ROUTES = ["/auth/login", "/auth/register"];
 | `/auth/register` | Client | Нет | Форма регистрации |
 | `/profile` | Client | Да | Профиль клиента (имя, контакты, аватар, смена пароля) |
 | `/vehicles/[vin]` | Server (SSR) | Нет | Публичная карточка владельца авто по VIN |
+| `/dashboard/vehicles` | Client | Да | Список авто пользователя + форма добавления |
+| `/dashboard/vehicles/[id]` | Client | Да | Редактирование авто (VIN read-only) |
 
-### Роутинг по ролям (планируется)
+### Роутинг по ролям (планируется / частично реализовано)
 
-| Раздел | Путь | Роль |
-|--------|------|------|
-| Дашборд клиента | `/dashboard` | Customer |
-| AI-чат | `/dashboard/chat` | Customer (Premium) |
-| Мои авто | `/dashboard/vehicles` | Customer |
-| Подписка | `/dashboard/subscription` | Customer |
-| Кабинет партнёра | `/partner` | Partner |
-| Админ-панель | `/admin` | Admin / Superadmin |
+| Раздел | Путь | Роль | Статус |
+|--------|------|------|--------|
+| Дашборд клиента | `/dashboard` | Customer | Планируется |
+| Мои авто | `/dashboard/vehicles` | Customer | ✅ Реализовано (AUT-13) |
+| AI-чат | `/dashboard/chat` | Customer (Premium) | Планируется |
+| Подписка | `/dashboard/subscription` | Customer | Планируется |
+| Кабинет партнёра | `/partner` | Partner | Планируется |
+| Админ-панель | `/admin` | Admin / Superadmin | Планируется |
 
 ---
 
@@ -184,20 +190,18 @@ const api = axios.create({
 **Переменные окружения:**
 - `NEXT_PUBLIC_API_URL` — URL бэкенда (по умолчанию `http://localhost:8080`)
 
-### Паттерн нового сервиса (authenticated)
+### Паттерн сервиса с авторизацией (vehicleService — реализован)
 
 ```typescript
-// services/vehicleService.ts (будущий расширенный вариант)
+// services/vehicleService.ts
+// Axios instance с Bearer-интерцептором (из localStorage "accessToken")
+// + VehicleServiceError с кодами: unauthorized | notFound | conflict | badRequest | serverError | unknown
 export const vehicleService = {
-  async getMyVehicles(): Promise<Vehicle[]> {
-    const response = await api.get<Vehicle[]>('/api/vehicles');
-    return response.data;
-  },
-
-  async create(data: CreateVehicleRequest): Promise<Vehicle> {
-    const response = await api.post<Vehicle>('/api/vehicles', data);
-    return response.data;
-  },
+  async getMyVehicles(): Promise<Vehicle[]> { ... },
+  async getById(id: string): Promise<Vehicle> { ... },
+  async create(data: CreateVehicleRequest): Promise<{ vehicleId: string }> { ... },
+  async update(id: string, data: UpdateVehicleRequest): Promise<void> { ... },
+  async getOwnerByVin(vin: string): Promise<VehicleOwner> { ... }, // public SSR
 };
 ```
 

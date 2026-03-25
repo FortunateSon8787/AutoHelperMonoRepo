@@ -200,14 +200,94 @@ Health Check: `GET /health`
 
 ---
 
+### GET /api/vehicles — **реализовано** (AUT-13)
+
+Список автомобилей текущего пользователя. Требует `Authorization: Bearer`.
+
+**Response 200:**
+```json
+[
+  {
+    "id": "uuid",
+    "vin": "1HGCM82633A123456",
+    "brand": "Toyota",
+    "model": "Camry",
+    "year": 2020,
+    "color": "White",
+    "mileage": 45000,
+    "status": "Active",
+    "ownerId": "uuid"
+  }
+]
+```
+
+---
+
+### POST /api/vehicles — **реализовано** (AUT-13)
+
+Создание нового автомобиля. Требует `Authorization: Bearer`.
+
+**Request:**
+```json
+{
+  "vin": "1HGCM82633A123456",
+  "brand": "Toyota",
+  "model": "Camry",
+  "year": 2020,
+  "color": "White",
+  "mileage": 45000
+}
+```
+
+**Response 201:**
+```json
+{ "vehicleId": "uuid" }
+```
+
+**Errors:**
+- `409 Conflict` — автомобиль с таким VIN уже существует
+- `400 Bad Request` — ошибки валидации (VIN формат, год, пробег)
+
+---
+
+### GET /api/vehicles/{id} — **реализовано** (AUT-13)
+
+Получение автомобиля по UUID. Доступно только владельцу. Требует `Authorization: Bearer`.
+
+**Response 200:** (аналогично элементу из `GET /api/vehicles`)
+
+**Errors:**
+- `404 Not Found` — авто не найдено или принадлежит другому пользователю
+
+---
+
+### PUT /api/vehicles/{id} — **реализовано** (AUT-13)
+
+Обновление мутабельных полей (VIN не меняется). Требует `Authorization: Bearer`.
+
+**Request:**
+```json
+{
+  "brand": "Toyota",
+  "model": "Camry",
+  "year": 2021,
+  "color": "Black",
+  "mileage": 50000
+}
+```
+
+**Response:** `204 No Content`
+
+**Errors:**
+- `404 Not Found` — авто не найдено или принадлежит другому пользователю
+- `400 Bad Request` — ошибки валидации
+
+---
+
 ### Планируется (Epic AUT-2)
 
 | Метод | Путь | Описание |
 |-------|------|----------|
-| GET | `/api/vehicles` | Список авто текущего клиента |
-| POST | `/api/vehicles` | Создание нового автомобиля |
-| GET | `/api/vehicles/{id}` | Детали автомобиля |
-| PUT | `/api/vehicles/{id}` | Обновление данных |
 | PUT | `/api/vehicles/{id}/status` | Смена статуса |
 | GET | `/api/vehicles/{vin}/public` | Публичная карточка авто по VIN (SSR/SEO) |
 

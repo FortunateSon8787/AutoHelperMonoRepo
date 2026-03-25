@@ -80,7 +80,7 @@ enum SubscriptionStatus
 
 ---
 
-### Vehicle (реализован в AUT-12 / Epic AUT-2)
+### Vehicle — **полностью реализован** (AUT-12, AUT-13 / Epic AUT-2)
 
 **Файл:** `Domain/Vehicles/Vehicle.cs`
 
@@ -98,6 +98,10 @@ Vehicle : AggregateRoot<Guid>
 ├── Factory method:
 │   └── Create(vin, brand, model, year, ownerId, color?, mileage?)
 │       ↳ throws DomainException если VIN не соответствует формату ISO 3779
+│
+├── Business operations:
+│   └── UpdateDetails(brand, model, year, color?, mileage)
+│       ↳ обновляет мутабельные поля; VIN и OwnerId неизменны
 │
 └── (StatusDetails — планируется в AUT-57..59)
 ```
@@ -118,6 +122,7 @@ Vehicle : AggregateRoot<Guid>
 **Бизнес-правила:**
 - VIN уникален — `IVehicleRepository.ExistsByVinAsync` проверяется перед созданием.
 - VIN валидируется в домене по ISO 3779 (17 символов, без I/O/Q) при вызове `Vehicle.Create()`.
+- VIN и OwnerId неизменны после создания — изменение через `UpdateDetails` невозможно.
 
 ---
 
