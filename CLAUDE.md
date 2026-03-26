@@ -4,7 +4,7 @@
 
 ## Что такое AutoHelper
 
-SaaS-платформа для учёта автомобилей, истории их обслуживания, AI-диагностики и подбора партнёров (автосервисы, эвакуаторы, автомойки и др.). Подробные бизнес-требования: `.claude/AutoHelper_Requirements_v1.3.md`.
+SaaS-платформа для учёта автомобилей, истории их обслуживания, AI-диагностики и подбора партнёров (автосервисы, эвакуаторы, автомойки и др.). Подробные бизнес-требования: `.claude/AutoHelper_Requirements_v1.4.md`.
 
 ---
 
@@ -45,7 +45,7 @@ AutoHelperMonoRepo/
     ├── API.md
     ├── FRONTEND.md
     ├── DOMAIN.md
-    ├── AutoHelper_Requirements_v1.3.md
+    ├── AutoHelper_Requirements_v1.4.md
     └── JIRA_DECOMPOSITION.md
 ```
 
@@ -55,7 +55,7 @@ AutoHelperMonoRepo/
 
 | Что нужно понять | Файл |
 |------------------|------|
-| Бизнес-требования | `.claude/AutoHelper_Requirements_v1.3.md` |
+| Бизнес-требования | `.claude/AutoHelper_Requirements_v1.4.md` |
 | Декомпозиция задач (Jira) | `.claude/JIRA_DECOMPOSITION.md` |
 | Архитектура бэкенда | `.claude/ARCHITECTURE.md` |
 | Конвенции кода, git, миграции | `.claude/CONVENTIONS.md` |
@@ -75,9 +75,9 @@ AutoHelperMonoRepo/
 Если в процессе работы пользователь пишет что-то похожее на **изменение требований или функционала** AutoHelper — нужно:
 
 1. Заметить это и явно сообщить пользователю: _«Это похоже на изменение требований»_
-2. Предложить внести изменения в файл `.claude/AutoHelper_Requirements_v1.3.md`
+2. Предложить внести изменения в файл `.claude/AutoHelper_Requirements_v1.4.md`
 3. Перезаписать файл с обновлёнными требованиями
-4. Увеличить номер версии в имени файла (например, `v1.3` → `v1.4`) и переименовать
+4. Увеличить номер версии в имени файла (например, `v1.4` → `v1.5`) и переименовать
 
 ---
 
@@ -103,11 +103,13 @@ AutoHelperMonoRepo/
 **В работе / Планируется (см. JIRA_DECOMPOSITION.md):**
 - ✅ CRUD автомобилей (AUT-13) + статусы автомобиля (AUT-14) — реализовано
 - ✅ Публичный просмотр автомобиля (AUT-15) — реализовано
-- 🔲 Service Records / история работ (Epic AUT-3)
-- 🔲 AI АвтоПомощник — LLM-чат (Epic AUT-4)
-- 🔲 Биллинг / Stripe (Epic AUT-5)
-- 🔲 Партнёры (Epic AUT-6)
+- 🔲 Service Records / история работ (Epic AUT-3) + сжатие PDF
+- 🔲 Soft-delete + Аудит-лог (Epic AUT-150)
+- 🔲 AI АвтоПомощник — LLM-чат (Epic AUT-4); подписки, невалидные запросы
+- 🔲 Биллинг / Lemon Squeezy (Epic AUT-5)
+- 🔲 Партнёры + партнёрский кабинет (Epic AUT-6)
 - 🔲 Админ-панель (Epic AUT-7)
+- 🔲 Лендинг + блог + юридические страницы (Epic AUT-8)
 
 ---
 
@@ -121,8 +123,8 @@ AutoHelperMonoRepo/
 | Валидация | FluentValidation |
 | Аутентификация | JWT (access + refresh), Google OAuth 2.0 |
 | File Storage | MinIO (S3-compatible) |
-| AI | OpenAI GPT-4o |
-| Платежи | Stripe |
+| AI / LLM | ILlmProvider (OpenAI ChatGPT 5.4 — начальный провайдер) |
+| Платежи | Lemon Squeezy |
 | Логирование | Serilog |
 | API Docs | OpenAPI + Scalar |
 | Frontend | Next.js 15, TypeScript, Tailwind CSS |
@@ -138,11 +140,14 @@ AutoHelperMonoRepo/
 
 1. **VIN уникален** — unique constraint в БД, валидация в домене.
 2. **Только одна запись авто** — создаётся один раз, владелец меняется.
-3. **AI только по подписке Premium** — middleware проверяет `SubscriptionStatus`.
+3. **AI (Режимы 1 и 2) только по подписке чатбота** — middleware проверяет подписку и счётчик запросов.
 4. **Хардкод строк в компонентах запрещён** — только `useTranslations()` из next-intl.
-5. **API-ключ OpenAI только на бэкенде** — никогда в браузер.
+5. **API-ключ LLM-провайдера только на бэкенде** — никогда в браузер.
 6. **Перед коммитом**: `dotnet build` → `dotnet test` → проверка миграций (см. CONVENTIONS.md).
 7. **Миграции только с флагом `--output-dir Persistence/Migrations`** (см. CONVENTIONS.md).
+8. **Все удаления — soft-delete** (IsDeleted = true), физическое удаление из БД запрещено.
+9. **Аудит-лог** — все CRUD-операции над Customer, Vehicle, ServiceRecord фиксируются в AuditLogs.
+10. **Инфраструктурные абстракции** — Storage, LLM, Billing реализуются через интерфейсы Application-слоя.
 
 ---
 

@@ -7,7 +7,8 @@
       "Bash(dotnet build:*)",
       "Bash(dotnet test:*)",
       "Bash(docker compose:*)",
-      "Bash(grep -v \"^$\")"
+      "Bash(grep -v \"^$\")",
+      "mcp__claude_ai_Atlassian__editJiraIssue"
     ]
   }
 }

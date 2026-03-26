@@ -127,6 +127,27 @@ Vehicle : AggregateRoot<Guid>
 
 ---
 
+## Сквозные доменные механизмы
+
+### Soft-delete (Epic AUT-150)
+
+Все агрегаты содержат поле `IsDeleted: bool` (по умолчанию `false`). Физическое удаление из БД не производится. EF Core глобальный фильтр `HasQueryFilter(e => !e.IsDeleted)` применяется ко всем сущностям автоматически.
+
+### AuditLog (Epic AUT-150)
+
+```
+AuditLog : Entity<Guid>
+├── OperationType: AuditOperationType   (Created | Updated | Deleted)
+├── EntityType: string                  ("Customer" | "Vehicle" | "ServiceRecord")
+├── EntityId: Guid
+├── PerformedAt: DateTime               (UTC)
+├── PerformedByUserId: Guid?
+├── PerformedByRole: string             ("Client" | "Admin" | "System")
+└── AdditionalInfo: string?             (JSON; для Updated ServiceRecord — {"OldEntity": "<json>"})
+```
+
+---
+
 ## Планируемые агрегаты (по требованиям)
 
 ---
@@ -141,11 +162,16 @@ ServiceRecord : AggregateRoot<Guid>
 ├── PerformedAt: DateTime
 ├── Cost: decimal
 ├── ExecutorName: string       (партнёр или сторонняя организация)
+├── ExecutorContacts: string?  (контактные данные исполнителя)
 ├── Operations: List<string>   (перечень работ)
-└── DocumentUrl: string        (PDF наряд-заказ — ОБЯЗАТЕЛЕН)
+├── DocumentUrl: string        (PDF наряд-заказ — ОБЯЗАТЕЛЕН)
+└── IsDeleted: bool            (soft-delete)
 ```
 
-**Бизнес-правило:** Каждая запись ОБЯЗАНА содержать PDF-документ. История публично доступна по VIN.
+**Бизнес-правила:**
+- Каждая запись ОБЯЗАНА содержать PDF-документ. История публично доступна по VIN.
+- При обновлении фиксируется запись в AuditLog с JSON старой сущности (ключ `OldEntity`).
+- Удаление — только soft-delete.
 
 ---
 
@@ -155,32 +181,59 @@ ServiceRecord : AggregateRoot<Guid>
 Chat : AggregateRoot<Guid>
 ├── CustomerId: Guid
 ├── VehicleId: Guid?           (опционально — привязка к конкретному авто)
+├── Mode: ChatMode             (FaultHelp | WorkClarification | PartnerAdvice)
 ├── CreatedAt: DateTime
 └── Messages: List<Message>
 
 Message : Entity<Guid>
 ├── ChatId: Guid
-├── Role: MessageRole          (User / Assistant)
+├── Role: MessageRole          (User | Assistant)
 ├── Content: string
+├── IsValid: bool              (false — если запрос был невалидным)
 └── CreatedAt: DateTime
 ```
 
-**Бизнес-правило:** Доступ к чату только при `SubscriptionStatus = Premium`.
+**Бизнес-правила:**
+- Доступ к Режимам 1 и 2 только при активной подписке чатбота.
+- Невалидный запрос не уменьшает счётчик запросов.
+- Ответы генерируются на языке текущей локали сайта.
 
 ---
 
-### Subscription (Epic AUT-5)
+### ChatbotSubscription (Epic AUT-4, AUT-5)
 
 ```
-Subscription : AggregateRoot<Guid>
+ChatbotSubscription : AggregateRoot<Guid>
 ├── CustomerId: Guid
-├── Plan: SubscriptionPlan     (Free / Premium)
-├── Status: SubscriptionStatus (Active / Cancelled / PastDue)
-├── StripeSubscriptionId: string?
-├── StripeCustomerId: string?
-├── CurrentPeriodStart: DateTime
-├── CurrentPeriodEnd: DateTime
+├── Plan: ChatbotPlan          (Regular | Pro | Maximum)
+├── Status: SubscriptionStatus (Active | Cancelled | PastDue)
+├── LemonSqueezySubscriptionId: string?
+├── LemonSqueezyCustomerId: string?
+├── RequestsRemaining: int     (оставшиеся запросы в текущем периоде)
+├── RequestsTotal: int         (лимит по плану)
+├── PeriodStart: DateTime
+├── PeriodEnd: DateTime
 └── CancelledAt: DateTime?
+```
+
+**Тарифы:**
+```
+Regular  → $4.99/мес,  10 запросов (Режим 1 + Режим 2 суммарно)
+Pro      → $7.99/мес,  20 запросов
+Maximum  → $12.99/мес, 40 запросов
+Разовое пополнение → $3 / 10 запросов
+```
+
+---
+
+### InvalidChatRequest (Epic AUT-4)
+
+```
+InvalidChatRequest : Entity<Guid>
+├── CustomerId: Guid
+├── InvalidAttemptsCount: int
+├── LastInvalidAt: DateTime
+└── Details: string            (JSON-массив: [{text, mode, timestamp}, ...])
 ```
 
 ---
@@ -200,8 +253,11 @@ Partner : AggregateRoot<Guid>
 ├── LogoUrl: string?
 ├── IsVerified: bool
 ├── IsActive: bool
-├── IsPotentiallyUnfit: bool    (авто: >= 5 оценок ниже 3)
-└── Documents: List<string>     (URL лицензий, сертификатов)
+├── IsPotentiallyUnfit: bool    (>= 5 оценок ниже 3)
+├── Documents: List<string>     (URL лицензий, сертификатов)
+├── AccountUserId: Guid         (учётная запись партнёра)
+├── ShowBannersToAnonymous: bool (разрешить показ баннеров анонимным пользователям)
+└── IsDeleted: bool             (soft-delete)
 ```
 
 **Бизнес-правило автопометки:**
@@ -221,7 +277,8 @@ Review : AggregateRoot<Guid>
 ├── Comment: string             (обязателен)
 ├── InteractionType: ReviewBasis (RecommendedByAI | ExecutorInServiceRecord)
 ├── InteractionReferenceId: Guid  (chatId или serviceRecordId)
-└── CreatedAt: DateTime
+├── CreatedAt: DateTime
+└── IsDeleted: bool             (soft-delete)
 ```
 
 **Бизнес-правило:** Оставить отзыв можно ТОЛЬКО если:
@@ -241,7 +298,47 @@ AdCampaign : AggregateRoot<Guid>
 ├── StartsAt: DateTime
 ├── EndsAt: DateTime
 ├── IsActive: bool
-└── Stats: AdStats              (показы, клики)
+├── ShowToAnonymous: bool       (показывать анонимным пользователям)
+├── Stats: AdStats              (показы, клики)
+└── IsDeleted: bool             (soft-delete)
+```
+
+---
+
+### PlatformReview (Epic AUT-8)
+
+```
+PlatformReview : AggregateRoot<Guid>
+├── CustomerId: Guid
+├── Text: string
+├── Rating: int?                (опционально)
+├── CreatedAt: DateTime
+├── IsApproved: bool            (одобрен для отображения на лендинге)
+└── IsDeleted: bool             (soft-delete)
+```
+
+**Бизнес-правило:** На лендинге отображаются только записи с `IsApproved = true`.
+
+---
+
+## Enums (обновлённые)
+
+### ChatbotPlan
+
+```csharp
+enum ChatbotPlan { Regular, Pro, Maximum }
+```
+
+### ChatMode
+
+```csharp
+enum ChatMode { FaultHelp, WorkClarification, PartnerAdvice }
+```
+
+### AuditOperationType
+
+```csharp
+enum AuditOperationType { Created, Updated, Deleted }
 ```
 
 ---
@@ -255,7 +352,12 @@ AdCampaign : AggregateRoot<Guid>
 | 3 | Статусы «Утилизирован» и «Разобран» требуют PDF-документа |
 | 4 | Оценить партнёра можно только при наличии факта взаимодействия |
 | 5 | ≥ 5 оценок ниже 3 → автопометка «Потенциально профнепригодный» |
-| 6 | AI-чат доступен только при Premium подписке |
+| 6 | AI-чат (Режимы 1 и 2) доступен только при активной подписке чатбота |
 | 7 | АвтоПомощник отвечает строго в 3 режимах; прочие вопросы отклоняются |
 | 8 | Новые партнёры публикуются только после верификации администратором |
-| 9 | API-ключ OpenAI используется только на бэкенде |
+| 9 | API-ключ LLM-провайдера используется только на бэкенде |
+| 10 | Все удаления сущностей — soft-delete (IsDeleted = true) |
+| 11 | Все CRUD-операции над Customer, Vehicle, ServiceRecord — фиксируются в AuditLogs |
+| 12 | Невалидный запрос к чатботу не уменьшает счётчик запросов подписки |
+| 13 | Партнёр видит только свой кабинет; рекламные баннеры партнёрам не показываются |
+| 14 | На лендинге отображаются только одобренные администратором отзывы о платформе |

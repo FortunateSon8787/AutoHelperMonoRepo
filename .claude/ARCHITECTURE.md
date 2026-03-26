@@ -18,7 +18,7 @@
 │  AutoHelper.Infrastructure (Adapters / Infrastructure)        │
 │  — EF Core AppDbContext, Repositories, Migrations             │
 │  — JwtTokenService, PasswordHasher                            │
-│  — S3/MinIO, Stripe, OpenAI клиенты                           │
+│  — S3/MinIO, Lemon Squeezy, ILlmProvider (OpenAI ChatGPT 5.4) │
 │  — Реализует интерфейсы из Application                        │
 │  — Знает о Domain и Application (только интерфейсы)           │
 ├──────────────────────────────────────────────────────────────┤
@@ -66,11 +66,14 @@ Domain/Common/
 | Агрегат | Предполагаемый модуль |
 |---------|-----------------------|
 | `ServiceRecord` | История работ (Epic AUT-3) |
+| `AuditLog` | Аудит-лог (Epic AUT-150) |
 | `Chat` / `Message` | AI-чат (Epic AUT-4) |
-| `Subscription` | Биллинг (Epic AUT-5) |
+| `ChatbotSubscription` | Биллинг / чатбот (Epic AUT-4, AUT-5) |
+| `InvalidChatRequest` | Чатбот (Epic AUT-4) |
 | `Partner` | Партнёры (Epic AUT-6) |
 | `Review` | Рейтинги (Epic AUT-6) |
 | `AdCampaign` | Реклама (Epic AUT-6) |
+| `PlatformReview` | Блог лендинга (Epic AUT-8) |
 
 ---
 
@@ -131,7 +134,10 @@ Common/Interfaces/
   ├── IRefreshTokenRepository  — Add, GetByTokenAsync, MarkAsRevokedAsync
   ├── IJwtTokenService         — GenerateAccessToken, GenerateRefreshToken, ValidateToken
   ├── IPasswordHasher          — Hash, Verify
-  ├── IStorageService          — UploadAsync
+  ├── IStorageService          — UploadAsync, CompressAsync
+  ├── ILlmProvider             — SendAsync(prompt, context, locale) — абстракция LLM (начальная реализация: OpenAI ChatGPT 5.4)
+  ├── IBillingService          — абстракция биллинга (начальная реализация: Lemon Squeezy)
+  ├── IAuditLogService         — LogAsync(operationType, entityType, entityId, performedBy, additionalInfo?)
   └── ICurrentUser             — UserId (из JWT claims)
 ```
 
@@ -267,8 +273,8 @@ app.MapVehiclesEndpoints();
     "SecretKey": "...",
     "BucketName": "autohelper"
   },
-  "Stripe": { "SecretKey": "...", "WebhookSecret": "..." },
-  "OpenAI": { "ApiKey": "...", "Model": "gpt-4o" },
+  "LemonSqueezy": { "ApiKey": "...", "WebhookSecret": "...", "StoreId": "..." },
+  "LLM": { "Provider": "OpenAI", "ApiKey": "...", "Model": "gpt-5.4" },
   "Database": { "AutoMigrateOnStartup": true }
 }
 ```
