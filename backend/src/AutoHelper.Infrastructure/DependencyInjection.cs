@@ -35,6 +35,7 @@ public static class DependencyInjection
         services.AddScoped<ICustomerRepository, CustomerRepository>();
         services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
         services.AddScoped<IVehicleRepository, VehicleRepository>();
+        services.AddScoped<IServiceRecordRepository, ServiceRecordRepository>();
 
         // Security
         services.AddSingleton<IPasswordHasher, PasswordHasher>();
@@ -55,10 +56,16 @@ public static class DependencyInjection
             clientConfig: new AmazonS3Config
             {
                 ServiceURL = storageSettings.ServiceUrl,
-                ForcePathStyle = true // required for MinIO
+                ForcePathStyle = true // required for MinIO and Cloudflare R2
             }));
 
-        services.AddScoped<IStorageService, S3StorageService>();
+        // Select storage implementation based on configured provider.
+        // Both MinIO and R2 are S3-compatible; the provider flag controls
+        // URL generation and future provider-specific behaviour.
+        if (storageSettings.Provider.Equals("R2", StringComparison.OrdinalIgnoreCase))
+            services.AddScoped<IStorageService, R2StorageService>();
+        else
+            services.AddScoped<IStorageService, S3StorageService>();
 
         return services;
     }

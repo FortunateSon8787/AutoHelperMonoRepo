@@ -169,6 +169,84 @@
       }
     }
   },
+  "serviceRecords": {
+    "list": {
+      "title": "История обслуживания",
+      "addButton": "Добавить запись",
+      "emptyState": "История обслуживания пуста",
+      "performedAtLabel": "Дата",
+      "costLabel": "Стоимость",
+      "executorLabel": "Исполнитель",
+      "viewButton": "Подробнее",
+      "currency": "₽"
+    },
+    "detail": {
+      "backButton": "← Назад",
+      "descriptionLabel": "Описание",
+      "performedAtLabel": "Дата проведения",
+      "costLabel": "Стоимость",
+      "executorLabel": "Исполнитель",
+      "executorContactsLabel": "Контакты исполнителя",
+      "operationsLabel": "Выполненные работы",
+      "documentLabel": "Наряд-заказ (PDF)",
+      "openDocumentButton": "Открыть документ",
+      "notFound": "Запись не найдена",
+      "serverError": "Ошибка сервера. Попробуйте позже"
+    },
+    "form": {
+      "addTitle": "Добавить запись об обслуживании",
+      "titleLabel": "Название",
+      "titlePlaceholder": "Замена масла и фильтров",
+      "descriptionLabel": "Описание",
+      "descriptionPlaceholder": "Подробное описание выполненных работ",
+      "performedAtLabel": "Дата проведения",
+      "costLabel": "Стоимость (₽)",
+      "costPlaceholder": "1500",
+      "executorNameLabel": "Исполнитель",
+      "executorNamePlaceholder": "AutoService Pro",
+      "executorContactsLabel": "Контакты исполнителя",
+      "executorContactsPlaceholder": "+7-999-000-0000",
+      "operationsLabel": "Перечень работ",
+      "operationsPlaceholder": "Замена масла",
+      "addOperationButton": "Добавить работу",
+      "documentLabel": "Наряд-заказ (PDF)",
+      "documentHint": "Обязателен. Максимум 10 МБ.",
+      "documentUploading": "Загружаем документ...",
+      "documentUploaded": "Документ загружен",
+      "submitButton": "Сохранить",
+      "submittingButton": "Сохраняем...",
+      "cancelButton": "Отмена",
+      "createSuccess": "Запись успешно добавлена",
+      "validation": {
+        "titleRequired": "Название обязательно",
+        "titleMaxLength": "Максимум 256 символов",
+        "descriptionRequired": "Описание обязательно",
+        "performedAtRequired": "Укажите дату проведения работ",
+        "performedAtFuture": "Дата не может быть в будущем",
+        "costInvalid": "Стоимость не может быть отрицательной",
+        "executorNameRequired": "Укажите исполнителя",
+        "operationsRequired": "Укажите хотя бы одну работу",
+        "documentRequired": "Прикрепите PDF-документ",
+        "documentNotPdf": "Допускаются только PDF-файлы",
+        "documentTooLarge": "Файл не должен превышать 10 МБ"
+      },
+      "errors": {
+        "notFound": "Автомобиль не найден",
+        "badRequest": "Проверьте правильность введённых данных",
+        "serverError": "Ошибка сервера. Попробуйте позже",
+        "unknown": "Что-то пошло не так. Попробуйте ещё раз"
+      }
+    },
+    "public": {
+      "title": "История обслуживания",
+      "emptyState": "История обслуживания не найдена",
+      "performedAtLabel": "Дата",
+      "costLabel": "Стоимость",
+      "executorLabel": "Исполнитель",
+      "viewButton": "Подробнее",
+      "currency": "₽"
+    }
+  },
   "profile": {
     "title": "Профиль",
     "subscription": "Подписка",

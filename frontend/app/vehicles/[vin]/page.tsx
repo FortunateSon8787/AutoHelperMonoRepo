@@ -1,7 +1,9 @@
 import { getTranslations } from "next-intl/server";
-import { User, Car } from "lucide-react";
+import { User, Car, FileText } from "lucide-react";
 import { vehicleService } from "@/services/vehicleService";
+import { serviceRecordService } from "@/services/serviceRecordService";
 import type { PublicVehicle, VehicleOwner } from "@/types/vehicle";
+import type { ServiceRecord } from "@/types/serviceRecord";
 
 // ─── Status badge color map ────────────────────────────────────────────────────
 
@@ -22,21 +24,25 @@ interface Props {
 export default async function VehiclePublicPage({ params }: Props) {
   const { vin } = await params;
 
-  const [tCard, tOwner] = await Promise.all([
+  const [tCard, tOwner, tServiceRecords] = await Promise.all([
     getTranslations("vehicles.publicCard"),
     getTranslations("vehicles.ownerCard"),
+    getTranslations("serviceRecords.public"),
   ]);
 
-  // Fetch vehicle details and owner in parallel
-  const [vehicleResult, ownerResult] = await Promise.allSettled([
+  // Fetch vehicle details, owner and service records in parallel
+  const [vehicleResult, ownerResult, serviceRecordsResult] = await Promise.allSettled([
     vehicleService.getByVin(vin),
     vehicleService.getOwnerByVin(vin),
+    serviceRecordService.getPublicByVin(vin),
   ]);
 
   const vehicle: PublicVehicle | null =
     vehicleResult.status === "fulfilled" ? vehicleResult.value : null;
   const owner: VehicleOwner | null =
     ownerResult.status === "fulfilled" ? ownerResult.value : null;
+  const serviceRecords: ServiceRecord[] =
+    serviceRecordsResult.status === "fulfilled" ? serviceRecordsResult.value : [];
 
   const vehicleError =
     vehicleResult.status === "rejected"
@@ -154,6 +160,51 @@ export default async function VehiclePublicPage({ params }: Props) {
                 <span className="text-sm font-semibold text-gray-900">
                   {vehicle!.partnerName}
                 </span>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ── Service History Card ── */}
+        {vehicle && (
+          <div className="bg-white border border-gray-200 rounded-xl p-8 shadow-sm">
+            <h2 className="text-lg font-bold text-gray-900 mb-5">
+              {tServiceRecords("title")}
+            </h2>
+
+            {serviceRecords.length === 0 ? (
+              <p className="text-sm text-gray-400">{tServiceRecords("emptyState")}</p>
+            ) : (
+              <div className="space-y-3">
+                {serviceRecords.map((record) => (
+                  <div
+                    key={record.id}
+                    className="border border-gray-100 rounded-lg p-4 flex items-start justify-between gap-4"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-gray-900 truncate">{record.title}</p>
+                      <p className="text-sm text-gray-400 mt-0.5">
+                        {tServiceRecords("performedAtLabel")}:{" "}
+                        {new Date(record.performedAt).toLocaleDateString()}
+                        {" · "}
+                        {tServiceRecords("executorLabel")}: {record.executorName}
+                      </p>
+                      <p className="text-sm font-medium text-gray-700 mt-1">
+                        {tServiceRecords("costLabel")}: {record.cost.toLocaleString()}{" "}
+                        {tServiceRecords("currency")}
+                      </p>
+                    </div>
+                    <a
+                      href={record.documentUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="shrink-0 inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-900 border border-gray-200 rounded-md px-3 py-1.5 transition-colors"
+                    >
+                      <FileText className="h-3.5 w-3.5" />
+                      {tServiceRecords("viewButton")}
+                    </a>
+                  </div>
+                ))}
               </div>
             )}
           </div>

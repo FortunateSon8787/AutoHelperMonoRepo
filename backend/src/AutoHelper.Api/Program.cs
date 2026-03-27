@@ -1,6 +1,7 @@
 using AutoHelper.Api.Extensions;
 using AutoHelper.Api.Features.Auth;
 using AutoHelper.Api.Features.Clients;
+using AutoHelper.Api.Features.ServiceRecords;
 using AutoHelper.Api.Features.Vehicles;
 using AutoHelper.Api.Middleware;
 using AutoHelper.Infrastructure.Persistence;
@@ -57,6 +58,7 @@ try
     app.MapAuthEndpoints();
     app.MapClientsEndpoints();
     app.MapVehicleEndpoints();
+    app.MapServiceRecordEndpoints();
 
     await app.RunAsync();
 }
