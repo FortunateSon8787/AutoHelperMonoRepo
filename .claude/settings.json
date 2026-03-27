@@ -1,10 +1,4 @@
 {
-  "mcpServers": {
-    "claude_ai_Atlassian": {
-      "command": "npx",
-      "args": ["-y", "@atlassian/mcp"]
-    }
-  },
   "permissions": {
     "allow": [
       "Bash(git checkout:*)",
@@ -16,5 +10,17 @@
       "Read(//c/Users/DNK/AppData/Roaming/**)",
       "Read(//c/Users/DNK/AppData/Local/Claude/**)"
     ]
+  },
+  "mcpServers": {
+    "claude_ai_Atlassian": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@atlassian/mcp"
+      ]
+    }
+  },
+  "enabledPlugins": {
+    "cloudflare@cloudflare": true
   }
 }

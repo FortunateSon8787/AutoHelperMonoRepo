@@ -8,7 +8,9 @@
       "Bash(dotnet test:*)",
       "Bash(docker compose:*)",
       "Bash(grep -v \"^$\")",
-      "mcp__claude_ai_Atlassian__editJiraIssue"
+      "mcp__claude_ai_Atlassian__editJiraIssue",
+      "Bash(wrangler --version)",
+      "Bash(wrangler whoami:*)"
     ]
   }
 }
