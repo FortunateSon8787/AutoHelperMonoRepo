@@ -169,6 +169,84 @@
       }
     }
   },
+  "serviceRecords": {
+    "list": {
+      "title": "Service History",
+      "addButton": "Add Record",
+      "emptyState": "No service history found",
+      "performedAtLabel": "Date",
+      "costLabel": "Cost",
+      "executorLabel": "Executor",
+      "viewButton": "View",
+      "currency": "$"
+    },
+    "detail": {
+      "backButton": "← Back",
+      "descriptionLabel": "Description",
+      "performedAtLabel": "Performed at",
+      "costLabel": "Cost",
+      "executorLabel": "Executor",
+      "executorContactsLabel": "Executor contacts",
+      "operationsLabel": "Operations performed",
+      "documentLabel": "Work order (PDF)",
+      "openDocumentButton": "Open document",
+      "notFound": "Service record not found",
+      "serverError": "Server error. Please try again later"
+    },
+    "form": {
+      "addTitle": "Add Service Record",
+      "titleLabel": "Title",
+      "titlePlaceholder": "Oil and filter change",
+      "descriptionLabel": "Description",
+      "descriptionPlaceholder": "Detailed description of work performed",
+      "performedAtLabel": "Date performed",
+      "costLabel": "Cost",
+      "costPlaceholder": "150",
+      "executorNameLabel": "Executor",
+      "executorNamePlaceholder": "AutoService Pro",
+      "executorContactsLabel": "Executor contacts",
+      "executorContactsPlaceholder": "+1-555-000-0000",
+      "operationsLabel": "Operations list",
+      "operationsPlaceholder": "Oil change",
+      "addOperationButton": "Add operation",
+      "documentLabel": "Work order (PDF)",
+      "documentHint": "Required. Max 10 MB.",
+      "documentUploading": "Uploading document...",
+      "documentUploaded": "Document uploaded",
+      "submitButton": "Save",
+      "submittingButton": "Saving...",
+      "cancelButton": "Cancel",
+      "createSuccess": "Record added successfully",
+      "validation": {
+        "titleRequired": "Title is required",
+        "titleMaxLength": "Maximum 256 characters",
+        "descriptionRequired": "Description is required",
+        "performedAtRequired": "Date performed is required",
+        "performedAtFuture": "Date cannot be in the future",
+        "costInvalid": "Cost cannot be negative",
+        "executorNameRequired": "Executor name is required",
+        "operationsRequired": "At least one operation is required",
+        "documentRequired": "Please attach a PDF document",
+        "documentNotPdf": "Only PDF files are accepted",
+        "documentTooLarge": "File must not exceed 10 MB"
+      },
+      "errors": {
+        "notFound": "Vehicle not found",
+        "badRequest": "Please check your input",
+        "serverError": "Server error. Please try again later",
+        "unknown": "Something went wrong. Please try again"
+      }
+    },
+    "public": {
+      "title": "Service History",
+      "emptyState": "No service history found",
+      "performedAtLabel": "Date",
+      "costLabel": "Cost",
+      "executorLabel": "Executor",
+      "viewButton": "View",
+      "currency": "$"
+    }
+  },
   "profile": {
     "title": "Profile",
     "subscription": "Subscription",
