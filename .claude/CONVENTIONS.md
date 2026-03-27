@@ -322,3 +322,26 @@ docker compose logs -f frontend
 ```
 
 **Env-переменные:** `docker-compose.yml` в корне монорепы читает `.env` файл. Пример: `.env.example` (нужно создать).
+
+---
+
+## Storage: MinIO vs Cloudflare R2
+
+Провайдер хранилища выбирается через `appsettings.json` (или env-переменную):
+
+```json
+"Storage": {
+  "Provider": "MinIO",         // "MinIO" (по умолчанию) или "R2"
+  "ServiceUrl": "http://minio:9000",
+  "AccessKey": "...",
+  "SecretKey": "...",
+  "BucketName": "autohelper",
+  "CloudflareAccountId": "",   // только для R2
+  "PublicBaseUrl": ""          // только для R2: https://pub-xxx.r2.dev
+}
+```
+
+- `"MinIO"` → использует `S3StorageService` (path-style URL)
+- `"R2"` → использует `R2StorageService` (использует `PublicBaseUrl` если задан, иначе path-style)
+- Оба реализуют `IStorageService` из Application-слоя
+- Файлы загружаемые через `/api/service-records/document` имеют UUID-ключи: `service-records/documents/{uuid}.pdf`

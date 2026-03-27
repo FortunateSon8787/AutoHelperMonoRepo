@@ -152,7 +152,9 @@ AuditLog : Entity<Guid>
 
 ---
 
-### ServiceRecord (Epic AUT-3)
+### ServiceRecord — **реализован** (AUT-16 / Epic AUT-3)
+
+**Файл:** `Domain/ServiceRecords/ServiceRecord.cs`
 
 ```
 ServiceRecord : AggregateRoot<Guid>
@@ -163,15 +165,31 @@ ServiceRecord : AggregateRoot<Guid>
 ├── Cost: decimal
 ├── ExecutorName: string       (партнёр или сторонняя организация)
 ├── ExecutorContacts: string?  (контактные данные исполнителя)
-├── Operations: List<string>   (перечень работ)
-├── DocumentUrl: string        (PDF наряд-заказ — ОБЯЗАТЕЛЕН)
+├── Operations: List<string>   (перечень работ; хранится как jsonb в БД)
+├── DocumentUrl: string        (PDF наряд-заказ — ОБЯЗАТЕЛЕН, иммутабелен)
 └── IsDeleted: bool            (soft-delete)
+│
+├── Factory method:
+│   └── Create(vehicleId, title, description, performedAt, cost,
+│             executorName, executorContacts?, operations, documentUrl)
+│       ↳ throws DomainException если documentUrl пустой
+│       ↳ публикует ServiceRecordCreatedEvent
+│
+└── Business operations:
+    ├── Update(title, description, performedAt, cost, executorName,
+    │         executorContacts?, operations)
+    │   ↳ DocumentUrl не меняется при обновлении (иммутабелен)
+    └── Delete() → IsDeleted = true
 ```
+
+**Domain Events:**
+- `ServiceRecordCreatedEvent(ServiceRecordId, VehicleId)` — публикуется при создании
 
 **Бизнес-правила:**
 - Каждая запись ОБЯЗАНА содержать PDF-документ. История публично доступна по VIN.
-- При обновлении фиксируется запись в AuditLog с JSON старой сущности (ключ `OldEntity`).
+- `DocumentUrl` иммутабелен — задаётся при создании, не меняется при `Update`.
 - Удаление — только soft-delete.
+- EF Core `HasQueryFilter(r => !r.IsDeleted)` применяется глобально.
 
 ---
 

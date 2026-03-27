@@ -317,14 +317,107 @@ Health Check: `GET /health`
 
 ---
 
-## История работ (`/api/vehicles/{vehicleId}/service-records`) — планируется (Epic AUT-3)
+## История работ (`/api/vehicles/{vehicleId}/service-records`) — **реализовано** (AUT-16 / Epic AUT-3)
 
-| Метод | Путь | Описание |
-|-------|------|----------|
-| GET | `/api/vehicles/{vehicleId}/service-records` | Список записей (публичный) |
-| POST | `/api/vehicles/{vehicleId}/service-records` | Создание записи (только владелец) |
-| GET | `/api/vehicles/{vehicleId}/service-records/{id}` | Детали записи |
-| GET | `/api/vehicles/{vehicleId}/service-records/{id}/document` | Скачать PDF наряд |
+### GET /api/vehicles/{vin}/service-records — публичный
+
+Список всех записей о работах по VIN. Авторизация **не требуется**. Используется на публичной странице авто.
+
+**Response 200:** `ServiceRecord[]`
+
+---
+
+### GET /api/vehicles/{vehicleId}/service-records — authenticated
+
+Список записей для владельца. Требует `Authorization: Bearer`.
+
+**Response 200:** `ServiceRecord[]`
+
+**Errors:** `404` — авто не найдено или принадлежит другому пользователю
+
+---
+
+### POST /api/vehicles/{vehicleId}/service-records
+
+Создание записи о работе. Требует `Authorization: Bearer`. Только владелец авто.
+
+**Важно:** перед вызовом этого эндпоинта нужно загрузить PDF через `POST /api/service-records/document` и получить `documentUrl`.
+
+**Request:**
+```json
+{
+  "title": "Замена масла и фильтров",
+  "description": "Подробное описание работ",
+  "performedAt": "2026-03-01T00:00:00Z",
+  "cost": 1500.00,
+  "executorName": "AutoService Pro",
+  "executorContacts": "+7-999-000-0000",
+  "operations": ["Замена масла", "Замена масляного фильтра"],
+  "documentUrl": "https://storage/service-records/documents/uuid.pdf"
+}
+```
+
+**Response 201:**
+```json
+{ "serviceRecordId": "uuid" }
+```
+
+**Errors:** `400` — ошибки валидации; `404` — авто не найдено / не ваше
+
+---
+
+### GET /api/service-records/{id}
+
+Детальная запись по ID. Требует `Authorization: Bearer`.
+
+**Response 200:**
+```json
+{
+  "id": "uuid",
+  "vehicleId": "uuid",
+  "title": "Замена масла",
+  "description": "...",
+  "performedAt": "2026-03-01T00:00:00Z",
+  "cost": 1500.00,
+  "executorName": "AutoService Pro",
+  "executorContacts": "+7-999-000-0000",
+  "operations": ["Замена масла"],
+  "documentUrl": "https://storage/..."
+}
+```
+
+---
+
+### PUT /api/service-records/{id}
+
+Обновление записи. Требует `Authorization: Bearer`. `documentUrl` **не меняется** — иммутабелен.
+
+**Request:** аналогично POST, но без `documentUrl`.
+
+**Response:** `204 No Content`
+
+---
+
+### DELETE /api/service-records/{id}
+
+Soft-delete записи. Требует `Authorization: Bearer`.
+
+**Response:** `204 No Content`
+
+---
+
+### POST /api/service-records/document
+
+Загрузка PDF наряд-заказа. Требует `Authorization: Bearer`. `multipart/form-data`, поле `document`. Максимум 10 МБ.
+
+Имя файла в хранилище генерируется как UUID: `service-records/documents/{uuid}.pdf`.
+
+**Response 200:**
+```json
+{ "documentUrl": "https://storage/service-records/documents/uuid.pdf" }
+```
+
+**Errors:** `400` — не PDF или превышен размер
 
 ---
 
