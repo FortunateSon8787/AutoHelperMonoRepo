@@ -12,41 +12,10 @@ SaaS-платформа для учёта автомобилей, истории
 
 ```
 AutoHelperMonoRepo/
-├── backend/                  # ASP.NET Core 10 Web API (Clean Architecture)
-│   ├── src/
-│   │   ├── AutoHelper.Api            # Presentation: Minimal API endpoints, middleware
-│   │   ├── AutoHelper.Application    # Use Cases: MediatR commands/queries, interfaces
-│   │   ├── AutoHelper.Domain         # Domain: Entities, AggregateRoots, Value Objects, Events
-│   │   └── AutoHelper.Infrastructure # Infrastructure: EF Core, JWT, S3/MinIO, external services
-│   ├── tests/                        # Unit + integration tests
-│   ├── AutoHelper.sln
-│   ├── Directory.Build.props         # Shared MSBuild properties
-│   ├── Directory.Packages.props      # Central package version management
-│   └── docker-compose.yml            # Backend-only compose (dev)
-│
-├── frontend/                 # Next.js 15 + TypeScript (App Router)
-│   ├── app/                          # App Router pages & layouts
-│   │   ├── auth/                     # login, register pages
-│   │   └── actions/                  # Server Actions
-│   ├── components/                   # Shared UI components
-│   ├── services/                     # HTTP-клиенты (axios)
-│   ├── contexts/                     # React context providers
-│   ├── types/                        # TypeScript типы/интерфейсы
-│   ├── i18n/                         # next-intl config
-│   ├── messages/                     # Переводы: ru.json, en.json
-│   ├── lib/                          # Утилиты
-│   └── middleware.ts                 # Auth middleware (JWT cookie check)
-│
-├── docker-compose.yml        # Full-stack compose (postgres + minio + backend + frontend)
-└── .claude/                  # Документация для AI-агента (не влияет на сборку)
-    ├── AGENT.md              ← ты здесь
-    ├── ARCHITECTURE.md
-    ├── CONVENTIONS.md
-    ├── API.md
-    ├── FRONTEND.md
-    ├── DOMAIN.md
-    ├── AutoHelper_Requirements_v1.4.md
-    └── JIRA_DECOMPOSITION.md
+├── backend/          # ASP.NET Core 10 Web API (Clean Architecture) — подробнее: .claude/ARCHITECTURE.md
+├── frontend/         # Next.js 15 + TypeScript (App Router) — подробнее: .claude/FRONTEND.md
+├── docker-compose.yml
+└── .claude/          # Документация для AI-агента
 ```
 
 ---
@@ -83,56 +52,10 @@ AutoHelperMonoRepo/
 
 ## Текущий статус разработки
 
-**Реализовано (Epic AUT-1 — Управление клиентами ✅ Готово):**
-- ✅ Clean Architecture скелет (Domain / Application / Infrastructure / Api)
-- ✅ Customer aggregate (email+password + Google OAuth, AvatarUrl)
-- ✅ Vehicle aggregate (VIN уникальность, статусы, OwnerId)
-- ✅ JWT auth: Register / Login / RefreshToken / Logout (MediatR CQRS)
-- ✅ Клиентский профиль: GET/PUT /api/clients/me, смена пароля, загрузка аватара
-- ✅ Публичный поиск владельца по VIN: GET /api/vehicles/{vin}/owner
-- ✅ EF Core + PostgreSQL (3 миграции в `Infrastructure/Persistence/Migrations/`)
-- ✅ MinIO/S3 инфраструктура (аватары)
-- ✅ Serilog структурированное логирование + CorrelationId middleware
-- ✅ Next.js App Router + next-intl (ru/en)
-- ✅ Auth UI (login/register страницы)
-- ✅ Profile UI страница (`/profile`)
-- ✅ Публичная SSR-страница владельца авто (`/vehicles/[vin]`)
-- ✅ Docker Compose (postgres + minio + backend + frontend)
-- ✅ Unit-тесты: Domain (Customer, Vehicle), Application (JwtTokenService, GetVehicleOwner handler)
+✅ Реализованы Epics: AUT-1 (Клиенты), AUT-2 (Автомобили), AUT-3 (Service Records)
+🔲 В планах: AUT-4 (AI-чат), AUT-5 (Биллинг), AUT-6 (Партнёры), AUT-7 (Админ), AUT-8 (Фронтенд), AUT-9 (DevOps), AUT-150 (Soft-delete + Аудит)
 
-**В работе / Планируется (см. JIRA_DECOMPOSITION.md):**
-- ✅ CRUD автомобилей (AUT-13) + статусы автомобиля (AUT-14) — реализовано
-- ✅ Публичный просмотр автомобиля (AUT-15) — реализовано
-- 🔲 Service Records / история работ (Epic AUT-3) + сжатие PDF
-- 🔲 Soft-delete + Аудит-лог (Epic AUT-150)
-- 🔲 AI АвтоПомощник — LLM-чат (Epic AUT-4); подписки, невалидные запросы
-- 🔲 Биллинг / Lemon Squeezy (Epic AUT-5)
-- 🔲 Партнёры + партнёрский кабинет (Epic AUT-6)
-- 🔲 Админ-панель (Epic AUT-7)
-- 🔲 Лендинг + блог + юридические страницы (Epic AUT-8)
-
----
-
-## Стек технологий
-
-| Слой | Технология |
-|------|------------|
-| Backend | .NET 10, ASP.NET Core Minimal API |
-| ORM | EF Core 9, PostgreSQL 17 |
-| CQRS/Mediator | MediatR |
-| Валидация | FluentValidation |
-| Аутентификация | JWT (access + refresh), Google OAuth 2.0 |
-| File Storage | MinIO (S3-compatible) |
-| AI / LLM | ILlmProvider (OpenAI ChatGPT 5.4 — начальный провайдер) |
-| Платежи | Lemon Squeezy |
-| Логирование | Serilog |
-| API Docs | OpenAPI + Scalar |
-| Frontend | Next.js 15, TypeScript, Tailwind CSS |
-| i18n | next-intl |
-| HTTP-клиент (FE) | Axios |
-| Контейнеризация | Docker, Docker Compose |
-| CI/CD | GitHub Actions (планируется) |
-| Мониторинг | Prometheus + Grafana (планируется) |
+Подробная декомпозиция: `.claude/JIRA_DECOMPOSITION.md`
 
 ---
 

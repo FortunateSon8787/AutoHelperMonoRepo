@@ -26,10 +26,17 @@ frontend/
 │   │   └── page.tsx          # Профиль клиента (Client Component, требует авторизации)
 │   ├── vehicles/
 │   │   └── [vin]/page.tsx    # Публичная карточка владельца авто по VIN (Server Component, SSR)
+│   ├── vehicles/
+│   │   ├── page.tsx          # Публичный поиск авто по VIN (Server Component, без авторизации)
+│   │   └── [vin]/page.tsx    # Публичная карточка владельца авто по VIN (Server Component, SSR)
 │   ├── dashboard/
 │   │   └── vehicles/
 │   │       ├── page.tsx      # Список авто + форма добавления (Client Component, требует авторизации)
-│   │       └── [id]/page.tsx # Редактирование авто (Client Component, требует авторизации)
+│   │       └── [id]/
+│   │           ├── page.tsx  # Редактирование авто (Client Component, требует авторизации)
+│   │           └── service-records/
+│   │               ├── page.tsx           # Список записей обслуживания (Client Component, требует авторизации)
+│   │               └── [recordId]/page.tsx # Детали записи обслуживания (Client Component, требует авторизации)
 │   └── actions/              # Server Actions
 │
 ├── components/
@@ -85,9 +92,12 @@ const PUBLIC_ROUTES = ["/auth/login", "/auth/register"];
 | `/auth/login` | Client | Нет | Форма входа |
 | `/auth/register` | Client | Нет | Форма регистрации |
 | `/profile` | Client | Да | Профиль клиента (имя, контакты, аватар, смена пароля) |
+| `/vehicles` | Server | Нет | Публичный поиск авто по VIN |
 | `/vehicles/[vin]` | Server (SSR) | Нет | Публичная карточка владельца авто по VIN |
 | `/dashboard/vehicles` | Client | Да | Список авто пользователя + форма добавления |
 | `/dashboard/vehicles/[id]` | Client | Да | Редактирование авто (VIN read-only) |
+| `/dashboard/vehicles/[id]/service-records` | Client | Да | Список записей обслуживания авто |
+| `/dashboard/vehicles/[id]/service-records/[recordId]` | Client | Да | Детали / редактирование записи обслуживания |
 
 ### Роутинг по ролям (планируется / частично реализовано)
 
