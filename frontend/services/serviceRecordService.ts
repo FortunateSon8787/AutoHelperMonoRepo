@@ -132,4 +132,11 @@ export const serviceRecordService = {
       throw new ServiceRecordServiceError(resolveErrorCode(error));
     }
   },
+
+  // Returns the API proxy URL for streaming a service record's PDF document.
+  // Use this instead of documentUrl directly — documentUrl may point to a private
+  // internal storage address (e.g. http://minio:9000) that is unreachable from the browser.
+  getDocumentProxyUrl(id: string): string {
+    return `${process.env.NEXT_PUBLIC_API_URL}/api/service-records/${id}/document`;
+  },
 };

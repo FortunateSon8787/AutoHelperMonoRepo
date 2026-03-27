@@ -189,7 +189,9 @@
       "executorContactsLabel": "Контакты исполнителя",
       "operationsLabel": "Выполненные работы",
       "documentLabel": "Наряд-заказ (PDF)",
-      "openDocumentButton": "Открыть документ",
+      "previewDocumentButton": "Предпросмотр",
+      "downloadDocumentButton": "Скачать",
+      "openDocumentButton": "Открыть в новой вкладке",
       "notFound": "Запись не найдена",
       "serverError": "Ошибка сервера. Попробуйте позже"
     },

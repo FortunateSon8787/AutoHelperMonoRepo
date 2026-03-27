@@ -1,5 +1,7 @@
 using AutoHelper.Application.Common.Interfaces;
 using AutoHelper.Application.Features.ServiceRecords;
+using AutoHelper.Infrastructure.Storage;
+using Microsoft.Extensions.Options;
 using AutoHelper.Application.Features.ServiceRecords.CreateServiceRecord;
 using AutoHelper.Application.Features.ServiceRecords.DeleteServiceRecord;
 using AutoHelper.Application.Features.ServiceRecords.GetPublicServiceRecords;
@@ -63,6 +65,12 @@ public static class ServiceRecordsEndpoints
             .Produces<UploadDocumentResponse>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .DisableAntiforgery();
+
+        // Proxy download — streams the PDF from private storage through the API
+        auth.MapGet("/service-records/{id:guid}/document", DownloadServiceDocument)
+            .WithSummary("Stream the PDF work order for a service record through the API (avoids direct private storage access).")
+            .Produces(StatusCodes.Status200OK, contentType: "application/pdf")
+            .ProducesProblem(StatusCodes.Status404NotFound);
     }
 
     // ─── Handlers ─────────────────────────────────────────────────────────────
@@ -247,4 +255,54 @@ public static class ServiceRecordsEndpoints
         List<string> Operations);
 
     private sealed record UploadDocumentResponse(string DocumentUrl);
+
+    // ─── Document proxy ───────────────────────────────────────────────────────
+
+    private static async Task<IResult> DownloadServiceDocument(
+        Guid id,
+        ISender mediator,
+        IStorageService storage,
+        IOptions<StorageSettings> storageOptions,
+        CancellationToken ct)
+    {
+        var result = await mediator.Send(new GetServiceRecordByIdQuery(id), ct);
+
+        if (result.IsFailure)
+            return Results.NotFound(new ProblemDetails
+            {
+                Status = StatusCodes.Status404NotFound,
+                Title = result.Error
+            });
+
+        var fileKey = ExtractFileKey(result.Value.DocumentUrl, storageOptions.Value);
+        var stream = await storage.DownloadAsync(fileKey, ct);
+
+        return Results.Stream(stream, contentType: "application/pdf");
+    }
+
+    /// <summary>
+    /// Extracts the storage file key from a full document URL.
+    /// Supports three URL formats produced by the storage services:
+    ///   MinIO/S3  : {ServiceUrl}/{BucketName}/{fileKey}
+    ///   R2 fallback: {ServiceUrl}/{BucketName}/{fileKey}
+    ///   R2 public  : {PublicBaseUrl}/{fileKey}
+    /// </summary>
+    private static string ExtractFileKey(string documentUrl, StorageSettings settings)
+    {
+        // R2 with custom PublicBaseUrl: https://pub-xxx.r2.dev/service-records/documents/abc.pdf
+        if (!string.IsNullOrWhiteSpace(settings.PublicBaseUrl))
+        {
+            var prefix = settings.PublicBaseUrl.TrimEnd('/') + "/";
+            if (documentUrl.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+                return documentUrl[prefix.Length..];
+        }
+
+        // MinIO / R2 fallback: {ServiceUrl}/{BucketName}/{fileKey}
+        var bucketPrefix = $"{settings.ServiceUrl.TrimEnd('/')}/{settings.BucketName}/";
+        if (documentUrl.StartsWith(bucketPrefix, StringComparison.OrdinalIgnoreCase))
+            return documentUrl[bucketPrefix.Length..];
+
+        // Assume the stored value is already a file key (defensive fallback)
+        return documentUrl;
+    }
 }

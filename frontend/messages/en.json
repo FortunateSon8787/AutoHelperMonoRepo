@@ -189,7 +189,9 @@
       "executorContactsLabel": "Executor contacts",
       "operationsLabel": "Operations performed",
       "documentLabel": "Work order (PDF)",
-      "openDocumentButton": "Open document",
+      "previewDocumentButton": "Preview",
+      "downloadDocumentButton": "Download",
+      "openDocumentButton": "Open in new tab",
       "notFound": "Service record not found",
       "serverError": "Server error. Please try again later"
     },

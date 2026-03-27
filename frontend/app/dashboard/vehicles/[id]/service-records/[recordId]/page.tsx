@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { Loader2, ArrowLeft, FileText, ExternalLink } from "lucide-react";
+import { Loader2, ArrowLeft, FileText, Eye, Download, ExternalLink } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/ui/button";
+import { PdfPreviewModal } from "@/components/pdf-preview-modal";
 import {
   serviceRecordService,
   ServiceRecordServiceError,
@@ -20,6 +21,11 @@ export default function ServiceRecordDetailPage() {
   const [record, setRecord] = useState<ServiceRecord | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isPdfOpen, setIsPdfOpen] = useState(false);
+
+  // Authenticated blob URL — created once after PDF is fetched with Bearer token
+  const [pdfBlobUrl, setPdfBlobUrl] = useState<string | null>(null);
+  const [isPdfLoading, setIsPdfLoading] = useState(false);
 
   useEffect(() => {
     if (!params.recordId) return;
@@ -36,6 +42,60 @@ export default function ServiceRecordDetailPage() {
       })
       .finally(() => setIsLoading(false));
   }, [params.recordId, t]);
+
+  // Revoke blob URL on unmount to free memory
+  useEffect(() => {
+    return () => {
+      if (pdfBlobUrl) URL.revokeObjectURL(pdfBlobUrl);
+    };
+  }, [pdfBlobUrl]);
+
+  // Fetches the PDF with Authorization header and returns a blob URL.
+  // Returns the existing blob URL immediately if already loaded.
+  const ensurePdfLoaded = useCallback(async (): Promise<string | null> => {
+    if (pdfBlobUrl) return pdfBlobUrl;
+    if (isPdfLoading || !params.recordId) return null;
+
+    setIsPdfLoading(true);
+    try {
+      const token = localStorage.getItem("accessToken");
+      const proxyUrl = serviceRecordService.getDocumentProxyUrl(params.recordId);
+      const response = await fetch(proxyUrl, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+
+      if (!response.ok) throw new Error("Failed to load PDF");
+
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      setPdfBlobUrl(url);
+      return url;
+    } catch {
+      return null;
+    } finally {
+      setIsPdfLoading(false);
+    }
+  }, [pdfBlobUrl, isPdfLoading, params.recordId]);
+
+  const handleOpenPreview = useCallback(async () => {
+    const url = await ensurePdfLoaded();
+    if (url) setIsPdfOpen(true);
+  }, [ensurePdfLoaded]);
+
+  const handleDownload = useCallback(async () => {
+    const url = await ensurePdfLoaded();
+    if (!url || !record) return;
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${record.title}.pdf`;
+    a.click();
+  }, [ensurePdfLoaded, record]);
+
+  const handleOpenInTab = useCallback(async () => {
+    const url = await ensurePdfLoaded();
+    if (!url) return;
+    window.open(url, "_blank", "noopener,noreferrer");
+  }, [ensurePdfLoaded]);
 
   if (isLoading) {
     return (
@@ -150,19 +210,71 @@ export default function ServiceRecordDetailPage() {
 
           {/* Document */}
           <div>
-            <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-2">
+            <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-3">
               {t("documentLabel")}
             </p>
-            <a href={record.documentUrl} target="_blank" rel="noopener noreferrer">
-              <Button variant="outline" size="sm">
-                <FileText className="h-3.5 w-3.5 mr-1.5" />
-                {t("openDocumentButton")}
-                <ExternalLink className="h-3 w-3 ml-1.5 text-gray-400" />
+
+            {/* PDF Preview thumbnail */}
+            <div
+              className="relative w-full h-48 bg-gray-50 border border-gray-200 rounded-lg overflow-hidden cursor-pointer group mb-3"
+              onClick={handleOpenPreview}
+            >
+              {pdfBlobUrl ? (
+                <iframe
+                  src={pdfBlobUrl}
+                  className="w-full h-full pointer-events-none"
+                  title={t("documentLabel")}
+                  tabIndex={-1}
+                />
+              ) : (
+                <div className="w-full h-full flex flex-col items-center justify-center gap-2 text-gray-400">
+                  <FileText className="h-8 w-8" />
+                  <span className="text-xs">{t("documentLabel")}</span>
+                </div>
+              )}
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                <div className="opacity-0 group-hover:opacity-100 transition-opacity bg-white rounded-full p-3 shadow-lg">
+                  {isPdfLoading
+                    ? <Loader2 className="h-5 w-5 text-gray-700 animate-spin" />
+                    : <Eye className="h-5 w-5 text-gray-700" />
+                  }
+                </div>
+              </div>
+            </div>
+
+            {/* Action buttons */}
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" onClick={handleOpenPreview} disabled={isPdfLoading}>
+                {isPdfLoading
+                  ? <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
+                  : <FileText className="h-3.5 w-3.5 mr-1.5" />
+                }
+                {t("previewDocumentButton")}
               </Button>
-            </a>
+              <Button variant="outline" size="sm" onClick={handleDownload} disabled={isPdfLoading}>
+                <Download className="h-3.5 w-3.5 mr-1.5" />
+                {t("downloadDocumentButton")}
+              </Button>
+              <Button variant="outline" size="sm" onClick={handleOpenInTab} disabled={isPdfLoading}>
+                <ExternalLink className="h-3.5 w-3.5 mr-1.5" />
+                {t("openDocumentButton")}
+              </Button>
+            </div>
           </div>
         </div>
       </div>
+
+      {isPdfOpen && pdfBlobUrl && (
+        <PdfPreviewModal
+          url={pdfBlobUrl}
+          filename={`${record.title}.pdf`}
+          onClose={() => setIsPdfOpen(false)}
+          labels={{
+            download: t("downloadDocumentButton"),
+            openFullscreen: t("openDocumentButton"),
+          }}
+        />
+      )}
     </div>
   );
 }
