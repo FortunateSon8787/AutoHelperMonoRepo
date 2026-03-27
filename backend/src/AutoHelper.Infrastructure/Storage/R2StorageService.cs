@@ -25,7 +25,10 @@ public sealed class R2StorageService(IAmazonS3 s3, IOptions<StorageSettings> opt
             Key = fileName,
             InputStream = content,
             ContentType = contentType,
-            AutoCloseStream = false
+            AutoCloseStream = false,
+            // Cloudflare R2 does not support AWS4 chunked/streaming upload.
+            // Disabling payload signing sends UNSIGNED-PAYLOAD, which R2 accepts.
+            DisablePayloadSigning = true
         };
 
         await s3.PutObjectAsync(request, cancellationToken);

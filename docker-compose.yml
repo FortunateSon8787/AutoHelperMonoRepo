@@ -84,16 +84,17 @@ services:
       Jwt__Secret: ${JWT_SECRET}
       Jwt__Issuer: autohelper-api
       Jwt__Audience: autohelper-api
-      Storage__ServiceUrl: http://minio:9000
-      Storage__AccessKey: ${MINIO_ROOT_USER}
-      Storage__SecretKey: ${MINIO_ROOT_PASSWORD}
-      Storage__BucketName: ${STORAGE_BUCKET_NAME:-autohelper}
       Stripe__SecretKey: ${STRIPE_SECRET_KEY}
       Stripe__WebhookSecret: ${STRIPE_WEBHOOK_SECRET}
       OpenAI__ApiKey: ${OPENAI_API_KEY}
       OpenAI__Model: ${OPENAI_MODEL:-gpt-4o}
       # Auto-migrate on startup in Docker (can be overridden in .env)
       Database__AutoMigrateOnStartup: ${AUTO_MIGRATE:-true}
+      Storage__ServiceUrl: ${STORAGE_SERVICEURL}
+      Storage__BucketName: ${STORAGE_BUCKETNAME}
+      Storage__SecretKey: ${STORAGE_SECRETKEY}
+      Storage__AccessKey: ${STORAGE_ACCESSKEY}
+      Storage__Provider: ${STORAGE_PROVIDER}
     ports:
       - "8080:8080"
     depends_on:
