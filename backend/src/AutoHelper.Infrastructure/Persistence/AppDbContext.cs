@@ -2,6 +2,7 @@ using AutoHelper.Application.Common.Interfaces;
 using AutoHelper.Domain.Common;
 using AutoHelper.Domain.Customers;
 using AutoHelper.Domain.Partners;
+using AutoHelper.Domain.Reviews;
 using AutoHelper.Domain.ServiceRecords;
 using AutoHelper.Domain.Vehicles;
 using MediatR;
@@ -19,6 +20,7 @@ public sealed class AppDbContext(
     public DbSet<Vehicle> Vehicles => Set<Vehicle>();
     public DbSet<ServiceRecord> ServiceRecords => Set<ServiceRecord>();
     public DbSet<Partner> Partners => Set<Partner>();
+    public DbSet<Review> Reviews => Set<Review>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

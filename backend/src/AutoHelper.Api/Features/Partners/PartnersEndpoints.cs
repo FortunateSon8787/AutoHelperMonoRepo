@@ -5,6 +5,8 @@ using AutoHelper.Application.Features.Partners.GetPendingPartners;
 using AutoHelper.Application.Features.Partners.RegisterPartner;
 using AutoHelper.Application.Features.Partners.UpdateMyPartnerProfile;
 using AutoHelper.Application.Features.Partners.VerifyPartner;
+using AutoHelper.Application.Features.Reviews.CreateReview;
+using AutoHelper.Application.Features.Reviews.GetPartnerReviews;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -33,6 +35,20 @@ public static class PartnersEndpoints
             .Produces(StatusCodes.Status204NoContent)
             .ProducesValidationProblem()
             .ProducesProblem(StatusCodes.Status404NotFound);
+
+        partnerGroup.MapPost("/{partnerId:guid}/reviews", CreateReview)
+            .WithSummary("Submit a review for a partner (requires verifiable interaction)")
+            .Produces<CreateReviewResponse>(StatusCodes.Status201Created)
+            .ProducesValidationProblem()
+            .ProducesProblem(StatusCodes.Status404NotFound)
+            .ProducesProblem(StatusCodes.Status409Conflict);
+
+        // ── Public review listing ─────────────────────────────────────────────
+        var publicGroup = app.MapGroup("/api/partners").WithTags("Partners");
+
+        publicGroup.MapGet("/{partnerId:guid}/reviews", GetPartnerReviews)
+            .WithSummary("Get all reviews for a partner (public, no auth required)")
+            .Produces<IReadOnlyList<ReviewResponse>>(StatusCodes.Status200OK);
 
         // ── Admin operations ──────────────────────────────────────────────────
         var adminGroup = app.MapGroup("/api/admin/partners").WithTags("Admin: Partners").RequireAuthorization("admin");
@@ -148,7 +164,60 @@ public static class PartnersEndpoints
         return Results.NoContent();
     }
 
+    // ─── Review handlers ──────────────────────────────────────────────────────
+
+    private static async Task<IResult> CreateReview(
+        Guid partnerId,
+        [FromBody] CreateReviewRequest request,
+        ISender mediator,
+        CancellationToken ct)
+    {
+        var command = new CreateReviewCommand(
+            PartnerId: partnerId,
+            Rating: request.Rating,
+            Comment: request.Comment,
+            Basis: request.Basis,
+            InteractionReferenceId: request.InteractionReferenceId);
+
+        var result = await mediator.Send(command, ct);
+
+        if (result.IsFailure)
+        {
+            if (result.Error!.Contains("not found"))
+                return Results.NotFound(new ProblemDetails
+                {
+                    Status = StatusCodes.Status404NotFound,
+                    Title = result.Error
+                });
+
+            return Results.Conflict(new ProblemDetails
+            {
+                Status = StatusCodes.Status409Conflict,
+                Title = result.Error
+            });
+        }
+
+        return Results.Created(
+            $"/api/partners/{partnerId}/reviews/{result.Value}",
+            new CreateReviewResponse(result.Value));
+    }
+
+    private static async Task<IResult> GetPartnerReviews(
+        Guid partnerId,
+        ISender mediator,
+        CancellationToken ct)
+    {
+        var result = await mediator.Send(new GetPartnerReviewsQuery(partnerId), ct);
+        return Results.Ok(result.Value);
+    }
+
     // ─── Response DTOs ────────────────────────────────────────────────────────
 
     private sealed record RegisterPartnerResponse(Guid PartnerId);
+    private sealed record CreateReviewResponse(Guid ReviewId);
+    private sealed record CreateReviewRequest(
+        int Rating,
+        string Comment,
+        string Basis,
+        Guid InteractionReferenceId);
 }

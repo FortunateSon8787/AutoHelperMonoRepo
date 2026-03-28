@@ -182,6 +182,57 @@ public class PartnerTests : TestBase
         partner.ShowBannersToAnonymous.ShouldBeTrue();
     }
 
+    // ─── RecalculateFitnessFlag ───────────────────────────────────────────────
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(1)]
+    [InlineData(4)]
+    public void RecalculateFitnessFlag_WhenLowRatingCountBelow5_ShouldSetIsPotentiallyUnfitFalse(int lowRatingCount)
+    {
+        var partner = CreateValidPartner();
+        partner.IsPotentiallyUnfit.ShouldBeFalse();
+
+        partner.RecalculateFitnessFlag(lowRatingCount);
+
+        partner.IsPotentiallyUnfit.ShouldBeFalse();
+    }
+
+    [Fact]
+    public void RecalculateFitnessFlag_WhenLowRatingCountIs5_ShouldSetIsPotentiallyUnfitTrue()
+    {
+        var partner = CreateValidPartner();
+
+        partner.RecalculateFitnessFlag(5);
+
+        partner.IsPotentiallyUnfit.ShouldBeTrue();
+    }
+
+    [Theory]
+    [InlineData(6)]
+    [InlineData(10)]
+    [InlineData(100)]
+    public void RecalculateFitnessFlag_WhenLowRatingCountAbove5_ShouldSetIsPotentiallyUnfitTrue(int lowRatingCount)
+    {
+        var partner = CreateValidPartner();
+
+        partner.RecalculateFitnessFlag(lowRatingCount);
+
+        partner.IsPotentiallyUnfit.ShouldBeTrue();
+    }
+
+    [Fact]
+    public void RecalculateFitnessFlag_ShouldResetFlagWhenCountDropsBelow5()
+    {
+        var partner = CreateValidPartner();
+        partner.RecalculateFitnessFlag(5); // first mark as unfit
+        partner.IsPotentiallyUnfit.ShouldBeTrue();
+
+        partner.RecalculateFitnessFlag(4); // then recover
+
+        partner.IsPotentiallyUnfit.ShouldBeFalse();
+    }
+
     // ─── Delete ───────────────────────────────────────────────────────────────
 
     [Fact]
