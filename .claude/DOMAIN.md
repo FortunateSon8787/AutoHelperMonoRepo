@@ -256,7 +256,9 @@ InvalidChatRequest : Entity<Guid>
 
 ---
 
-### Partner (Epic AUT-6)
+### Partner — **реализован** (AUT-24 / Epic AUT-6)
+
+**Файл:** `Domain/Partners/Partner.cs`
 
 ```
 Partner : AggregateRoot<Guid>
@@ -265,20 +267,47 @@ Partner : AggregateRoot<Guid>
 ├── Specialization: string
 ├── Description: string
 ├── Address: string
-├── Location: GeoPoint          (lat/lng)
-├── WorkingHours: WorkingSchedule
-├── Contacts: PartnerContacts   (phone, website, messengers)
+├── Location: GeoPoint          (Value Object: Lat, Lng)
+├── WorkingHours: WorkingSchedule (Value Object: OpenFrom, OpenTo, WorkDays)
+├── Contacts: PartnerContacts   (Value Object: Phone, Website?, MessengerLinks?)
 ├── LogoUrl: string?
-├── IsVerified: bool
-├── IsActive: bool
-├── IsPotentiallyUnfit: bool    (>= 5 оценок ниже 3)
-├── Documents: List<string>     (URL лицензий, сертификатов)
-├── AccountUserId: Guid         (учётная запись партнёра)
-├── ShowBannersToAnonymous: bool (разрешить показ баннеров анонимным пользователям)
+├── IsVerified: bool            (default: false)
+├── IsActive: bool              (default: false; true только после верификации)
+├── IsPotentiallyUnfit: bool    (>= 5 оценок ниже 3; планируется)
+├── ShowBannersToAnonymous: bool
+├── AccountUserId: Guid         (учётная запись партнёра; УНИКАЛЕН — один партнёр на аккаунт)
 └── IsDeleted: bool             (soft-delete)
+│
+├── Factory method:
+│   └── Create(name, type, specialization, description, address,
+│             location, workingHours, contacts, accountUserId)
+│       ↳ throws DomainException если name пустой или accountUserId == Guid.Empty
+│       ↳ публикует PartnerRegisteredEvent
+│       ↳ IsVerified = false, IsActive = false по умолчанию
+│
+└── Business operations:
+    ├── UpdateProfile(name, spec, desc, addr, location, workingHours, contacts)
+    ├── UpdateLogo(logoUrl)
+    ├── Verify()                 → IsVerified = true, IsActive = true
+    ├── Deactivate()             → IsActive = false
+    ├── SetBannerVisibility(bool)
+    └── Delete()                 → IsDeleted = true, IsActive = false
 ```
 
-**Бизнес-правило автопометки:**
+**Domain Events:**
+- `PartnerRegisteredEvent(PartnerId, AccountUserId)` — публикуется при создании
+
+**Value Objects:**
+- `GeoPoint(Lat, Lng)` — Lat ∈ [-90, 90], Lng ∈ [-180, 180]; хранится как owned entity (location_lat, location_lng)
+- `WorkingSchedule(OpenFrom, OpenTo, WorkDays)` — WorkDays non-empty; хранится как owned entity
+- `PartnerContacts(Phone, Website?, MessengerLinks?)` — Phone non-empty; хранится как owned entity
+
+**Бизнес-правила:**
+- Один аккаунт → один партнёрский профиль (unique index на AccountUserId)
+- Новый партнёр не активен до верификации администратором
+- Soft-delete: `HasQueryFilter(p => !p.IsDeleted)`
+
+**Бизнес-правило автопометки (планируется):**
 ```
 IsPotentiallyUnfit = true  ←  если Reviews.Count(r => r.Rating < 3) >= 5
 ```
