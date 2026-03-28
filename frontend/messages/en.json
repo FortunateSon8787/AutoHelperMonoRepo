@@ -344,6 +344,58 @@
       }
     }
   },
+  "adCampaigns": {
+    "title": "Ad Campaigns",
+    "subtitle": "Manage advertising campaigns for your partner profile",
+    "createButton": "Create Campaign",
+    "emptyState": "You have no ad campaigns yet",
+    "editButton": "Edit",
+    "deleteButton": "Delete",
+    "deleteConfirm": "Are you sure you want to delete this campaign?",
+    "activeLabel": "Active",
+    "inactiveLabel": "Inactive",
+    "impressionsLabel": "Impressions",
+    "clicksLabel": "Clicks",
+    "startsAtLabel": "Starts",
+    "endsAtLabel": "Ends",
+    "targetCategoryLabel": "Category",
+    "showToAnonymousLabel": "Show to anonymous users",
+    "typeLabel": "Ad Type",
+    "contentLabel": "Content",
+    "saveButton": "Save",
+    "savingButton": "Saving...",
+    "cancelButton": "Cancel",
+    "createSuccess": "Campaign created successfully",
+    "updateSuccess": "Campaign updated successfully",
+    "deleteSuccess": "Campaign deleted successfully",
+    "types": {
+      "OfferBlock": "Offer Block",
+      "Banner": "Banner"
+    },
+    "categories": {
+      "AutoService": "Auto Service",
+      "CarWash": "Car Wash",
+      "Towing": "Towing",
+      "AutoShop": "Auto Shop",
+      "Other": "Other"
+    },
+    "validation": {
+      "typeRequired": "Please select an ad type",
+      "targetCategoryRequired": "Please select a target category",
+      "contentRequired": "Content is required",
+      "contentMaxLength": "Maximum 2048 characters",
+      "startsAtRequired": "Start date is required",
+      "endsAtRequired": "End date is required",
+      "endsAtAfterStartsAt": "End date must be after start date"
+    },
+    "errors": {
+      "unauthorized": "Authorization required",
+      "notFound": "Campaign not found",
+      "badRequest": "Please check your input",
+      "serverError": "Server error. Please try again later",
+      "unknown": "Something went wrong. Please try again"
+    }
+  },
   "profile": {
     "title": "Profile",
     "subscription": "Subscription",

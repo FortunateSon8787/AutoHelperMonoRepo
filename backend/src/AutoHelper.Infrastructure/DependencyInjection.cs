@@ -38,6 +38,7 @@ public static class DependencyInjection
         services.AddScoped<IServiceRecordRepository, ServiceRecordRepository>();
         services.AddScoped<IPartnerRepository, PartnerRepository>();
         services.AddScoped<IReviewRepository, ReviewRepository>();
+        services.AddScoped<IAdCampaignRepository, AdCampaignRepository>();
 
         // Security
         services.AddSingleton<IPasswordHasher, PasswordHasher>();

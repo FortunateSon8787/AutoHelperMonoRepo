@@ -344,6 +344,58 @@
       }
     }
   },
+  "adCampaigns": {
+    "title": "Рекламные кампании",
+    "subtitle": "Управляйте рекламными кампаниями вашего партнёрского профиля",
+    "createButton": "Создать кампанию",
+    "emptyState": "У вас ещё нет рекламных кампаний",
+    "editButton": "Редактировать",
+    "deleteButton": "Удалить",
+    "deleteConfirm": "Вы уверены, что хотите удалить эту кампанию?",
+    "activeLabel": "Активна",
+    "inactiveLabel": "Неактивна",
+    "impressionsLabel": "Показы",
+    "clicksLabel": "Клики",
+    "startsAtLabel": "Начало",
+    "endsAtLabel": "Конец",
+    "targetCategoryLabel": "Категория",
+    "showToAnonymousLabel": "Показывать анонимным пользователям",
+    "typeLabel": "Тип рекламы",
+    "contentLabel": "Содержание",
+    "saveButton": "Сохранить",
+    "savingButton": "Сохраняем...",
+    "cancelButton": "Отмена",
+    "createSuccess": "Кампания успешно создана",
+    "updateSuccess": "Кампания успешно обновлена",
+    "deleteSuccess": "Кампания успешно удалена",
+    "types": {
+      "OfferBlock": "Блок предложений",
+      "Banner": "Баннер"
+    },
+    "categories": {
+      "AutoService": "Автосервис",
+      "CarWash": "Автомойка",
+      "Towing": "Эвакуатор",
+      "AutoShop": "Автомагазин",
+      "Other": "Другое"
+    },
+    "validation": {
+      "typeRequired": "Выберите тип рекламы",
+      "targetCategoryRequired": "Выберите категорию",
+      "contentRequired": "Содержание обязательно",
+      "contentMaxLength": "Максимум 2048 символов",
+      "startsAtRequired": "Укажите дату начала",
+      "endsAtRequired": "Укажите дату окончания",
+      "endsAtAfterStartsAt": "Дата окончания должна быть после даты начала"
+    },
+    "errors": {
+      "unauthorized": "Необходима авторизация",
+      "notFound": "Кампания не найдена",
+      "badRequest": "Проверьте правильность введённых данных",
+      "serverError": "Ошибка сервера. Попробуйте позже",
+      "unknown": "Что-то пошло не так. Попробуйте ещё раз"
+    }
+  },
   "profile": {
     "title": "Профиль",
     "subscription": "Подписка",

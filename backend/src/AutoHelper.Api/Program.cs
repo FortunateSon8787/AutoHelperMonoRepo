@@ -1,4 +1,5 @@
 using AutoHelper.Api.Extensions;
+using AutoHelper.Api.Features.AdCampaigns;
 using AutoHelper.Api.Features.Auth;
 using AutoHelper.Api.Features.Clients;
 using AutoHelper.Api.Features.Partners;
@@ -61,6 +62,7 @@ try
     app.MapVehicleEndpoints();
     app.MapServiceRecordEndpoints();
     app.MapPartnerEndpoints();
+    app.MapAdCampaignEndpoints();
 
     await app.RunAsync();
 }

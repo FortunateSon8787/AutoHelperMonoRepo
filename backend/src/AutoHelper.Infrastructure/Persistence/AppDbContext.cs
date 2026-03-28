@@ -1,4 +1,5 @@
 using AutoHelper.Application.Common.Interfaces;
+using AutoHelper.Domain.AdCampaigns;
 using AutoHelper.Domain.Common;
 using AutoHelper.Domain.Customers;
 using AutoHelper.Domain.Partners;
@@ -21,6 +22,7 @@ public sealed class AppDbContext(
     public DbSet<ServiceRecord> ServiceRecords => Set<ServiceRecord>();
     public DbSet<Partner> Partners => Set<Partner>();
     public DbSet<Review> Reviews => Set<Review>();
+    public DbSet<AdCampaign> AdCampaigns => Set<AdCampaign>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
