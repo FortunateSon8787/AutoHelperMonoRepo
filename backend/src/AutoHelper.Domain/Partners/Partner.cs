@@ -181,6 +181,17 @@ public sealed class Partner : AggregateRoot<Guid>
     }
 
     /// <summary>
+    /// Recalculates the <see cref="IsPotentiallyUnfit"/> flag based on
+    /// the number of low ratings (below 3) the partner has received.
+    /// Called from the Application layer after a new review is created.
+    /// A partner is marked potentially unfit when they accumulate 5 or more low ratings.
+    /// </summary>
+    public void RecalculateFitnessFlag(int lowRatingCount)
+    {
+        IsPotentiallyUnfit = lowRatingCount >= 5;
+    }
+
+    /// <summary>
     /// Soft-deletes the partner profile.
     /// Physical deletion is not permitted per platform policy.
     /// </summary>
