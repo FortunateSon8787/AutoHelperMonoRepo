@@ -249,6 +249,100 @@
       "currency": "₽"
     }
   },
+  "partner": {
+    "register": {
+      "title": "Регистрация партнёра",
+      "subtitle": "Заполните информацию о вашем бизнесе",
+      "nameLabel": "Название организации",
+      "namePlaceholder": "ООО «АвтоСервис»",
+      "typeLabel": "Тип партнёра",
+      "specializationLabel": "Специализация",
+      "specializationPlaceholder": "Ремонт двигателей, диагностика",
+      "descriptionLabel": "Описание",
+      "descriptionPlaceholder": "Краткое описание вашей деятельности",
+      "addressLabel": "Адрес",
+      "addressPlaceholder": "Москва, ул. Ленина, 1",
+      "locationLatLabel": "Широта",
+      "locationLngLabel": "Долгота",
+      "workingOpenFromLabel": "Начало работы (ЧЧ:ММ)",
+      "workingOpenFromPlaceholder": "09:00",
+      "workingOpenToLabel": "Конец работы (ЧЧ:ММ)",
+      "workingOpenToPlaceholder": "18:00",
+      "workingDaysLabel": "Рабочие дни",
+      "workingDaysPlaceholder": "Пн-Пт",
+      "contactsPhoneLabel": "Телефон",
+      "contactsPhonePlaceholder": "+7-999-000-00-00",
+      "contactsWebsiteLabel": "Сайт (необязательно)",
+      "contactsWebsitePlaceholder": "https://example.com",
+      "submitButton": "Зарегистрироваться как партнёр",
+      "submittingButton": "Регистрируем...",
+      "successMessage": "Заявка отправлена! Ожидайте верификации администратором.",
+      "types": {
+        "AutoService": "Автосервис",
+        "CarWash": "Автомойка",
+        "Towing": "Эвакуатор",
+        "AutoShop": "Автомагазин",
+        "Other": "Другое"
+      },
+      "validation": {
+        "nameRequired": "Название обязательно",
+        "nameMaxLength": "Максимум 256 символов",
+        "typeRequired": "Выберите тип партнёра",
+        "specializationRequired": "Специализация обязательна",
+        "descriptionRequired": "Описание обязательно",
+        "addressRequired": "Адрес обязателен",
+        "latInvalid": "Широта: от -90 до 90",
+        "lngInvalid": "Долгота: от -180 до 180",
+        "timeFormat": "Формат: ЧЧ:ММ",
+        "workingDaysRequired": "Укажите рабочие дни",
+        "phoneRequired": "Телефон обязателен"
+      },
+      "errors": {
+        "conflict": "Партнёрский профиль для этого аккаунта уже существует",
+        "badRequest": "Проверьте правильность введённых данных",
+        "serverError": "Ошибка сервера. Попробуйте позже",
+        "unknown": "Что-то пошло не так. Попробуйте ещё раз"
+      }
+    },
+    "cabinet": {
+      "title": "Партнёрский кабинет",
+      "pendingVerification": "Ваш профиль ожидает верификации администратором",
+      "inactive": "Ваш профиль деактивирован",
+      "verified": "Верифицирован",
+      "notVerified": "Ожидает верификации",
+      "active": "Активен",
+      "notActive": "Неактивен",
+      "statusSection": "Статус профиля",
+      "editButton": "Редактировать профиль",
+      "saveButton": "Сохранить",
+      "savingButton": "Сохраняем...",
+      "cancelButton": "Отмена",
+      "saveSuccess": "Профиль успешно обновлён",
+      "nameLabel": "Название",
+      "specializationLabel": "Специализация",
+      "descriptionLabel": "Описание",
+      "addressLabel": "Адрес",
+      "workingHoursLabel": "Часы работы",
+      "contactsLabel": "Контакты",
+      "websiteLabel": "Сайт",
+      "phoneLabel": "Телефон",
+      "typeLabel": "Тип",
+      "types": {
+        "AutoService": "Автосервис",
+        "CarWash": "Автомойка",
+        "Towing": "Эвакуатор",
+        "AutoShop": "Автомагазин",
+        "Other": "Другое"
+      },
+      "errors": {
+        "notFound": "Партнёрский профиль не найден",
+        "unauthorized": "Необходима авторизация",
+        "badRequest": "Проверьте правильность данных",
+        "serverError": "Ошибка сервера. Попробуйте позже",
+        "unknown": "Что-то пошло не так. Попробуйте ещё раз"
+      }
+    }
+  },
   "profile": {
     "title": "Профиль",
     "subscription": "Подписка",

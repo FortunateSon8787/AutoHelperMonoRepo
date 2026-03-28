@@ -75,7 +75,12 @@ public static class WebApplicationBuilderExtensions
                 };
             });
 
-        services.AddAuthorization();
+        services.AddAuthorization(options =>
+        {
+            options.AddPolicy("admin", policy =>
+                policy.RequireAuthenticatedUser()
+                      .RequireRole("admin", "superadmin"));
+        });
 
         // Health checks
         services

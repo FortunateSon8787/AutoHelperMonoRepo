@@ -249,6 +249,100 @@
       "currency": "$"
     }
   },
+  "partner": {
+    "register": {
+      "title": "Partner Registration",
+      "subtitle": "Fill in your business information",
+      "nameLabel": "Organization Name",
+      "namePlaceholder": "AutoService LLC",
+      "typeLabel": "Partner Type",
+      "specializationLabel": "Specialization",
+      "specializationPlaceholder": "Engine repair, diagnostics",
+      "descriptionLabel": "Description",
+      "descriptionPlaceholder": "Brief description of your services",
+      "addressLabel": "Address",
+      "addressPlaceholder": "Moscow, Lenina St. 1",
+      "locationLatLabel": "Latitude",
+      "locationLngLabel": "Longitude",
+      "workingOpenFromLabel": "Opening Time (HH:MM)",
+      "workingOpenFromPlaceholder": "09:00",
+      "workingOpenToLabel": "Closing Time (HH:MM)",
+      "workingOpenToPlaceholder": "18:00",
+      "workingDaysLabel": "Working Days",
+      "workingDaysPlaceholder": "Mon-Fri",
+      "contactsPhoneLabel": "Phone",
+      "contactsPhonePlaceholder": "+1-555-000-0000",
+      "contactsWebsiteLabel": "Website (optional)",
+      "contactsWebsitePlaceholder": "https://example.com",
+      "submitButton": "Register as Partner",
+      "submittingButton": "Registering...",
+      "successMessage": "Application submitted! Please wait for admin verification.",
+      "types": {
+        "AutoService": "Auto Service",
+        "CarWash": "Car Wash",
+        "Towing": "Towing",
+        "AutoShop": "Auto Shop",
+        "Other": "Other"
+      },
+      "validation": {
+        "nameRequired": "Name is required",
+        "nameMaxLength": "Maximum 256 characters",
+        "typeRequired": "Please select a partner type",
+        "specializationRequired": "Specialization is required",
+        "descriptionRequired": "Description is required",
+        "addressRequired": "Address is required",
+        "latInvalid": "Latitude: from -90 to 90",
+        "lngInvalid": "Longitude: from -180 to 180",
+        "timeFormat": "Format: HH:MM",
+        "workingDaysRequired": "Working days are required",
+        "phoneRequired": "Phone is required"
+      },
+      "errors": {
+        "conflict": "A partner profile already exists for this account",
+        "badRequest": "Please check your input",
+        "serverError": "Server error. Please try again later",
+        "unknown": "Something went wrong. Please try again"
+      }
+    },
+    "cabinet": {
+      "title": "Partner Cabinet",
+      "pendingVerification": "Your profile is awaiting admin verification",
+      "inactive": "Your profile is deactivated",
+      "verified": "Verified",
+      "notVerified": "Pending Verification",
+      "active": "Active",
+      "notActive": "Inactive",
+      "statusSection": "Profile Status",
+      "editButton": "Edit Profile",
+      "saveButton": "Save",
+      "savingButton": "Saving...",
+      "cancelButton": "Cancel",
+      "saveSuccess": "Profile updated successfully",
+      "nameLabel": "Name",
+      "specializationLabel": "Specialization",
+      "descriptionLabel": "Description",
+      "addressLabel": "Address",
+      "workingHoursLabel": "Working Hours",
+      "contactsLabel": "Contacts",
+      "websiteLabel": "Website",
+      "phoneLabel": "Phone",
+      "typeLabel": "Type",
+      "types": {
+        "AutoService": "Auto Service",
+        "CarWash": "Car Wash",
+        "Towing": "Towing",
+        "AutoShop": "Auto Shop",
+        "Other": "Other"
+      },
+      "errors": {
+        "notFound": "Partner profile not found",
+        "unauthorized": "Authorization required",
+        "badRequest": "Please check your input",
+        "serverError": "Server error. Please try again later",
+        "unknown": "Something went wrong. Please try again"
+      }
+    }
+  },
   "profile": {
     "title": "Profile",
     "subscription": "Subscription",

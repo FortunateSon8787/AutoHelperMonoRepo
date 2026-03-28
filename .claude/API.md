@@ -445,14 +445,134 @@ Soft-delete записи. Требует `Authorization: Bearer`.
 
 ---
 
-## Партнёры (`/api/partners`) — планируется (Epic AUT-6)
+## Партнёры (`/api/partners`) — **реализовано** (AUT-24 / Epic AUT-6)
+
+> Все эндпоинты требуют `Authorization: Bearer <accessToken>`
+
+### POST /api/partners/register
+
+Регистрация нового партнёра. Один аккаунт — один партнёрский профиль.
+
+**Request:**
+```json
+{
+  "name": "AutoService LLC",
+  "type": "AutoService",
+  "specialization": "Engine repair, diagnostics",
+  "description": "Brief description of services",
+  "address": "Moscow, Lenina St. 1",
+  "locationLat": 55.75,
+  "locationLng": 37.61,
+  "workingOpenFrom": "09:00",
+  "workingOpenTo": "18:00",
+  "workingDays": "Mon-Fri",
+  "contactsPhone": "+7-999-000-0000",
+  "contactsWebsite": "https://example.com"
+}
+```
+
+**Response 201:**
+```json
+{ "partnerId": "uuid" }
+```
+
+**Errors:**
+- `409 Conflict` — профиль партнёра для этого аккаунта уже существует
+- `400 Bad Request` — ошибки валидации
+- `401 Unauthorized` — требуется авторизация
+
+**Partner Types:** `AutoService` | `CarWash` | `Towing` | `AutoShop` | `Other`
+
+После регистрации: `IsVerified = false`, `IsActive = false`. Профиль активируется после верификации администратором.
+
+---
+
+### GET /api/partners/me
+
+Получение своего партнёрского профиля.
+
+**Response 200:**
+```json
+{
+  "id": "uuid",
+  "name": "AutoService LLC",
+  "type": "AutoService",
+  "specialization": "Engine repair",
+  "description": "...",
+  "address": "Moscow, Lenina St. 1",
+  "locationLat": 55.75,
+  "locationLng": 37.61,
+  "workingOpenFrom": "09:00",
+  "workingOpenTo": "18:00",
+  "workingDays": "Mon-Fri",
+  "contactsPhone": "+7-999-000-0000",
+  "contactsWebsite": "https://example.com",
+  "logoUrl": null,
+  "isVerified": false,
+  "isActive": false,
+  "accountUserId": "uuid"
+}
+```
+
+**Errors:**
+- `404 Not Found` — профиль партнёра не найден
+- `401 Unauthorized` — требуется авторизация
+
+---
+
+### PUT /api/partners/me
+
+Обновление партнёрского профиля. `type` не изменяется.
+
+**Request:** (аналогично POST /register, но без поля `type`)
+
+**Response:** `204 No Content`
+
+**Errors:**
+- `404 Not Found` — профиль не найден
+- `400 Bad Request` — ошибки валидации
+- `401 Unauthorized`
+
+---
+
+## Партнёры — Администрирование (`/api/admin/partners`) — **реализовано** (AUT-24)
+
+**Доступ:** только роли `admin` и `superadmin`.
+
+### GET /api/admin/partners/pending
+
+Список партнёров, ожидающих верификации (`IsVerified = false`).
+
+**Response 200:** `PartnerResponse[]`
+
+---
+
+### POST /api/admin/partners/{id}/verify
+
+Верификация партнёра. Устанавливает `IsVerified = true`, `IsActive = true`.
+
+**Response:** `204 No Content`
+
+**Errors:** `404 Not Found` — партнёр не найден
+
+---
+
+### POST /api/admin/partners/{id}/deactivate
+
+Деактивация партнёра. Устанавливает `IsActive = false`.
+
+**Response:** `204 No Content`
+
+**Errors:** `404 Not Found` — партнёр не найден
+
+---
+
+### Планируется (Epic AUT-6)
 
 | Метод | Путь | Описание |
 |-------|------|----------|
 | GET | `/api/partners` | Список верифицированных партнёров (с геофильтром) |
-| POST | `/api/partners` | Регистрация партнёра |
 | GET | `/api/partners/{id}` | Профиль партнёра (публичный) |
-| PUT | `/api/partners/{id}` | Обновление профиля (только владелец) |
 | POST | `/api/partners/{id}/reviews` | Оставить отзыв (нужен факт взаимодействия) |
 | GET | `/api/partners/{id}/reviews` | Отзывы партнёра |
 

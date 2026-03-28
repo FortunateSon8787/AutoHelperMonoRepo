@@ -12,7 +12,8 @@
       "Bash(wrangler --version)",
       "Bash(wrangler whoami:*)",
       "Bash(ls \"c:\\\\Users\\\\DNK\\\\Documents\\\\Claude\\\\Projects\\\\AutoHelper\\\\AutoHelperMonoRepo\\\\frontend\\\\app\\\\dashboard\\\\vehicles\\\\[id]\\\\service-records\"\" 2>/dev/null || echo \"dir not found \")",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Bash(find c:/Users/DNK/Documents/Claude/Projects/AutoHelper/AutoHelperMonoRepo/backend -name appsettings*.json -type f)"
     ]
   }
 }
