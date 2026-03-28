@@ -60,3 +60,33 @@ export const PARTNER_TYPES = [
 ] as const;
 
 export type PartnerType = (typeof PARTNER_TYPES)[number];
+
+export interface PartnerNearbyResult {
+  id: string;
+  name: string;
+  type: string;
+  specialization: string;
+  description: string;
+  address: string;
+  locationLat: number;
+  locationLng: number;
+  distanceKm: number;
+  workingOpenFrom: string;
+  workingOpenTo: string;
+  workingDays: string;
+  isOpenNow: boolean;
+  contactsPhone: string;
+  contactsWebsite: string | null;
+  logoUrl: string | null;
+  isVerified: boolean;
+  averageRating: number;
+  reviewsCount: number;
+}
+
+export interface SearchPartnersParams {
+  lat: number;
+  lng: number;
+  radiusKm?: number;
+  type?: string;
+  isOpenNow?: boolean;
+}

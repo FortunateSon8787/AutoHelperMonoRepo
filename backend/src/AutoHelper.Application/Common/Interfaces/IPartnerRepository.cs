@@ -19,6 +19,9 @@ public interface IPartnerRepository
     /// <summary>Returns all partners (active and verified) for public listing.</summary>
     Task<IReadOnlyList<Partner>> GetAllVerifiedAsync(CancellationToken ct);
 
+    /// <summary>Returns all active and verified partners for geographic proximity search.</summary>
+    Task<IReadOnlyList<Partner>> SearchByLocationAsync(CancellationToken ct);
+
     /// <summary>Returns all partners pending administrator verification.</summary>
     Task<IReadOnlyList<Partner>> GetPendingVerificationAsync(CancellationToken ct);
 

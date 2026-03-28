@@ -1,7 +1,9 @@
 import axios, { AxiosError } from "axios";
 import type {
+  PartnerNearbyResult,
   PartnerProfile,
   RegisterPartnerRequest,
+  SearchPartnersParams,
   UpdatePartnerProfileRequest,
 } from "@/types/partner";
 
@@ -66,6 +68,32 @@ export const partnerService = {
   async updateMyProfile(data: UpdatePartnerProfileRequest): Promise<void> {
     try {
       await api.put("/api/partners/me", data);
+    } catch (error) {
+      throw new PartnerServiceError(resolveErrorCode(error));
+    }
+  },
+
+  async searchNearby(params: SearchPartnersParams): Promise<PartnerNearbyResult[]> {
+    try {
+      const response = await api.get<PartnerNearbyResult[]>("/api/partners", {
+        params: {
+          lat: params.lat,
+          lng: params.lng,
+          radiusKm: params.radiusKm ?? 10,
+          ...(params.type ? { type: params.type } : {}),
+          isOpenNow: params.isOpenNow ?? false,
+        },
+      });
+      return response.data;
+    } catch (error) {
+      throw new PartnerServiceError(resolveErrorCode(error));
+    }
+  },
+
+  async getById(id: string): Promise<PartnerProfile> {
+    try {
+      const response = await api.get<PartnerProfile>(`/api/partners/${id}`);
+      return response.data;
     } catch (error) {
       throw new PartnerServiceError(resolveErrorCode(error));
     }

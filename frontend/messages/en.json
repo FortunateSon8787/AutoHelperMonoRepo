@@ -396,6 +396,49 @@
       "unknown": "Something went wrong. Please try again"
     }
   },
+  "partners": {
+    "search": {
+      "title": "Find Partners",
+      "radiusLabel": "Radius (km)",
+      "typeLabel": "Type",
+      "allTypes": "All types",
+      "isOpenNowLabel": "Open now only",
+      "searchButton": "Search",
+      "locateMeButton": "Use my location",
+      "emptyState": "No partners found. Try increasing the search radius.",
+      "kmLabel": "km",
+      "openLabel": "Open",
+      "closedLabel": "Closed",
+      "viewProfileLink": "View profile",
+      "types": {
+        "AutoService": "Auto Service",
+        "CarWash": "Car Wash",
+        "Towing": "Towing",
+        "AutoShop": "Auto Shop",
+        "Other": "Other"
+      },
+      "errors": {
+        "geolocationNotSupported": "Geolocation is not supported by your browser",
+        "geolocationDenied": "Geolocation access denied",
+        "serverError": "Server error. Please try again later",
+        "unknown": "Something went wrong. Please try again"
+      }
+    },
+    "profile": {
+      "backToSearch": "← Back to search",
+      "specializationLabel": "Specialization",
+      "descriptionLabel": "Description",
+      "contactsLabel": "Contacts",
+      "verified": "Verified",
+      "types": {
+        "AutoService": "Auto Service",
+        "CarWash": "Car Wash",
+        "Towing": "Towing",
+        "AutoShop": "Auto Shop",
+        "Other": "Other"
+      }
+    }
+  },
   "profile": {
     "title": "Profile",
     "subscription": "Subscription",

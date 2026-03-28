@@ -396,6 +396,49 @@
       "unknown": "Что-то пошло не так. Попробуйте ещё раз"
     }
   },
+  "partners": {
+    "search": {
+      "title": "Поиск партнёров",
+      "radiusLabel": "Радиус (км)",
+      "typeLabel": "Тип",
+      "allTypes": "Все типы",
+      "isOpenNowLabel": "Только открытые сейчас",
+      "searchButton": "Найти",
+      "locateMeButton": "Моё местоположение",
+      "emptyState": "Партнёры не найдены. Попробуйте увеличить радиус поиска.",
+      "kmLabel": "км",
+      "openLabel": "Открыто",
+      "closedLabel": "Закрыто",
+      "viewProfileLink": "Открыть профиль",
+      "types": {
+        "AutoService": "Автосервис",
+        "CarWash": "Автомойка",
+        "Towing": "Эвакуатор",
+        "AutoShop": "Автомагазин",
+        "Other": "Другое"
+      },
+      "errors": {
+        "geolocationNotSupported": "Геолокация не поддерживается вашим браузером",
+        "geolocationDenied": "Доступ к геолокации запрещён",
+        "serverError": "Ошибка сервера. Попробуйте позже",
+        "unknown": "Что-то пошло не так. Попробуйте ещё раз"
+      }
+    },
+    "profile": {
+      "backToSearch": "← К поиску",
+      "specializationLabel": "Специализация",
+      "descriptionLabel": "Описание",
+      "contactsLabel": "Контакты",
+      "verified": "Верифицирован",
+      "types": {
+        "AutoService": "Автосервис",
+        "CarWash": "Автомойка",
+        "Towing": "Эвакуатор",
+        "AutoShop": "Автомагазин",
+        "Other": "Другое"
+      }
+    }
+  },
   "profile": {
     "title": "Профиль",
     "subscription": "Подписка",
