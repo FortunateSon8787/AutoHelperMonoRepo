@@ -1,11 +1,21 @@
 namespace AutoHelper.Application.Common;
 
 /// <summary>
+/// Non-generic interface implemented by both Result and Result&lt;T&gt;.
+/// Allows LoggingBehavior to detect failures without reflection or generics.
+/// </summary>
+public interface IFailureResult
+{
+    bool IsFailure { get; }
+    string? Error { get; }
+}
+
+/// <summary>
 /// Represents the outcome of an operation that can either succeed or fail expectedly.
 /// Use for business rule failures in Application layer handlers.
 /// Use exceptions for unexpected/infrastructure failures.
 /// </summary>
-public sealed class Result
+public sealed class Result : IFailureResult
 {
     private Result(bool isSuccess, string? error)
     {
@@ -26,7 +36,7 @@ public sealed class Result
 /// <summary>
 /// Represents the outcome of an operation that returns a value on success.
 /// </summary>
-public sealed class Result<TValue>
+public sealed class Result<TValue> : IFailureResult
 {
     private readonly TValue? _value;
 

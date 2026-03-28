@@ -28,10 +28,17 @@ public sealed class LoggingBehavior<TRequest, TResponse>(
             var response = await next(cancellationToken);
             stopwatch.Stop();
 
-            logger.LogInformation(
-                "Handled {RequestName} in {ElapsedMs}ms",
-                requestName,
-                stopwatch.ElapsedMilliseconds);
+            if (IsFailedResult(response, out var error))
+                logger.LogError(
+                    "Handled {RequestName} with failure in {ElapsedMs}ms: {Error}",
+                    requestName,
+                    stopwatch.ElapsedMilliseconds,
+                    error);
+            else
+                logger.LogInformation(
+                    "Handled {RequestName} in {ElapsedMs}ms",
+                    requestName,
+                    stopwatch.ElapsedMilliseconds);
 
             return response;
         }
@@ -47,5 +54,24 @@ public sealed class LoggingBehavior<TRequest, TResponse>(
 
             throw;
         }
+    }
+
+    private static bool IsFailedResult(TResponse response, out string? error)
+    {
+        if (response is Result result && result.IsFailure)
+        {
+            error = result.Error;
+            return true;
+        }
+
+        // Result<TValue> has no common interface with Result, check via reflection-free pattern
+        if (response is IFailureResult failureResult && failureResult.IsFailure)
+        {
+            error = failureResult.Error;
+            return true;
+        }
+
+        error = null;
+        return false;
     }
 }
