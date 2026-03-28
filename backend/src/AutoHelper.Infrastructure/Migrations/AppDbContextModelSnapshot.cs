@@ -185,6 +185,48 @@ namespace AutoHelper.Infrastructure.Migrations
                     b.ToTable("partners", (string)null);
                 });
 
+            modelBuilder.Entity("AutoHelper.Domain.Reviews.Review", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Basis")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<string>("Comment")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("CustomerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("InteractionReferenceId")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<Guid>("PartnerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Rating")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PartnerId", "CustomerId", "Basis", "InteractionReferenceId")
+                        .IsUnique();
+
+                    b.ToTable("reviews", (string)null);
+                });
+
             modelBuilder.Entity("AutoHelper.Domain.ServiceRecords.ServiceRecord", b =>
                 {
                     b.Property<Guid>("Id")
@@ -393,6 +435,15 @@ namespace AutoHelper.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("WorkingHours")
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("AutoHelper.Domain.Reviews.Review", b =>
+                {
+                    b.HasOne("AutoHelper.Domain.Partners.Partner", null)
+                        .WithMany()
+                        .HasForeignKey("PartnerId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
 #pragma warning restore 612, 618

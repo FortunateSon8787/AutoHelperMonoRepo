@@ -183,12 +183,15 @@ public static class PartnersEndpoints
 
         if (result.IsFailure)
         {
-            if (result.Error!.Contains("not found"))
+            if (result.Error!.Contains("not found", StringComparison.OrdinalIgnoreCase))
                 return Results.NotFound(new ProblemDetails
                 {
                     Status = StatusCodes.Status404NotFound,
                     Title = result.Error
                 });
+
+            if (result.Error.Contains("not authenticated", StringComparison.OrdinalIgnoreCase))
+                return Results.Unauthorized();
 
             return Results.Conflict(new ProblemDetails
             {
