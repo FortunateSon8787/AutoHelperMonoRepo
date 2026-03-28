@@ -1,8 +1,10 @@
 using AutoHelper.Application.Features.Partners;
 using AutoHelper.Application.Features.Partners.DeactivatePartner;
 using AutoHelper.Application.Features.Partners.GetMyPartnerProfile;
+using AutoHelper.Application.Features.Partners.GetPartnerById;
 using AutoHelper.Application.Features.Partners.GetPendingPartners;
 using AutoHelper.Application.Features.Partners.RegisterPartner;
+using AutoHelper.Application.Features.Partners.SearchPartnersNearby;
 using AutoHelper.Application.Features.Partners.UpdateMyPartnerProfile;
 using AutoHelper.Application.Features.Partners.VerifyPartner;
 using AutoHelper.Application.Features.Reviews.CreateReview;
@@ -43,8 +45,17 @@ public static class PartnersEndpoints
             .ProducesProblem(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status409Conflict);
 
-        // ── Public review listing ─────────────────────────────────────────────
+        // ── Public partner search & profiles ──────────────────────────────────
         var publicGroup = app.MapGroup("/api/partners").WithTags("Partners");
+
+        publicGroup.MapGet("/", SearchPartnersNearby)
+            .WithSummary("Search verified partners by location, radius, type and open status (public)")
+            .Produces<IReadOnlyList<PartnerWithDistanceResponse>>(StatusCodes.Status200OK);
+
+        publicGroup.MapGet("/{id:guid}", GetPartnerById)
+            .WithSummary("Get public profile of a verified partner by id")
+            .Produces<PartnerResponse>(StatusCodes.Status200OK)
+            .ProducesProblem(StatusCodes.Status404NotFound);
 
         publicGroup.MapGet("/{partnerId:guid}/reviews", GetPartnerReviews)
             .WithSummary("Get all reviews for a partner (public, no auth required)")
@@ -118,6 +129,41 @@ public static class PartnersEndpoints
             });
 
         return Results.NoContent();
+    }
+
+    // ─── Public partner search & profile handlers ─────────────────────────────
+
+    private static async Task<IResult> SearchPartnersNearby(
+        [AsParameters] SearchPartnersNearbyRequest request,
+        ISender mediator,
+        CancellationToken ct)
+    {
+        var query = new SearchPartnersNearbyQuery(
+            Lat: request.Lat,
+            Lng: request.Lng,
+            RadiusKm: request.RadiusKm,
+            Type: request.Type,
+            IsOpenNow: request.IsOpenNow);
+
+        var result = await mediator.Send(query, ct);
+        return Results.Ok(result.Value);
+    }
+
+    private static async Task<IResult> GetPartnerById(
+        Guid id,
+        ISender mediator,
+        CancellationToken ct)
+    {
+        var result = await mediator.Send(new GetPartnerByIdQuery(id), ct);
+
+        if (result.IsFailure)
+            return Results.NotFound(new ProblemDetails
+            {
+                Status = StatusCodes.Status404NotFound,
+                Title = result.Error
+            });
+
+        return Results.Ok(result.Value);
     }
 
     // ─── Admin handlers ───────────────────────────────────────────────────────
@@ -223,4 +269,13 @@ public static class PartnersEndpoints
         string Comment,
         string Basis,
         Guid InteractionReferenceId);
+
+    // ─── Query parameter DTOs ─────────────────────────────────────────────────
+
+    private sealed record SearchPartnersNearbyRequest(
+        double Lat,
+        double Lng,
+        double RadiusKm = 10,
+        string? Type = null,
+        bool IsOpenNow = false);
 }

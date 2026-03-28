@@ -23,6 +23,12 @@ public sealed class PartnerRepository(AppDbContext db) : IPartnerRepository
             .ToListAsync(ct)
             .ContinueWith(t => (IReadOnlyList<Partner>)t.Result, ct);
 
+    public Task<IReadOnlyList<Partner>> SearchByLocationAsync(CancellationToken ct) =>
+        db.Partners
+            .Where(p => p.IsVerified && p.IsActive)
+            .ToListAsync(ct)
+            .ContinueWith(t => (IReadOnlyList<Partner>)t.Result, ct);
+
     public Task<IReadOnlyList<Partner>> GetPendingVerificationAsync(CancellationToken ct) =>
         db.Partners
             .Where(p => !p.IsVerified)
