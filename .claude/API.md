@@ -421,16 +421,124 @@ Soft-delete записи. Требует `Authorization: Bearer`.
 
 ---
 
-## AI АвтоПомощник (`/api/chats`) — планируется (Epic AUT-4)
+## AI АвтоПомощник (`/api/chats`) — **реализовано** (AUT-17 / Epic AUT-4)
 
-| Метод | Путь | Описание |
-|-------|------|----------|
-| GET | `/api/chats` | Список чатов клиента |
-| POST | `/api/chats` | Создать чат (опционально привязать к авто) |
-| GET | `/api/chats/{chatId}/messages` | История сообщений |
-| POST | `/api/chats/{chatId}/messages` | Отправить сообщение → ответ LLM (streaming) |
+> Все эндпоинты требуют `Authorization: Bearer <accessToken>`
 
-**Доступ:** только клиентам с `SubscriptionStatus = Premium`.
+### GET /api/chats
+
+Список чат-сессий текущего клиента (без тел сообщений, только count).
+
+**Response 200:** `ChatSummaryResponse[]`
+
+```json
+[
+  {
+    "id": "uuid",
+    "mode": "FaultHelp",
+    "title": "Стук в двигателе",
+    "vehicleId": "uuid",
+    "messageCount": 6,
+    "createdAt": "2026-03-28T20:00:00Z"
+  }
+]
+```
+
+---
+
+### POST /api/chats
+
+Создать новую чат-сессию. Режимы `FaultHelp` и `WorkClarification` требуют `SubscriptionStatus = Premium`. Режим `PartnerAdvice` — бесплатный.
+
+**Request:**
+```json
+{
+  "mode": "FaultHelp",
+  "title": "Стук в двигателе",
+  "vehicleId": "uuid"
+}
+```
+
+**ChatMode:** `FaultHelp` | `WorkClarification` | `PartnerAdvice`
+
+**Response 201:**
+```json
+{ "chatId": "uuid" }
+```
+
+**Errors:**
+- `403 Forbidden` — режим требует активной Premium-подписки
+- `400 Bad Request` — ошибки валидации
+
+---
+
+### GET /api/chats/{chatId}/messages
+
+История сообщений чата (только владелец). Отсортировано по времени.
+
+**Response 200:** `MessageResponse[]`
+
+```json
+[
+  {
+    "id": "uuid",
+    "role": "User",
+    "content": "Слышу стук при запуске",
+    "isValid": true,
+    "createdAt": "2026-03-28T20:01:00Z"
+  },
+  {
+    "id": "uuid",
+    "role": "Assistant",
+    "content": "Стук при запуске может указывать на...",
+    "isValid": true,
+    "createdAt": "2026-03-28T20:01:02Z"
+  }
+]
+```
+
+**Errors:**
+- `404 Not Found` — чат не найден или принадлежит другому пользователю
+
+---
+
+### POST /api/chats/{chatId}/messages
+
+Отправить сообщение в чат и получить ответ LLM. Off-topic запросы сохраняются с `isValid=false` и не расходуют квоту.
+
+**Request:**
+```json
+{
+  "content": "Слышу стук при запуске холодного двигателя",
+  "locale": "ru"
+}
+```
+
+- `locale` — язык ответа LLM (по умолчанию `"ru"`)
+
+**Response 200:**
+```json
+{
+  "assistantReply": "Стук при холодном запуске часто указывает на...",
+  "wasValid": true
+}
+```
+
+- `wasValid: false` — запрос был off-topic; вернулась стандартная заглушка
+
+**Errors:**
+- `403 Forbidden` — требуется Premium-подписка
+- `404 Not Found` — чат не найден
+
+---
+
+**Бизнес-правила:**
+- `FaultHelp` (Режим 1) и `WorkClarification` (Режим 2) — только `SubscriptionStatus = Premium`
+- `PartnerAdvice` (Режим 3) — бесплатен для всех клиентов
+- Topic guard проверяет релевантность вопроса перед вызовом LLM
+- Невалидные сообщения хранятся для аудита, но не уменьшают счётчик подписки
+- История, передаваемая LLM, фильтрует `isValid=false` сообщения
+- LLM API ключ хранится только на бэкенде (LlmSettings, никогда не в браузере)
 
 ---
 

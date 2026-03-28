@@ -193,28 +193,47 @@ ServiceRecord : AggregateRoot<Guid>
 
 ---
 
-### Chat & Message (Epic AUT-4)
+### Chat & Message — **реализованы** (AUT-17 / Epic AUT-4)
+
+**Файлы:** `Domain/Chats/Chat.cs`, `Domain/Chats/Message.cs`
 
 ```
 Chat : AggregateRoot<Guid>
 ├── CustomerId: Guid
 ├── VehicleId: Guid?           (опционально — привязка к конкретному авто)
 ├── Mode: ChatMode             (FaultHelp | WorkClarification | PartnerAdvice)
+├── Title: string              (пользовательское название сессии, max 200)
 ├── CreatedAt: DateTime
-└── Messages: List<Message>
+└── Messages: List<Message>   (private backing field, PropertyAccessMode.Field)
+│
+├── Factory method:
+│   └── Create(customerId, mode, title, vehicleId?)
+│       ↳ throws DomainException если customerId == Guid.Empty
+│       ↳ throws DomainException если title пустой
+│
+└── Business operations:
+    ├── AddExchange(userContent, assistantContent) — валидный обмен
+    └── AddInvalidUserMessage(userContent)         — off-topic, не уменьшает квоту
 
 Message : Entity<Guid>
 ├── ChatId: Guid
 ├── Role: MessageRole          (User | Assistant)
 ├── Content: string
-├── IsValid: bool              (false — если запрос был невалидным)
+├── IsValid: bool              (false — off-topic/rejected; не уменьшает квоту подписки)
 └── CreatedAt: DateTime
 ```
 
+**Фабрики Message (internal — только для Chat):**
+- `CreateUserMessage(chatId, content)` — IsValid=true
+- `CreateAssistantMessage(chatId, content)` — IsValid=true
+- `CreateInvalidUserMessage(chatId, content)` — IsValid=false
+
 **Бизнес-правила:**
-- Доступ к Режимам 1 и 2 только при активной подписке чатбота.
-- Невалидный запрос не уменьшает счётчик запросов.
-- Ответы генерируются на языке текущей локали сайта.
+- Режим `FaultHelp` и `WorkClarification` — только `SubscriptionStatus = Premium`
+- Режим `PartnerAdvice` — бесплатный для всех клиентов
+- Topic guard: off-topic запросы сохраняются с `IsValid=false`, но не уменьшают квоту
+- История, передаваемая LLM, фильтрует `IsValid=false` сообщения
+- EF: cascade delete сообщений при удалении чата
 
 ---
 

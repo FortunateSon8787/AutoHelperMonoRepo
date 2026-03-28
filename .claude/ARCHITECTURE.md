@@ -66,10 +66,16 @@ Domain/Common/
 | Агрегат | Предполагаемый модуль |
 |---------|-----------------------|
 | `AuditLog` | Аудит-лог (Epic AUT-150) |
-| `Chat` / `Message` | AI-чат (Epic AUT-4) |
 | `ChatbotSubscription` | Биллинг / чатбот (Epic AUT-4, AUT-5) |
 | `InvalidChatRequest` | Чатбот (Epic AUT-4) |
 | `PlatformReview` | Блог лендинга (Epic AUT-8) |
+
+### Реализованные агрегаты (дополнение)
+
+| Агрегат | Файл | Описание |
+|---------|------|----------|
+| `Chat` | `Chats/Chat.cs` | Чат-сессия AI-помощника. Реализован в AUT-17 |
+| `Message` | `Chats/Message.cs` | Сообщение чата (User/Assistant). Реализован в AUT-17 |
 
 ---
 
@@ -159,7 +165,8 @@ Common/Behaviors/
 Persistence/
   ├── AppDbContext.cs             — DbContext + IUnitOfWork
   │                                 SaveChangesAsync диспатчит DomainEvents через MediatR
-  │                                 DbSets: Customers, RefreshTokens, Vehicles
+  │                                 DbSets: Customers, RefreshTokens, Vehicles, ServiceRecords,
+  │                                         Partners, Reviews, AdCampaigns, Chats, Messages
   ├── DatabaseMigrator.cs         — Автомиграция при старте (если AutoMigrateOnStartup=true)
   ├── Configurations/
   │   ├── CustomerConfiguration.cs
@@ -190,6 +197,14 @@ Security/
 Storage/
   ├── S3StorageService.cs  — Загрузка файлов в MinIO/S3 (аватары, PDF)
   └── StorageSettings.cs   — Конфигурация (endpoint, keys, bucket)
+```
+
+### AI
+
+```
+Ai/
+  ├── OpenAiLlmProvider.cs — ILlmProvider реализация через OpenAI Chat Completions API
+  └── LlmSettings.cs       — Конфигурация (ApiKey, Model); секция "LLM" в appsettings
 ```
 
 ### Common

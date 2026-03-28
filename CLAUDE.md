@@ -54,7 +54,8 @@ AutoHelperMonoRepo/
 
 ✅ Реализованы Epics: AUT-1 (Клиенты), AUT-2 (Автомобили), AUT-3 (Service Records)
 ✅ Частично реализован Epic AUT-6 (Партнёры): AUT-24 (регистрация/профиль/верификация), AUT-25 (отзывы), AUT-26 (рекламные кампании), AUT-27 (геолокационный поиск + карта Leaflet)
-🔲 В планах: AUT-4 (AI-чат), AUT-5 (Биллинг), AUT-7 (Админ), AUT-8 (Фронтенд), AUT-9 (DevOps), AUT-150 (Soft-delete + Аудит)
+✅ Частично реализован Epic AUT-4 (AI-чат): AUT-17 (чат-инфраструктура: Chat/Message модели, LLM интеграция, /api/chats)
+🔲 В планах: AUT-5 (Биллинг), AUT-7 (Админ), AUT-8 (Фронтенд), AUT-9 (DevOps), AUT-150 (Soft-delete + Аудит)
 
 Подробная декомпозиция: `.claude/JIRA_DECOMPOSITION.md`
 
