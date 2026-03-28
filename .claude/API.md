@@ -635,13 +635,100 @@ Soft-delete записи. Требует `Authorization: Bearer`.
 
 ---
 
-## Рекламные кампании (`/api/ad-campaigns`) — планируется (Epic AUT-6)
+## Рекламные кампании — **реализовано** (AUT-26 / Epic AUT-6)
 
-| Метод | Путь | Описание |
-|-------|------|----------|
-| GET | `/api/ad-campaigns` | Активные кампании для UI |
-| POST | `/api/ad-campaigns` | Создать кампанию (партнёр) |
-| PUT | `/api/ad-campaigns/{id}` | Редактировать кампанию |
+### GET /api/ad-campaigns/my
+
+Список рекламных кампаний текущего партнёра. Требует `Authorization: Bearer`.
+
+**Response 200:** `AdCampaignResponse[]`
+
+**Errors:** `401` — не авторизован; `404` — партнёрский профиль не найден
+
+---
+
+### POST /api/ad-campaigns
+
+Создание новой рекламной кампании. Только верифицированные и активные партнёры.
+
+**Request:**
+```json
+{
+  "type": "Banner",
+  "targetCategory": "AutoService",
+  "content": "Текст объявления или URL изображения",
+  "startsAt": "2026-04-01T00:00:00Z",
+  "endsAt": "2026-04-30T23:59:59Z",
+  "showToAnonymous": true
+}
+```
+
+**Ad Types:** `OfferBlock` | `Banner`
+**Target Categories:** `AutoService` | `CarWash` | `Towing` | `AutoShop` | `Other`
+
+**Response 201:**
+```json
+{ "campaignId": "uuid" }
+```
+
+**Errors:** `400` — партнёр не верифицирован / не активен, ошибки валидации; `401` — не авторизован
+
+---
+
+### PUT /api/ad-campaigns/{id}
+
+Обновление кампании. Только владелец кампании.
+
+**Request:** (аналогично POST)
+
+**Response:** `204 No Content`
+
+**Errors:** `404` — кампания не найдена или принадлежит другому партнёру
+
+---
+
+### DELETE /api/ad-campaigns/{id}
+
+Soft-delete кампании. Только владелец.
+
+**Response:** `204 No Content`
+
+**Errors:** `404` — кампания не найдена или принадлежит другому партнёру
+
+---
+
+### GET /api/ads
+
+Публичная выдача активных рекламных кампаний. Авторизация **не требуется**.
+
+**Query parameters:**
+- `isAuthenticated` (bool) — авторизован ли текущий пользователь
+- `isPartner` (bool) — является ли пользователь партнёром
+- `targetCategory` (string, optional) — фильтр по категории услуг
+
+**Response 200:** `AdCampaignResponse[]` — отсортированы случайно (ротация)
+
+**Бизнес-правила:**
+- Партнёрам (`isPartner=true`) — пустой массив
+- Анонимным (`isAuthenticated=false`) — только кампании с `showToAnonymous=true`
+- Возвращаются только активные кампании с `isActive=true` и `startsAt ≤ now ≤ endsAt`
+
+**AdCampaignResponse:**
+```json
+{
+  "id": "uuid",
+  "partnerId": "uuid",
+  "type": "Banner",
+  "targetCategory": "AutoService",
+  "content": "Текст объявления",
+  "startsAt": "2026-04-01T00:00:00Z",
+  "endsAt": "2026-04-30T23:59:59Z",
+  "isActive": false,
+  "showToAnonymous": true,
+  "statsImpressions": 0,
+  "statsClicks": 0
+}
+```
 
 ---
 

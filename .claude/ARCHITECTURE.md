@@ -65,14 +65,10 @@ Domain/Common/
 
 | Агрегат | Предполагаемый модуль |
 |---------|-----------------------|
-| `ServiceRecord` | История работ (Epic AUT-3) |
 | `AuditLog` | Аудит-лог (Epic AUT-150) |
 | `Chat` / `Message` | AI-чат (Epic AUT-4) |
 | `ChatbotSubscription` | Биллинг / чатбот (Epic AUT-4, AUT-5) |
 | `InvalidChatRequest` | Чатбот (Epic AUT-4) |
-| `Partner` | Партнёры (Epic AUT-6) |
-| `Review` | Рейтинги (Epic AUT-6) |
-| `AdCampaign` | Реклама (Epic AUT-6) |
 | `PlatformReview` | Блог лендинга (Epic AUT-8) |
 
 ---

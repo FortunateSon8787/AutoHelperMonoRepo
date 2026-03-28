@@ -356,21 +356,62 @@ enum ReviewBasis { RecommendedByAI, ExecutorInServiceRecord }
 
 ---
 
-### AdCampaign (Epic AUT-6)
+### AdCampaign — **реализован** (AUT-26 / Epic AUT-6)
+
+**Файл:** `Domain/AdCampaigns/AdCampaign.cs`
 
 ```
 AdCampaign : AggregateRoot<Guid>
 ├── PartnerId: Guid
 ├── Type: AdType                (OfferBlock | Banner)
 ├── TargetCategory: PartnerType
-├── Content: string             (текст / URL изображения)
-├── StartsAt: DateTime
-├── EndsAt: DateTime
-├── IsActive: bool
+├── Content: string             (текст / URL изображения; max 2048)
+├── StartsAt: DateTime          (UTC)
+├── EndsAt: DateTime            (UTC)
+├── IsActive: bool              (default: false; активируется admin-ом)
 ├── ShowToAnonymous: bool       (показывать анонимным пользователям)
-├── Stats: AdStats              (показы, клики)
+├── Stats: AdStats              (owned VO: Impressions, Clicks)
 └── IsDeleted: bool             (soft-delete)
+│
+├── Factory method:
+│   └── Create(partnerId, type, targetCategory, content, startsAt, endsAt, showToAnonymous)
+│       ↳ throws DomainException если partnerId == Guid.Empty
+│       ↳ throws DomainException если content пустой
+│       ↳ throws DomainException если endsAt <= startsAt
+│       ↳ IsActive = false по умолчанию
+│
+└── Business operations:
+    ├── Update(type, targetCategory, content, startsAt, endsAt, showToAnonymous)
+    ├── Activate()     → IsActive = true
+    ├── Deactivate()   → IsActive = false
+    ├── IsVisibleTo(isAuthenticated, isPartner) → bool
+    │   ↳ false если IsDeleted или !IsActive
+    │   ↳ false если isPartner (партнёры никогда не видят рекламу — правило 13)
+    │   ↳ false если !isAuthenticated && !ShowToAnonymous
+    └── Delete()       → IsDeleted = true, IsActive = false
 ```
+
+**Enum AdType:**
+```csharp
+enum AdType { OfferBlock, Banner }
+```
+
+**Value Object AdStats:**
+```
+AdStats
+├── Impressions: int
+├── Clicks: int
+├── RecordImpression()
+└── RecordClick()
+```
+
+**Бизнес-правила:**
+- `IsActive = false` по умолчанию; активируется администратором (метод готов для будущего admin-модуля)
+- Партнёры никогда не видят рекламные баннеры (метод `IsVisibleTo` принудительно возвращает `false`)
+- Анонимным пользователям показывается только при `ShowToAnonymous = true`
+- Ротация — на уровне Application: `OrderBy(_ => Guid.NewGuid())`
+- Таргетинг по `TargetCategory` (тип партнёра = категория услуг)
+- Soft-delete: `HasQueryFilter(c => !c.IsDeleted)`
 
 ---
 
