@@ -273,7 +273,7 @@ Partner : AggregateRoot<Guid>
 ├── LogoUrl: string?
 ├── IsVerified: bool            (default: false)
 ├── IsActive: bool              (default: false; true только после верификации)
-├── IsPotentiallyUnfit: bool    (>= 5 оценок ниже 3; планируется)
+├── IsPotentiallyUnfit: bool    (>= 5 оценок ниже 3)
 ├── ShowBannersToAnonymous: bool
 ├── AccountUserId: Guid         (учётная запись партнёра; УНИКАЛЕН — один партнёр на аккаунт)
 └── IsDeleted: bool             (soft-delete)
@@ -288,10 +288,11 @@ Partner : AggregateRoot<Guid>
 └── Business operations:
     ├── UpdateProfile(name, spec, desc, addr, location, workingHours, contacts)
     ├── UpdateLogo(logoUrl)
-    ├── Verify()                 → IsVerified = true, IsActive = true
-    ├── Deactivate()             → IsActive = false
+    ├── Verify()                      → IsVerified = true, IsActive = true
+    ├── Deactivate()                  → IsActive = false
     ├── SetBannerVisibility(bool)
-    └── Delete()                 → IsDeleted = true, IsActive = false
+    ├── RecalculateFitnessFlag(count) → IsPotentiallyUnfit = count >= 5
+    └── Delete()                      → IsDeleted = true, IsActive = false
 ```
 
 **Domain Events:**
@@ -307,30 +308,51 @@ Partner : AggregateRoot<Guid>
 - Новый партнёр не активен до верификации администратором
 - Soft-delete: `HasQueryFilter(p => !p.IsDeleted)`
 
-**Бизнес-правило автопометки (планируется):**
+**Бизнес-правило автопометки:**
 ```
 IsPotentiallyUnfit = true  ←  если Reviews.Count(r => r.Rating < 3) >= 5
 ```
+Пересчитывается вызовом `RecalculateFitnessFlag(lowRatingCount)` из хендлера после добавления отзыва.
 
 ---
 
-### Review (Epic AUT-6)
+### Review — **реализован** (AUT-25 / Epic AUT-6)
+
+**Файл:** `Domain/Reviews/Review.cs`
 
 ```
 Review : AggregateRoot<Guid>
 ├── PartnerId: Guid
 ├── CustomerId: Guid
 ├── Rating: int                 (1–5)
-├── Comment: string             (обязателен)
-├── InteractionType: ReviewBasis (RecommendedByAI | ExecutorInServiceRecord)
-├── InteractionReferenceId: Guid  (chatId или serviceRecordId)
-├── CreatedAt: DateTime
+├── Comment: string             (обязателен, max 2000 символов)
+├── Basis: ReviewBasis          (RecommendedByAI | ExecutorInServiceRecord)
+├── InteractionReferenceId: Guid  (ServiceRecord.Id или Chat.Id)
+├── CreatedAt: DateTime         (UTC, задаётся при создании)
 └── IsDeleted: bool             (soft-delete)
+│
+├── Factory method:
+│   └── Create(partnerId, customerId, rating, comment, basis, interactionReferenceId)
+│       ↳ throws DomainException если partnerId/customerId/interactionReferenceId == Guid.Empty
+│       ↳ throws DomainException если rating вне диапазона [1, 5]
+│       ↳ throws DomainException если comment пустой
+│
+└── Business operations:
+    └── Delete() → IsDeleted = true
+```
+
+**Enum ReviewBasis:**
+```csharp
+enum ReviewBasis { RecommendedByAI, ExecutorInServiceRecord }
 ```
 
 **Бизнес-правило:** Оставить отзыв можно ТОЛЬКО если:
-- Партнёр был рекомендован клиенту через AI-чат **ИЛИ**
-- Партнёр указан исполнителем в записи о работе автомобиля клиента
+- Партнёр был рекомендован клиенту через AI-чат (`RecommendedByAI`) **ИЛИ**
+- Партнёр указан исполнителем в записи о работе автомобиля клиента (`ExecutorInServiceRecord`)
+
+Дублирование проверяется уникальным составным индексом на (PartnerId, CustomerId, Basis, InteractionReferenceId).
+
+**EF Core:** таблица `reviews`, HasQueryFilter по `IsDeleted`, FK на `partners` с `DeleteBehavior.Restrict`.
 
 ---
 

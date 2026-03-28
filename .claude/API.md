@@ -567,14 +567,71 @@ Soft-delete записи. Требует `Authorization: Bearer`.
 
 ---
 
+### POST /api/partners/{partnerId}/reviews — **реализовано** (AUT-25)
+
+Создание отзыва на партнёра. Требует `Authorization: Bearer`. Один отзыв на одно взаимодействие (дубли блокируются).
+
+**Request:**
+```json
+{
+  "rating": 5,
+  "comment": "Отличный сервис, всё сделали быстро",
+  "basis": "ExecutorInServiceRecord",
+  "interactionReferenceId": "uuid"
+}
+```
+
+**Fields:**
+- `rating` — целое от 1 до 5
+- `comment` — непустая строка, максимум 2000 символов
+- `basis` — `ExecutorInServiceRecord` | `RecommendedByAI`
+- `interactionReferenceId` — UUID записи о работе (ServiceRecord.Id) или другого взаимодействия
+
+**Response 201:**
+```json
+{ "reviewId": "uuid" }
+```
+
+**Errors:**
+- `400 Bad Request` — ошибки валидации
+- `401 Unauthorized` — требуется авторизация
+- `404 Not Found` — партнёр не найден
+- `409 Conflict` — отзыв на это взаимодействие уже существует
+
+**Побочный эффект:** если партнёр накопил ≥ 5 отзывов с рейтингом < 3, его флаг `IsPotentiallyUnfit` становится `true`.
+
+---
+
+### GET /api/partners/{partnerId}/reviews — **реализовано** (AUT-25)
+
+Публичный список отзывов партнёра. Авторизация **не требуется**.
+
+**Response 200:**
+```json
+[
+  {
+    "id": "uuid",
+    "partnerId": "uuid",
+    "customerId": "uuid",
+    "rating": 5,
+    "comment": "Отличный сервис",
+    "basis": "ExecutorInServiceRecord",
+    "interactionReferenceId": "uuid",
+    "createdAt": "2026-03-28T18:00:00Z"
+  }
+]
+```
+
+Отзывы возвращаются в порядке убывания даты создания. Удалённые отзывы (soft-delete) не включаются.
+
+---
+
 ### Планируется (Epic AUT-6)
 
 | Метод | Путь | Описание |
 |-------|------|----------|
 | GET | `/api/partners` | Список верифицированных партнёров (с геофильтром) |
 | GET | `/api/partners/{id}` | Профиль партнёра (публичный) |
-| POST | `/api/partners/{id}/reviews` | Оставить отзыв (нужен факт взаимодействия) |
-| GET | `/api/partners/{id}/reviews` | Отзывы партнёра |
 
 ---
 
