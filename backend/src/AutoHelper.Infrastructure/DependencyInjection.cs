@@ -1,5 +1,6 @@
 using Amazon.S3;
 using AutoHelper.Application.Common.Interfaces;
+using AutoHelper.Infrastructure.Ai;
 using AutoHelper.Infrastructure.Common;
 using AutoHelper.Infrastructure.Persistence;
 using AutoHelper.Infrastructure.Persistence.Repositories;
@@ -39,6 +40,7 @@ public static class DependencyInjection
         services.AddScoped<IPartnerRepository, PartnerRepository>();
         services.AddScoped<IReviewRepository, ReviewRepository>();
         services.AddScoped<IAdCampaignRepository, AdCampaignRepository>();
+        services.AddScoped<IChatRepository, ChatRepository>();
 
         // Security
         services.AddSingleton<IPasswordHasher, PasswordHasher>();
@@ -61,6 +63,10 @@ public static class DependencyInjection
                 ServiceURL = storageSettings.ServiceUrl,
                 ForcePathStyle = true // required for MinIO and Cloudflare R2
             }));
+
+        // LLM Provider (OpenAI)
+        services.Configure<LlmSettings>(configuration.GetSection(LlmSettings.SectionName));
+        services.AddScoped<ILlmProvider, OpenAiLlmProvider>();
 
         // Select storage implementation based on configured provider.
         // Both MinIO and R2 are S3-compatible; the provider flag controls
