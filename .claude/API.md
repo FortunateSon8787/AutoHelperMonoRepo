@@ -626,12 +626,60 @@ Soft-delete записи. Требует `Authorization: Bearer`.
 
 ---
 
-### Планируется (Epic AUT-6)
+### GET /api/partners — **реализовано** (AUT-27)
 
-| Метод | Путь | Описание |
-|-------|------|----------|
-| GET | `/api/partners` | Список верифицированных партнёров (с геофильтром) |
-| GET | `/api/partners/{id}` | Профиль партнёра (публичный) |
+Геолокационный поиск верифицированных партнёров. Авторизация **не требуется**.
+
+**Query parameters:**
+- `lat` (double, required) — широта точки поиска
+- `lng` (double, required) — долгота точки поиска
+- `radiusKm` (double, default 10, max 100) — радиус поиска в километрах
+- `type` (string, optional) — фильтр по типу: `AutoService` | `CarWash` | `Towing` | `AutoShop` | `Other`
+- `isOpenNow` (bool, default false) — если true, только партнёры, работающие прямо сейчас (UTC)
+
+**Response 200:** `PartnerWithDistanceResponse[]` — отсортированы по расстоянию (ближайшие первые)
+
+**PartnerWithDistanceResponse:**
+```json
+{
+  "id": "uuid",
+  "name": "AutoService LLC",
+  "type": "AutoService",
+  "specialization": "Engine repair",
+  "description": "...",
+  "address": "Moscow, Lenina St. 1",
+  "locationLat": 55.75,
+  "locationLng": 37.61,
+  "distanceKm": 1.23,
+  "workingOpenFrom": "09:00",
+  "workingOpenTo": "18:00",
+  "workingDays": "Mon-Fri",
+  "isOpenNow": true,
+  "contactsPhone": "+7-999-000-0000",
+  "contactsWebsite": null,
+  "logoUrl": null,
+  "isVerified": true,
+  "averageRating": 0.0,
+  "reviewsCount": 0
+}
+```
+
+**Бизнес-правила:**
+- Расстояние вычисляется по формуле Haversine (R=6371 км) в Application слое
+- Радиус автоматически ограничивается 100 км
+- Неизвестный `type` → пустой список (не ошибка)
+- `isOpenNow` использует UTC время и `WorkingHours.OpenFrom/OpenTo`
+
+---
+
+### GET /api/partners/{id} — **реализовано** (AUT-27)
+
+Публичный профиль верифицированного и активного партнёра. Авторизация **не требуется**.
+
+**Response 200:** `PartnerResponse`
+
+**Errors:**
+- `404 Not Found` — партнёр не найден, не верифицирован или неактивен
 
 ---
 

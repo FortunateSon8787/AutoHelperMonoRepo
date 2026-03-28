@@ -49,7 +49,8 @@ frontend/
 ├── services/
 │   ├── authService.ts        # HTTP-функции для auth API (axios, withCredentials)
 │   ├── profileService.ts     # HTTP-функции для /api/clients/me (axios + Bearer token)
-│   └── vehicleService.ts     # HTTP-функции для /api/vehicles (auth CRUD + public SSR getOwnerByVin)
+│   ├── vehicleService.ts     # HTTP-функции для /api/vehicles (auth CRUD + public SSR getOwnerByVin)
+│   └── partnerService.ts     # HTTP-функции для /api/partners (register, profile, searchNearby, getById)
 │
 ├── contexts/
 │   └── AuthContext.tsx       # React Context: user, accessToken, isAuthenticated, login/logout
@@ -98,6 +99,8 @@ const PUBLIC_ROUTES = ["/auth/login", "/auth/register"];
 | `/dashboard/vehicles/[id]` | Client | Да | Редактирование авто (VIN read-only) |
 | `/dashboard/vehicles/[id]/service-records` | Client | Да | Список записей обслуживания авто |
 | `/dashboard/vehicles/[id]/service-records/[recordId]` | Client | Да | Детали / редактирование записи обслуживания |
+| `/partners` | Client | Нет | Геолокационный поиск партнёров + карта Leaflet/OSM |
+| `/partners/[id]` | Server (SSR) | Нет | Публичный профиль верифицированного партнёра |
 
 ### Роутинг по ролям (планируется / частично реализовано)
 
