@@ -293,9 +293,10 @@
         "addressRequired": "Address is required",
         "latInvalid": "Latitude: from -90 to 90",
         "lngInvalid": "Longitude: from -180 to 180",
-        "timeFormat": "Format: HH:MM",
+        "timeFormat": "Format: HH:MM (e.g. 09:00 – 21:00)",
         "workingDaysRequired": "Working days are required",
-        "phoneRequired": "Phone is required"
+        "phoneRequired": "Phone is required",
+        "phoneFormat": "Enter phone in international format (e.g. +37378123456)"
       },
       "errors": {
         "conflict": "A partner profile already exists for this account",

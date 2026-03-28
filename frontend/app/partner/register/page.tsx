@@ -44,13 +44,24 @@ export default function PartnerRegisterPage() {
     workingOpenFrom: z
       .string()
       .min(1, tValidation("timeFormat"))
-      .regex(/^\d{2}:\d{2}$/, tValidation("timeFormat")),
+      .regex(/^\d{2}:\d{2}$/, tValidation("timeFormat"))
+      .refine((val) => {
+        const [h, m] = val.split(":").map(Number);
+        return h >= 0 && h <= 23 && m >= 0 && m <= 59;
+      }, tValidation("timeFormat")),
     workingOpenTo: z
       .string()
       .min(1, tValidation("timeFormat"))
-      .regex(/^\d{2}:\d{2}$/, tValidation("timeFormat")),
+      .regex(/^\d{2}:\d{2}$/, tValidation("timeFormat"))
+      .refine((val) => {
+        const [h, m] = val.split(":").map(Number);
+        return h >= 0 && h <= 23 && m >= 0 && m <= 59;
+      }, tValidation("timeFormat")),
     workingDays: z.string().min(1, tValidation("workingDaysRequired")),
-    contactsPhone: z.string().min(1, tValidation("phoneRequired")),
+    contactsPhone: z
+      .string()
+      .min(1, tValidation("phoneRequired"))
+      .regex(/^\+[1-9]\d{6,14}$/, tValidation("phoneFormat")),
     contactsWebsite: z.string().optional().nullable(),
   });
 

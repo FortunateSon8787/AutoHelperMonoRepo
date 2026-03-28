@@ -95,6 +95,16 @@ services:
       Storage__SecretKey: ${STORAGE_SECRETKEY}
       Storage__AccessKey: ${STORAGE_ACCESSKEY}
       Storage__Provider: ${STORAGE_PROVIDER}
+      Logging__Http__IgnorePaths__0: health
+      Serilog__MinimumLevel__Default: ${Serilog_MinimumLevel_Default}
+      Serilog__MinimumLevel__Override__Microsoft.AspNetCore: ${Serilog_MinimumLevel_Override_MicrosoftAspNetCore}
+      Serilog__MinimumLevel__Override__Microsoft.AspNetCore.Hosting.Diagnostics: ${Serilog_MinimumLevel_Override_MicrosoftAspNetCoreHostingDiagnostics}
+      Serilog__MinimumLevel__Override__Microsoft.AspNetCore.Routing: ${Serilog_MinimumLevel_Override_MicrosoftAspNetCoreRouting}
+      Serilog__MinimumLevel__Override__Microsoft.EntityFrameworkCore: ${Serilog_MinimumLevel_Override_MicrosoftEntityFrameworkCore}
+      Serilog__MinimumLevel__Override__Microsoft.EntityFrameworkCore.Database.Command: ${Serilog_MinimumLevel_Override_MicrosoftEntityFrameworkCoreDatabaseCommand}
+      Serilog__MinimumLevel__Override__Microsoft.EntityFrameworkCore.Database: ${Serilog_MinimumLevel_Override_MicrosoftEntityFrameworkCoreDatabase}
+      Serilog__MinimumLevel__Override__Microsoft.EntityFrameworkCore.Infrastructure: ${Serilog_MinimumLevel_Override_MicrosoftEntityFrameworkCoreInfrastructure}
+      Serilog__MinimumLevel__Override__Microsoft.Extensions.Diagnostics.HealthChecks: ${Serilog_MinimumLevel_Override_MicrosoftExtensionsDiagnosticsHealthChecks}
     ports:
       - "8080:8080"
     depends_on:

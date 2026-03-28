@@ -62,27 +62,32 @@ public sealed class HttpLoggingMiddleware(
         finally
         {
             sw.Stop();
-            var statusCode = context.Response.StatusCode;
-            var elapsed = sw.ElapsedMilliseconds;
 
-            using (LogContext.PushProperty("CorrelationId", correlationId))
-            using (LogContext.PushProperty("HttpMethod", method))
-            using (LogContext.PushProperty("RequestPath", path))
-            using (LogContext.PushProperty("QueryString", query))
-            using (LogContext.PushProperty("StatusCode", statusCode))
-            using (LogContext.PushProperty("ElapsedMs", elapsed))
+            var isPathIgnored = GetIgnorePaths().Any(p => path.EndsWith(p, StringComparison.InvariantCultureIgnoreCase));
+            if (!isPathIgnored)
             {
-                if (ShouldLogHeaders())
+                var statusCode = context.Response.StatusCode;
+                var elapsed = sw.ElapsedMilliseconds;
+
+                using (LogContext.PushProperty("CorrelationId", correlationId))
+                using (LogContext.PushProperty("HttpMethod", method))
+                using (LogContext.PushProperty("RequestPath", path))
+                using (LogContext.PushProperty("QueryString", query))
+                using (LogContext.PushProperty("StatusCode", statusCode))
+                using (LogContext.PushProperty("ElapsedMs", elapsed))
                 {
-                    var headers = SanitiseHeaders(context.Request.Headers);
-                    using (LogContext.PushProperty("RequestHeaders", headers, destructureObjects: true))
+                    if (ShouldLogHeaders())
+                    {
+                        var headers = SanitiseHeaders(context.Request.Headers);
+                        using (LogContext.PushProperty("RequestHeaders", headers, destructureObjects: true))
+                        {
+                            WriteLog(statusCode, method, path, query, elapsed, correlationId);
+                        }
+                    }
+                    else
                     {
                         WriteLog(statusCode, method, path, query, elapsed, correlationId);
                     }
-                }
-                else
-                {
-                    WriteLog(statusCode, method, path, query, elapsed, correlationId);
                 }
             }
         }
@@ -92,6 +97,9 @@ public sealed class HttpLoggingMiddleware(
 
     private bool IsEnabled() =>
         configuration.GetValue("Logging:Http:Enabled", defaultValue: true);
+
+    private IList<string> GetIgnorePaths() =>
+        configuration.GetSection("Logging:Http:IgnorePaths").Get<List<string>>() ?? [];
 
     private bool ShouldLogHeaders() =>
         configuration.GetValue("Logging:Http:LogRequestHeaders", defaultValue: true);
@@ -124,7 +132,7 @@ public sealed class HttpLoggingMiddleware(
         {
             >= 500 => Serilog.Events.LogEventLevel.Error,
             >= 400 => Serilog.Events.LogEventLevel.Warning,
-            _      => Serilog.Events.LogEventLevel.Information,
+            _ => Serilog.Events.LogEventLevel.Information,
         };
 
         Log.Write(level,
