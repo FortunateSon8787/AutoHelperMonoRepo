@@ -1,8 +1,10 @@
 using AutoHelper.Application.Features.Auth.Login;
 using AutoHelper.Application.Features.Auth.Logout;
 using AutoHelper.Application.Features.Auth.Register;
+using AutoHelper.Infrastructure.Security;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using RefreshTokenCommand = AutoHelper.Application.Features.Auth.RefreshToken.RefreshTokenCommand;
 
 namespace AutoHelper.Api.Features.Auth;
@@ -20,18 +22,18 @@ public static class AuthEndpoints
             .ProducesProblem(StatusCodes.Status409Conflict);
 
         group.MapPost("/login", Login)
-            .WithSummary("Authenticate with email and password, receive JWT tokens")
-            .Produces<TokenResponse>(StatusCodes.Status200OK)
+            .WithSummary("Authenticate with email and password, set httpOnly auth cookies")
+            .Produces(StatusCodes.Status200OK)
             .ProducesValidationProblem()
             .ProducesProblem(StatusCodes.Status401Unauthorized);
 
         group.MapPost("/refresh", Refresh)
-            .WithSummary("Exchange a refresh token for a new access + refresh token pair (token rotation)")
-            .Produces<TokenResponse>(StatusCodes.Status200OK)
+            .WithSummary("Rotate tokens using the refresh cookie, set new httpOnly auth cookies")
+            .Produces(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status401Unauthorized);
 
         group.MapPost("/logout", Logout)
-            .WithSummary("Revoke the current refresh token, ending the session")
+            .WithSummary("Revoke the current refresh token and clear auth cookies")
             .Produces(StatusCodes.Status204NoContent)
             .ProducesProblem(StatusCodes.Status404NotFound);
     }
@@ -58,6 +60,8 @@ public static class AuthEndpoints
     private static async Task<IResult> Login(
         [FromBody] LoginCommand command,
         ISender mediator,
+        HttpContext httpContext,
+        IOptions<JwtSettings> jwtOptions,
         CancellationToken ct)
     {
         var result = await mediator.Send(command, ct);
@@ -65,28 +69,41 @@ public static class AuthEndpoints
         if (result.IsFailure)
             return Results.Unauthorized();
 
-        return Results.Ok(result.Value);
+        SetAuthCookies(httpContext, result.Value, jwtOptions.Value);
+        return Results.Ok();
     }
 
     private static async Task<IResult> Refresh(
-        [FromBody] RefreshTokenCommand command,
         ISender mediator,
+        HttpContext httpContext,
+        IOptions<JwtSettings> jwtOptions,
         CancellationToken ct)
     {
-        var result = await mediator.Send(command, ct);
+        var refreshToken = httpContext.Request.Cookies["refreshToken"];
+
+        if (string.IsNullOrEmpty(refreshToken))
+            return Results.Unauthorized();
+
+        var result = await mediator.Send(new RefreshTokenCommand(refreshToken), ct);
 
         if (result.IsFailure)
             return Results.Unauthorized();
 
-        return Results.Ok(result.Value);
+        SetAuthCookies(httpContext, result.Value, jwtOptions.Value);
+        return Results.Ok();
     }
 
     private static async Task<IResult> Logout(
-        [FromBody] LogoutCommand command,
         ISender mediator,
+        HttpContext httpContext,
         CancellationToken ct)
     {
-        var result = await mediator.Send(command, ct);
+        var refreshToken = httpContext.Request.Cookies["refreshToken"];
+
+        if (string.IsNullOrEmpty(refreshToken))
+            return Results.NoContent();
+
+        var result = await mediator.Send(new LogoutCommand(refreshToken), ct);
 
         if (result.IsFailure)
             return Results.NotFound(new ProblemDetails
@@ -95,7 +112,35 @@ public static class AuthEndpoints
                 Title = result.Error
             });
 
+        ClearAuthCookies(httpContext);
         return Results.NoContent();
+    }
+
+    // ─── Cookie Helpers ───────────────────────────────────────────────────────
+
+    private static void SetAuthCookies(HttpContext httpContext, TokenResponse tokens, JwtSettings settings)
+    {
+        httpContext.Response.Cookies.Append("accessToken", tokens.AccessToken, new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.Strict,
+            Expires = DateTimeOffset.UtcNow.AddMinutes(settings.AccessTokenExpiryMinutes)
+        });
+
+        httpContext.Response.Cookies.Append("refreshToken", tokens.RefreshToken, new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.Strict,
+            Expires = new DateTimeOffset(tokens.ExpiresAt, TimeSpan.Zero)
+        });
+    }
+
+    private static void ClearAuthCookies(HttpContext httpContext)
+    {
+        httpContext.Response.Cookies.Delete("accessToken");
+        httpContext.Response.Cookies.Delete("refreshToken");
     }
 
     // ─── Response DTOs ────────────────────────────────────────────────────────

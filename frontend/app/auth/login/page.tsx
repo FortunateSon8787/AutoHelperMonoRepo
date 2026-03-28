@@ -45,12 +45,7 @@ export default function LoginPage() {
   const onSubmit = async (values: LoginFormValues) => {
     setServerError(null);
     try {
-      const tokenResponse = await authService.login(values);
-      localStorage.setItem("accessToken", tokenResponse.accessToken);
-      const maxAge = Math.floor(
-        (new Date(tokenResponse.expiresAt).getTime() - Date.now()) / 1000
-      );
-      document.cookie = `refreshToken=${tokenResponse.refreshToken}; path=/; max-age=${maxAge}`;
+      await authService.login(values);
       router.push("/profile");
     } catch (error) {
       if (error instanceof AuthServiceError) {

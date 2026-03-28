@@ -58,10 +58,9 @@ export default function ServiceRecordDetailPage() {
 
     setIsPdfLoading(true);
     try {
-      const token = localStorage.getItem("accessToken");
       const proxyUrl = serviceRecordService.getDocumentProxyUrl(params.recordId);
       const response = await fetch(proxyUrl, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        credentials: "include",
       });
 
       if (!response.ok) throw new Error("Failed to load PDF");

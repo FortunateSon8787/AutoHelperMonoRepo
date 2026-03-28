@@ -262,6 +262,7 @@
     "submitButton": "Save",
     "submittingButton": "Saving...",
     "saveSuccess": "Profile updated successfully",
+    "logoutButton": "Log out",
     "validation": {
       "nameRequired": "Name is required",
       "nameTooLong": "Maximum 256 characters",

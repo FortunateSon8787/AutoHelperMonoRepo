@@ -262,6 +262,7 @@
     "submitButton": "Сохранить",
     "submittingButton": "Сохраняем...",
     "saveSuccess": "Профиль успешно обновлён",
+    "logoutButton": "Выйти",
     "validation": {
       "nameRequired": "Имя обязательно",
       "nameTooLong": "Максимум 256 символов",

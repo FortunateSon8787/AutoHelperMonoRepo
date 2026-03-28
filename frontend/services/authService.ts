@@ -2,7 +2,6 @@ import axios, { AxiosError } from "axios";
 import type {
   LoginRequest,
   RegisterRequest,
-  TokenResponse,
   RegisterResponse,
 } from "@/types/auth";
 
@@ -44,10 +43,9 @@ function resolveErrorCode(error: unknown): AuthErrorCode {
 // ─── Auth Service ────────────────────────────────────────────────────────────
 
 export const authService = {
-  async login(data: LoginRequest): Promise<TokenResponse> {
+  async login(data: LoginRequest): Promise<void> {
     try {
-      const response = await api.post<TokenResponse>("/api/auth/login", data);
-      return response.data;
+      await api.post("/api/auth/login", data);
     } catch (error) {
       throw new AuthServiceError(resolveErrorCode(error));
     }
@@ -65,20 +63,17 @@ export const authService = {
     }
   },
 
-  async refreshToken(token: string): Promise<TokenResponse> {
+  async refreshToken(): Promise<void> {
     try {
-      const response = await api.post<TokenResponse>("/api/auth/refresh", {
-        refreshToken: token,
-      });
-      return response.data;
+      await api.post("/api/auth/refresh");
     } catch (error) {
       throw new AuthServiceError(resolveErrorCode(error));
     }
   },
 
-  async logout(token: string): Promise<void> {
+  async logout(): Promise<void> {
     try {
-      await api.post("/api/auth/logout", { refreshToken: token });
+      await api.post("/api/auth/logout");
     } catch (error) {
       throw new AuthServiceError(resolveErrorCode(error));
     }

@@ -4,12 +4,14 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Loader2, User } from "lucide-react";
+import { Loader2, LogOut, User } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { authService } from "@/services/authService";
 import { profileService, ProfileServiceError } from "@/services/profileService";
 import type { ClientProfile } from "@/types/client";
 
@@ -19,11 +21,13 @@ export default function ProfilePage() {
   const t = useTranslations("profile");
   const tValidation = useTranslations("profile.validation");
   const tErrors = useTranslations("profile.errors");
+  const router = useRouter();
   const [profile, setProfile] = useState<ClientProfile | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [serverError, setServerError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   // ─── Schema (uses translations — must live inside component) ──────────────
 
@@ -68,6 +72,16 @@ export default function ProfilePage() {
       .finally(() => setIsLoading(false));
   }, [reset]);
 
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+    try {
+      await authService.logout();
+    } catch {
+      // logout best-effort — redirect regardless
+    }
+    router.push("/auth/login");
+  };
+
   const onSubmit = async (values: ProfileFormValues) => {
     setServerError(null);
     setSuccessMessage(null);
@@ -109,11 +123,27 @@ export default function ProfilePage() {
     <div className="min-h-screen bg-gray-50 px-4 py-10">
       <div className="max-w-lg mx-auto">
         {/* Header */}
-        <div className="flex items-center gap-3 mb-8">
-          <div className="w-9 h-9 rounded-lg bg-gray-900 flex items-center justify-center text-white font-bold text-lg">
-            A
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-lg bg-gray-900 flex items-center justify-center text-white font-bold text-lg">
+              A
+            </div>
+            <span className="text-xl font-bold text-gray-900">AutoHelper</span>
           </div>
-          <span className="text-xl font-bold text-gray-900">AutoHelper</span>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleLogout}
+            disabled={isLoggingOut}
+            className="text-gray-500 hover:text-gray-900"
+          >
+            {isLoggingOut ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <LogOut className="h-4 w-4" />
+            )}
+            <span className="ml-1.5">{t("logoutButton")}</span>
+          </Button>
         </div>
 
         <div className="bg-white border border-gray-200 rounded-xl p-8 shadow-sm">
