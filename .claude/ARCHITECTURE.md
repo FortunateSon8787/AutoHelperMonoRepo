@@ -18,7 +18,7 @@
 │  AutoHelper.Infrastructure (Adapters / Infrastructure)        │
 │  — EF Core AppDbContext, Repositories, Migrations             │
 │  — JwtTokenService, PasswordHasher                            │
-│  — S3/MinIO, Lemon Squeezy, ILlmProvider (OpenAI ChatGPT 5.4) │
+│  — S3/MinIO, Lemon Squeezy, ILlmProvider (OpenAI ChatGPT 4.5) │
 │  — Реализует интерфейсы из Application                        │
 │  — Знает о Domain и Application (только интерфейсы)           │
 ├──────────────────────────────────────────────────────────────┤
@@ -137,7 +137,7 @@ Common/Interfaces/
   ├── IJwtTokenService         — GenerateAccessToken, GenerateRefreshToken, ValidateToken
   ├── IPasswordHasher          — Hash, Verify
   ├── IStorageService          — UploadAsync, CompressAsync
-  ├── ILlmProvider             — SendAsync(prompt, context, locale) — абстракция LLM (начальная реализация: OpenAI ChatGPT 5.4)
+  ├── ILlmProvider             — SendAsync(prompt, context, locale) — абстракция LLM (начальная реализация: OpenAI ChatGPT 4.5)
   ├── IBillingService          — абстракция биллинга (начальная реализация: Lemon Squeezy)
   ├── IAuditLogService         — LogAsync(operationType, entityType, entityId, performedBy, additionalInfo?)
   └── ICurrentUser             — UserId (из JWT claims)
@@ -285,7 +285,7 @@ app.MapVehiclesEndpoints();
     "BucketName": "autohelper"
   },
   "LemonSqueezy": { "ApiKey": "...", "WebhookSecret": "...", "StoreId": "..." },
-  "LLM": { "Provider": "OpenAI", "ApiKey": "...", "Model": "gpt-5.4" },
+  "LLM": { "Provider": "OpenAI", "ApiKey": "...", "Model": "gpt-4.5" },
   "Database": { "AutoMigrateOnStartup": true }
 }
 ```

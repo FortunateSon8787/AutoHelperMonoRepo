@@ -547,9 +547,9 @@ Soft-delete записи. Требует `Authorization: Bearer`.
 | Метод | Путь | Описание |
 |-------|------|----------|
 | GET | `/api/subscriptions/me` | Статус подписки |
-| POST | `/api/subscriptions/checkout` | Создать Stripe checkout session |
+| POST | `/api/subscriptions/checkout` | Создать Lemon Squeezy checkout session |
 | POST | `/api/subscriptions/cancel` | Отмена подписки |
-| POST | `/api/stripe/webhook` | Stripe webhook endpoint |
+| POST | `/api/stripe/webhook` | Lemon Squeezy webhook endpoint |
 
 ---
 
