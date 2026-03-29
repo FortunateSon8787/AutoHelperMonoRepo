@@ -69,6 +69,7 @@ public static class DependencyInjection
         services.Configure<LlmSettings>(configuration.GetSection(LlmSettings.SectionName));
         services.AddScoped<ILlmProvider, OpenAiLlmProvider>();
         services.AddScoped<ILlmModelSelector, LlmModelSelector>();
+        services.AddScoped<IMarketPriceGateway, LlmMarketPriceGateway>();
 
         // Select storage implementation based on configured provider.
         // Both MinIO and R2 are S3-compatible; the provider flag controls

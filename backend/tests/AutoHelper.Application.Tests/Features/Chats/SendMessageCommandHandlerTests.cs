@@ -20,6 +20,7 @@ public class SendMessageCommandHandlerTests
     private readonly Mock<IInvalidChatRequestRepository> _invalidRequests = new();
     private readonly Mock<IVehicleRepository> _vehicles = new();
     private readonly Mock<IServiceRecordRepository> _serviceRecords = new();
+    private readonly Mock<IMarketPriceGateway> _marketPrices = new();
     private readonly Mock<IUnitOfWork> _unitOfWork = new();
     private readonly Mock<ILlmModelSelector> _modelSelector = new();
     private readonly Mock<ICurrentUser> _currentUser = new();
@@ -37,11 +38,16 @@ public class SendMessageCommandHandlerTests
             .Setup(s => s.GetByVehicleIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync([]);
 
+        _marketPrices
+            .Setup(m => m.GetMarketPriceBenchmarksAsync(It.IsAny<string>(), It.IsAny<decimal>(), It.IsAny<decimal>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((string?)null);
+
         var orchestrator = new AutoAssistantOrchestrator(
             _llm.Object,
             _invalidRequests.Object,
             _vehicles.Object,
             _serviceRecords.Object,
+            _marketPrices.Object,
             _unitOfWork.Object,
             _modelSelector.Object,
             Mock.Of<ILogger<AutoAssistantOrchestrator>>());

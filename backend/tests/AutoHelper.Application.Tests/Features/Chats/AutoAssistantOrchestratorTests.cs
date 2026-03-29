@@ -3,7 +3,6 @@ using AutoHelper.Application.Common.Interfaces;
 using AutoHelper.Application.Features.Chats.Orchestration;
 using AutoHelper.Domain.Chats;
 using AutoHelper.Domain.Customers;
-using AutoHelper.Domain.ServiceRecords;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Shouldly;
@@ -17,6 +16,7 @@ public class AutoAssistantOrchestratorTests
     private readonly Mock<IInvalidChatRequestRepository> _invalidRequests = new();
     private readonly Mock<IVehicleRepository> _vehicles = new();
     private readonly Mock<IServiceRecordRepository> _serviceRecords = new();
+    private readonly Mock<IMarketPriceGateway> _marketPrices = new();
     private readonly Mock<IUnitOfWork> _unitOfWork = new();
     private readonly Mock<ILlmModelSelector> _modelSelector = new();
     private readonly Mock<ILogger<AutoAssistantOrchestrator>> _logger = new();
@@ -34,11 +34,16 @@ public class AutoAssistantOrchestratorTests
             .Setup(s => s.GetByVehicleIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync([]);
 
+        _marketPrices
+            .Setup(m => m.GetMarketPriceBenchmarksAsync(It.IsAny<string>(), It.IsAny<decimal>(), It.IsAny<decimal>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((string?)null);
+
         _sut = new AutoAssistantOrchestrator(
             _llm.Object,
             _invalidRequests.Object,
             _vehicles.Object,
             _serviceRecords.Object,
+            _marketPrices.Object,
             _unitOfWork.Object,
             _modelSelector.Object,
             _logger.Object);
@@ -352,6 +357,139 @@ public class AutoAssistantOrchestratorTests
 
         // Assert — only one save (for the invalid message + audit record)
         _unitOfWork.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    // ─── WorkClarification — initial processing ───────────────────────────────
+
+    [Fact]
+    public async Task ProcessWorkClarificationInitialAsync_ShouldReturnStructuredReplyAndCompleteChat()
+    {
+        // Arrange
+        var chat = Chat.Create(Guid.NewGuid(), ChatMode.WorkClarification, "Work check");
+        var customer = Customer.CreateWithPassword("Bob", "bob@test.com", "hash");
+
+        var input = new WorkClarificationInput
+        {
+            WorksPerformed = "Brake pad replacement",
+            WorkReason = "Squealing noise",
+            LaborCost = 3000m,
+            PartsCost = 5000m,
+            Guarantees = "6 months"
+        };
+
+        _llm.Setup(l => l.GenerateStructuredAsync<WorkClarificationLlmResult>(
+                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new WorkClarificationLlmResult
+            {
+                WorkReasonRelevance = "high",
+                WorkReasonExplanation = "Squealing is a classic sign of worn pads.",
+                LaborPriceAssessment = "near_market",
+                LaborPriceExplanation = "Labor is within market range.",
+                PartsPriceAssessment = "near_market",
+                PartsPriceExplanation = "Parts cost is typical.",
+                GuaranteeAssessment = "normal",
+                GuaranteeExplanation = "Standard 6-month guarantee.",
+                OverallHonesty = "good",
+                OverallExplanation = "Service appears honest.",
+                RepeatIntervalKm = 30000,
+                Disclaimer = "Estimate only."
+            });
+
+        // Act
+        var result = await _sut.ProcessWorkClarificationInitialAsync(
+            chat, customer, input, "ru", CancellationToken.None);
+
+        // Assert
+        result.WasValid.ShouldBeTrue();
+        result.QuotaDecremented.ShouldBeTrue();
+        result.ResponseStage.ShouldBe("work_clarification_result");
+        result.ChatStatus.ShouldBe(ChatStatus.Completed);
+        result.AssistantReply.ShouldContain("Хорошая");       // OverallHonesty = "good"
+        result.AssistantReply.ShouldContain("Высокая");       // WorkReasonRelevance = "high"
+        result.AssistantReply.ShouldContain("По рынку");      // LaborPriceAssessment = "near_market"
+        result.AssistantReply.ShouldContain("30");            // RepeatIntervalKm
+        result.AssistantReply.ShouldContain("Estimate only.");
+    }
+
+    [Fact]
+    public async Task ProcessWorkClarificationInitialAsync_ShouldDecrementQuotaAndSaveTwice()
+    {
+        // Arrange
+        var chat = Chat.Create(Guid.NewGuid(), ChatMode.WorkClarification, "Work check");
+        var customer = Customer.CreateWithPassword("Bob", "bob@test.com", "hash");
+
+        var input = new WorkClarificationInput
+        {
+            WorksPerformed = "Oil change",
+            WorkReason = "Scheduled maintenance",
+            LaborCost = 500m,
+            PartsCost = 1500m
+        };
+
+        _llm.Setup(l => l.GenerateStructuredAsync<WorkClarificationLlmResult>(
+                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new WorkClarificationLlmResult
+            {
+                WorkReasonRelevance = "high",
+                WorkReasonExplanation = "Scheduled.",
+                LaborPriceAssessment = "below_market",
+                LaborPriceExplanation = "Cheap.",
+                PartsPriceAssessment = "near_market",
+                PartsPriceExplanation = "Normal.",
+                GuaranteeAssessment = "unclear",
+                GuaranteeExplanation = "No guarantees stated.",
+                OverallHonesty = "fair",
+                OverallExplanation = "Looks ok.",
+                Disclaimer = "Estimate."
+            });
+
+        // Act
+        await _sut.ProcessWorkClarificationInitialAsync(chat, customer, input, "ru", CancellationToken.None);
+
+        // Assert — SaveChanges called twice: once for chat exchange, once for quota decrement
+        _unitOfWork.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Exactly(2));
+    }
+
+    [Fact]
+    public async Task ProcessWorkClarificationInitialAsync_WhenBenchmarksAvailable_ShouldInjectIntoSystemPrompt()
+    {
+        // Arrange
+        var chat = Chat.Create(Guid.NewGuid(), ChatMode.WorkClarification, "Work check");
+        var customer = Customer.CreateWithPassword("Bob", "bob@test.com", "hash");
+
+        var input = new WorkClarificationInput
+        {
+            WorksPerformed = "Timing belt replacement",
+            WorkReason = "Preventive maintenance",
+            LaborCost = 10000m,
+            PartsCost = 8000m
+        };
+
+        _marketPrices
+            .Setup(m => m.GetMarketPriceBenchmarksAsync(It.IsAny<string>(), It.IsAny<decimal>(), It.IsAny<decimal>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync("Typical labor: 8000–12000 RUB. Typical parts: 6000–10000 RUB.");
+
+        string? capturedSystemPrompt = null;
+        _llm.Setup(l => l.GenerateStructuredAsync<WorkClarificationLlmResult>(
+                It.IsAny<string>(), It.Is<string>(p => true), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .Callback<string, string, string, CancellationToken>((_, prompt, _, _) => capturedSystemPrompt = prompt)
+            .ReturnsAsync(new WorkClarificationLlmResult
+            {
+                WorkReasonRelevance = "high", WorkReasonExplanation = "Ok.",
+                LaborPriceAssessment = "near_market", LaborPriceExplanation = "Ok.",
+                PartsPriceAssessment = "near_market", PartsPriceExplanation = "Ok.",
+                GuaranteeAssessment = "unclear", GuaranteeExplanation = "Ok.",
+                OverallHonesty = "good", OverallExplanation = "Ok.",
+                Disclaimer = "Estimate."
+            });
+
+        // Act
+        await _sut.ProcessWorkClarificationInitialAsync(chat, customer, input, "ru", CancellationToken.None);
+
+        // Assert — benchmarks should be included in system prompt
+        capturedSystemPrompt.ShouldNotBeNull();
+        capturedSystemPrompt.ShouldContain("MARKET_BENCHMARKS");
+        capturedSystemPrompt.ShouldContain("Typical labor");
     }
 
     // ─── Classifier failure — fail open ──────────────────────────────────────

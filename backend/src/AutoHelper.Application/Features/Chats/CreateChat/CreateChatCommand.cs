@@ -10,8 +10,12 @@ namespace AutoHelper.Application.Features.Chats.CreateChat;
 /// <param name="DiagnosticsInput">
 /// Required when Mode = FaultHelp. Contains symptoms and context for the diagnostic session.
 /// </param>
+/// <param name="WorkClarificationInput">
+/// Required when Mode = WorkClarification. Describes works performed, costs, and guarantees.
+/// </param>
 public sealed record CreateChatCommand(
     ChatMode Mode,
     string Title,
     Guid? VehicleId = null,
-    DiagnosticsInput? DiagnosticsInput = null) : IRequest<Result<CreateChatResponse>>;
+    DiagnosticsInput? DiagnosticsInput = null,
+    WorkClarificationInput? WorkClarificationInput = null) : IRequest<Result<CreateChatResponse>>;
