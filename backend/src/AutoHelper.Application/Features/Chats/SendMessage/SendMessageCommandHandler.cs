@@ -26,13 +26,20 @@ public sealed class SendMessageCommandHandler(
         if (chat is null || chat.CustomerId != currentUser.Id.Value)
             return Result<SendMessageResponse>.Failure(ChatErrors.ChatNotFound);
 
+        if (!chat.CanReceiveMessage())
+            return Result<SendMessageResponse>.Failure(ChatErrors.ChatIsCompleted);
+
         if (!CanSendMessage(customer, chat.Mode))
             return Result<SendMessageResponse>.Failure(ChatErrors.SubscriptionRequired);
 
         var result = await orchestrator.ProcessAsync(chat, customer, request.Content, request.Locale, ct);
 
         return Result<SendMessageResponse>.Success(
-            new SendMessageResponse(result.AssistantReply, WasValid: result.WasValid));
+            new SendMessageResponse(
+                result.AssistantReply,
+                WasValid: result.WasValid,
+                ResponseStage: result.ResponseStage,
+                ChatStatus: result.ChatStatus));
     }
 
     private static bool CanSendMessage(Customer customer, ChatMode mode) =>

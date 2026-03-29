@@ -6,6 +6,7 @@ namespace AutoHelper.Application.Features.Chats.GetMyChats;
 public sealed record ChatSummaryResponse(
     Guid Id,
     ChatMode Mode,
+    ChatStatus Status,
     string Title,
     Guid? VehicleId,
     int MessageCount,
@@ -14,6 +15,7 @@ public sealed record ChatSummaryResponse(
     public static ChatSummaryResponse FromSummary(ChatSummary summary) =>
         new(summary.Id,
             summary.Mode,
+            summary.Status,
             summary.Title,
             summary.VehicleId,
             summary.MessageCount,

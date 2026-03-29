@@ -19,6 +19,17 @@ public interface ILlmProvider
         where T : class;
 
     /// <summary>
+    /// Generates a structured JSON response using a full conversation history.
+    /// Used for multi-turn scenarios (e.g. FaultHelp follow-up questions).
+    /// </summary>
+    Task<T> GenerateStructuredWithHistoryAsync<T>(
+        string model,
+        string systemPrompt,
+        IReadOnlyList<LlmMessage> conversationHistory,
+        CancellationToken ct)
+        where T : class;
+
+    /// <summary>
     /// Generates a plain text response from the model.
     /// The user input is passed as a separate message — never embedded in systemPrompt.
     /// </summary>

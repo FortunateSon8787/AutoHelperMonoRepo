@@ -6,6 +6,7 @@ namespace AutoHelper.Application.Common.Interfaces;
 public sealed record ChatSummary(
     Guid Id,
     ChatMode Mode,
+    ChatStatus Status,
     string Title,
     Guid? VehicleId,
     int MessageCount,

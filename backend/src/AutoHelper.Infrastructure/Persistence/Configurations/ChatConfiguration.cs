@@ -24,6 +24,16 @@ public sealed class ChatConfiguration : IEntityTypeConfiguration<Chat>
             .HasConversion<string>()
             .HasMaxLength(50);
 
+        builder.Property(c => c.Status)
+            .IsRequired()
+            .HasConversion<string>()
+            .HasMaxLength(30)
+            .HasDefaultValue(AutoHelper.Domain.Chats.ChatStatus.Active);
+
+        builder.Property(c => c.AllowOneAdditionalQuestion)
+            .IsRequired()
+            .HasDefaultValue(false);
+
         builder.Property(c => c.Title)
             .IsRequired()
             .HasMaxLength(200);

@@ -66,6 +66,49 @@ public sealed class OpenAiLlmProvider(
         }
     }
 
+    public async Task<T> GenerateStructuredWithHistoryAsync<T>(
+        string model,
+        string systemPrompt,
+        IReadOnlyList<LlmMessage> conversationHistory,
+        CancellationToken ct)
+        where T : class
+    {
+        var schema = BuildJsonSchema<T>();
+        var responseFormat = ChatResponseFormat.CreateJsonSchemaFormat(
+            jsonSchemaFormatName: typeof(T).Name,
+            jsonSchema: BinaryData.FromString(schema),
+            jsonSchemaIsStrict: true);
+
+        var chatOptions = new ChatCompletionOptions { ResponseFormat = responseFormat };
+
+        var messages = new List<ChatMessage>
+        {
+            ChatMessage.CreateSystemMessage(systemPrompt)
+        };
+
+        foreach (var msg in conversationHistory)
+        {
+            messages.Add(msg.Role == "user"
+                ? ChatMessage.CreateUserMessage(msg.Content)
+                : ChatMessage.CreateAssistantMessage(msg.Content));
+        }
+
+        try
+        {
+            var client = _openAiClient.GetChatClient(model);
+            var completion = await client.CompleteChatAsync(messages, chatOptions, ct);
+            var json = completion.Value.Content[0].Text;
+
+            return JsonSerializer.Deserialize<T>(json, JsonOptions)
+                ?? throw new InvalidOperationException($"LLM returned null when deserializing {typeof(T).Name}");
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "GenerateStructuredWithHistoryAsync failed for model {Model}, type {Type}", model, typeof(T).Name);
+            throw;
+        }
+    }
+
     public async Task<string> GenerateTextAsync(
         string model,
         string systemPrompt,

@@ -3,6 +3,7 @@ using AutoHelper.Application.Features.Chats.CreateChat;
 using AutoHelper.Application.Features.Chats.GetChatMessages;
 using AutoHelper.Application.Features.Chats.GetMyChats;
 using AutoHelper.Application.Features.Chats.SendMessage;
+using AutoHelper.Domain.Chats;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -18,8 +19,10 @@ public static class ChatsEndpoints
             .WithSummary("Get all chat sessions for the authenticated customer");
 
         group.MapPost("/", CreateChat)
-            .WithSummary("Create a new AI chat session (optionally linked to a vehicle)")
-            .Produces<CreateChatResponse>(StatusCodes.Status201Created)
+            .WithSummary("Create a new AI chat session (optionally linked to a vehicle). " +
+                         "For FaultHelp mode, diagnostics_input is required and the first assistant " +
+                         "reply is returned immediately.")
+            .Produces<CreateChatApiResponse>(StatusCodes.Status201Created)
             .ProducesValidationProblem()
             .ProducesProblem(StatusCodes.Status403Forbidden);
 
@@ -50,10 +53,25 @@ public static class ChatsEndpoints
     }
 
     private static async Task<IResult> CreateChat(
-        [FromBody] CreateChatCommand command,
+        [FromBody] CreateChatApiRequest request,
         ISender mediator,
         CancellationToken ct)
     {
+        DiagnosticsInput? diagnosticsInput = request.DiagnosticsInput is not null
+            ? new DiagnosticsInput
+            {
+                Symptoms = request.DiagnosticsInput.Symptoms,
+                RecentEvents = request.DiagnosticsInput.RecentEvents,
+                PreviousIssues = request.DiagnosticsInput.PreviousIssues
+            }
+            : null;
+
+        var command = new CreateChatCommand(
+            Mode: request.Mode,
+            Title: request.Title,
+            VehicleId: request.VehicleId,
+            DiagnosticsInput: diagnosticsInput);
+
         var result = await mediator.Send(command, ct);
 
         if (result.IsFailure)
@@ -61,13 +79,14 @@ public static class ChatsEndpoints
             if (result.Error == ChatErrors.NotAuthenticated)
                 return Results.Unauthorized();
 
-            // Premium subscription required
             return Results.Problem(
                 statusCode: StatusCodes.Status403Forbidden,
                 title: result.Error);
         }
 
-        return Results.Created($"/api/chats/{result.Value}", new CreateChatResponse(result.Value));
+        return Results.Created(
+            $"/api/chats/{result.Value.ChatId}",
+            new CreateChatApiResponse(result.Value.ChatId, result.Value.InitialAssistantReply));
     }
 
     private static async Task<IResult> GetChatMessages(
@@ -112,7 +131,11 @@ public static class ChatsEndpoints
             if (result.Error == ChatErrors.NotAuthenticated)
                 return Results.Unauthorized();
 
-            // Premium subscription required
+            if (result.Error == ChatErrors.ChatIsCompleted)
+                return Results.Problem(
+                    statusCode: StatusCodes.Status409Conflict,
+                    title: result.Error);
+
             return Results.Problem(
                 statusCode: StatusCodes.Status403Forbidden,
                 title: result.Error);
@@ -120,14 +143,31 @@ public static class ChatsEndpoints
 
         return Results.Ok(new SendMessageApiResponse(
             result.Value.AssistantReply,
-            result.Value.WasValid));
+            result.Value.WasValid,
+            result.Value.ResponseStage,
+            result.Value.ChatStatus.ToString()));
     }
 
-    // ─── Response / Request DTOs ──────────────────────────────────────────────
+    // ─── Request / Response DTOs ──────────────────────────────────────────────
 
-    private sealed record CreateChatResponse(Guid ChatId);
+    private sealed record DiagnosticsInputRequest(
+        string Symptoms,
+        string? RecentEvents,
+        string? PreviousIssues);
+
+    private sealed record CreateChatApiRequest(
+        ChatMode Mode,
+        string Title,
+        Guid? VehicleId,
+        DiagnosticsInputRequest? DiagnosticsInput);
+
+    private sealed record CreateChatApiResponse(Guid ChatId, string? InitialAssistantReply);
 
     private sealed record SendMessageRequest(string Content, string? Locale);
 
-    private sealed record SendMessageApiResponse(string AssistantReply, bool WasValid);
+    private sealed record SendMessageApiResponse(
+        string AssistantReply,
+        bool WasValid,
+        string? ResponseStage,
+        string ChatStatus);
 }

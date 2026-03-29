@@ -24,6 +24,7 @@ public sealed class ChatRepository(AppDbContext context) : IChatRepository
             .Select(c => new ChatSummary(
                 c.Id,
                 c.Mode,
+                c.Status,
                 c.Title,
                 c.VehicleId,
                 c.Messages.Count,

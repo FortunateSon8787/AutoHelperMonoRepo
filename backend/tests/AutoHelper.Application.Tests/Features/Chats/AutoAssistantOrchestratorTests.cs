@@ -44,96 +44,211 @@ public class AutoAssistantOrchestratorTests
             _logger.Object);
     }
 
-    // ─── Valid request flow ───────────────────────────────────────────────────
+    // ─── Helpers ──────────────────────────────────────────────────────────────
 
-    [Fact]
-    public async Task ProcessAsync_WithValidClassification_ShouldReturnAssistantReply()
-    {
-        // Arrange
-        var chat = Chat.Create(Guid.NewGuid(), ChatMode.FaultHelp, "Test chat");
-        var customer = Customer.CreateWithPassword("Alice", "alice@test.com", "hash");
+    private static DiagnosticsLlmResult MakeFollowUp(string question) =>
+        new() { ResponseStage = "follow_up", FollowUpQuestion = question };
 
-        var classification = new ClassificationResult
+    private static DiagnosticsLlmResult MakeDiagnosticResult() =>
+        new()
         {
-            Mode = "FaultHelp",
-            IsValid = true,
-            ShouldEscalate = false,
-            ShouldDecrementQuota = true
+            ResponseStage = "diagnostic_result",
+            PotentialProblems =
+            [
+                new DiagnosticProblem
+                {
+                    Name = "Wheel bearing",
+                    Probability = 0.8,
+                    PossibleCauses = "Worn bearing",
+                    RecommendedActions = "Replace bearing"
+                }
+            ],
+            Urgency = "medium",
+            CurrentRisks = "Increased noise, potential failure",
+            SafeToDrive = true,
+            Disclaimer = "This is an estimate only."
         };
 
-        _llm.Setup(l => l.GenerateStructuredAsync<ClassificationResult>(
-                "gpt-4.1-nano",
-                It.IsAny<string>(),
-                "My car makes a noise",
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(classification);
-
-        _llm.Setup(l => l.GenerateTextAsync(
-                "gpt-4.1-mini",
-                It.IsAny<string>(),
-                "My car makes a noise",
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync("It could be a wheel bearing issue.");
-
-        // Act
-        var result = await _sut.ProcessAsync(chat, customer, "My car makes a noise", "ru", CancellationToken.None);
-
-        // Assert
-        result.WasValid.ShouldBeTrue();
-        result.AssistantReply.ShouldBe("It could be a wheel bearing issue.");
-        result.QuotaDecremented.ShouldBeTrue();
-    }
-
-    [Fact]
-    public async Task ProcessAsync_WithValidClassification_ShouldCallSaveChanges()
-    {
-        // Arrange
-        var chat = Chat.Create(Guid.NewGuid(), ChatMode.FaultHelp, "Test chat");
-        var customer = Customer.CreateWithPassword("Alice", "alice@test.com", "hash");
-
-        _llm.Setup(l => l.GenerateStructuredAsync<ClassificationResult>(
-                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ClassificationResult { Mode = "FaultHelp", IsValid = true, ShouldDecrementQuota = true });
-
-        _llm.Setup(l => l.GenerateTextAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync("Some answer");
-
-        // Act
-        await _sut.ProcessAsync(chat, customer, "My car noise", "ru", CancellationToken.None);
-
-        // Assert — save called for both exchange persistence and quota decrement
-        _unitOfWork.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Exactly(2));
-    }
-
-    [Fact]
-    public async Task ProcessAsync_WithEscalation_ShouldUseEscalationModel()
-    {
-        // Arrange
-        var chat = Chat.Create(Guid.NewGuid(), ChatMode.FaultHelp, "Test chat");
-        var customer = Customer.CreateWithPassword("Alice", "alice@test.com", "hash");
-
+    private void SetupFaultHelpValidClassification(bool shouldEscalate = false) =>
         _llm.Setup(l => l.GenerateStructuredAsync<ClassificationResult>(
                 It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new ClassificationResult
             {
                 Mode = "FaultHelp",
                 IsValid = true,
-                ShouldEscalate = true,
+                ShouldEscalate = shouldEscalate,
                 ShouldDecrementQuota = true
             });
 
-        _llm.Setup(l => l.GenerateTextAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync("Complex diagnosis");
+    // ─── FaultHelp — follow-up questions ─────────────────────────────────────
+
+    [Fact]
+    public async Task ProcessAsync_FaultHelp_WhenLlmReturnsFollowUp_ShouldTransitionToAwaitingAnswers()
+    {
+        // Arrange
+        var chat = Chat.Create(Guid.NewGuid(), ChatMode.FaultHelp, "Test chat");
+        var customer = Customer.CreateWithPassword("Alice", "alice@test.com", "hash");
+
+        SetupFaultHelpValidClassification();
+        _llm.Setup(l => l.GenerateStructuredAsync<DiagnosticsLlmResult>(
+                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(MakeFollowUp("When does the noise occur?"));
+
+        // Act
+        var result = await _sut.ProcessAsync(chat, customer, "My car makes a noise", "ru", CancellationToken.None);
+
+        // Assert
+        result.WasValid.ShouldBeTrue();
+        result.ResponseStage.ShouldBe("follow_up");
+        result.ChatStatus.ShouldBe(ChatStatus.AwaitingUserAnswers);
+        result.AssistantReply.ShouldBe("When does the noise occur?");
+    }
+
+    [Fact]
+    public async Task ProcessAsync_FaultHelp_WhenLlmReturnsDiagnosticResult_ShouldTransitionToFinalAnswerSent()
+    {
+        // Arrange
+        var chat = Chat.Create(Guid.NewGuid(), ChatMode.FaultHelp, "Test chat");
+        var customer = Customer.CreateWithPassword("Alice", "alice@test.com", "hash");
+
+        SetupFaultHelpValidClassification();
+        _llm.Setup(l => l.GenerateStructuredAsync<DiagnosticsLlmResult>(
+                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(MakeDiagnosticResult());
+
+        // Act
+        var result = await _sut.ProcessAsync(chat, customer, "My car makes a noise", "ru", CancellationToken.None);
+
+        // Assert
+        result.WasValid.ShouldBeTrue();
+        result.ResponseStage.ShouldBe("diagnostic_result");
+        result.ChatStatus.ShouldBe(ChatStatus.FinalAnswerSent);
+        result.AssistantReply.ShouldContain("Wheel bearing");
+    }
+
+    [Fact]
+    public async Task ProcessAsync_FaultHelp_AfterFollowUp_WhenDiagnosticResult_ShouldTransitionToFinalAnswerSent()
+    {
+        // Arrange: chat is already in AwaitingUserAnswers state
+        var chat = Chat.Create(Guid.NewGuid(), ChatMode.FaultHelp, "Test chat");
+        var customer = Customer.CreateWithPassword("Alice", "alice@test.com", "hash");
+        chat.AddExchange("My car makes noise", "When does it occur?");
+        chat.TransitionToAwaitingAnswers();
+
+        SetupFaultHelpValidClassification();
+        _llm.Setup(l => l.GenerateStructuredWithHistoryAsync<DiagnosticsLlmResult>(
+                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IReadOnlyList<LlmMessage>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(MakeDiagnosticResult());
+
+        // Act
+        var result = await _sut.ProcessAsync(chat, customer, "It happens when turning", "ru", CancellationToken.None);
+
+        // Assert
+        result.ResponseStage.ShouldBe("diagnostic_result");
+        result.ChatStatus.ShouldBe(ChatStatus.FinalAnswerSent);
+    }
+
+    [Fact]
+    public async Task ProcessAsync_FaultHelp_AdditionalQuestionAfterFinalAnswer_ShouldCompleteChat()
+    {
+        // Arrange: chat is in FinalAnswerSent, one extra question allowed
+        var chat = Chat.Create(Guid.NewGuid(), ChatMode.FaultHelp, "Test chat");
+        var customer = Customer.CreateWithPassword("Alice", "alice@test.com", "hash");
+        chat.AddExchange("Initial", "Diagnosis delivered");
+        chat.TransitionToFinalAnswerSent();
+
+        SetupFaultHelpValidClassification();
+        // For the additional question, the orchestrator does NOT use FaultHelp structured path
+        // (responseStage=null → Complete() is called)
+        _llm.Setup(l => l.GenerateStructuredAsync<DiagnosticsLlmResult>(
+                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(MakeDiagnosticResult());
+
+        // Act
+        var result = await _sut.ProcessAsync(chat, customer, "How long can I drive like this?", "ru", CancellationToken.None);
+
+        // Assert — chat should be completed after additional question is answered
+        result.ChatStatus.ShouldBe(ChatStatus.Completed);
+    }
+
+    // ─── FaultHelp — diagnostic result formatting ─────────────────────────────
+
+    [Fact]
+    public async Task ProcessAsync_FaultHelp_DiagnosticResult_ShouldIncludeUrgencyAndSafety()
+    {
+        // Arrange
+        var chat = Chat.Create(Guid.NewGuid(), ChatMode.FaultHelp, "Test chat");
+        var customer = Customer.CreateWithPassword("Alice", "alice@test.com", "hash");
+
+        SetupFaultHelpValidClassification();
+        _llm.Setup(l => l.GenerateStructuredAsync<DiagnosticsLlmResult>(
+                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new DiagnosticsLlmResult
+            {
+                ResponseStage = "diagnostic_result",
+                PotentialProblems =
+                [
+                    new DiagnosticProblem { Name = "Brake fade", Probability = 0.9 }
+                ],
+                Urgency = "stop_driving",
+                SafeToDrive = false,
+                Disclaimer = "Estimate only."
+            });
+
+        // Act
+        var result = await _sut.ProcessAsync(chat, customer, "Brakes feel soft", "ru", CancellationToken.None);
+
+        // Assert
+        result.AssistantReply.ShouldContain("stop_driving");
+        result.AssistantReply.ShouldContain("Рекомендуется остановиться");
+        result.AssistantReply.ShouldContain("Estimate only.");
+    }
+
+    // ─── FaultHelp — escalation model ────────────────────────────────────────
+
+    [Fact]
+    public async Task ProcessAsync_FaultHelp_WithEscalation_ShouldUseEscalationModel()
+    {
+        // Arrange
+        var chat = Chat.Create(Guid.NewGuid(), ChatMode.FaultHelp, "Test chat");
+        var customer = Customer.CreateWithPassword("Alice", "alice@test.com", "hash");
+
+        SetupFaultHelpValidClassification(shouldEscalate: true);
+        _llm.Setup(l => l.GenerateStructuredAsync<DiagnosticsLlmResult>(
+                "gpt-4.1", It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(MakeDiagnosticResult());
 
         // Act
         await _sut.ProcessAsync(chat, customer, "Complex fault", "ru", CancellationToken.None);
 
         // Assert — escalation model used
-        _llm.Verify(l => l.GenerateTextAsync(
+        _llm.Verify(l => l.GenerateStructuredAsync<DiagnosticsLlmResult>(
             "gpt-4.1",
             It.IsAny<string>(),
-            "Complex fault",
+            It.IsAny<string>(),
             It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    // ─── FaultHelp — quota decremented ───────────────────────────────────────
+
+    [Fact]
+    public async Task ProcessAsync_FaultHelp_ShouldDecrementQuota()
+    {
+        // Arrange
+        var chat = Chat.Create(Guid.NewGuid(), ChatMode.FaultHelp, "Test chat");
+        var customer = Customer.CreateWithPassword("Alice", "alice@test.com", "hash");
+
+        SetupFaultHelpValidClassification();
+        _llm.Setup(l => l.GenerateStructuredAsync<DiagnosticsLlmResult>(
+                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(MakeFollowUp("Follow-up?"));
+
+        // Act
+        var result = await _sut.ProcessAsync(chat, customer, "My car makes a noise", "ru", CancellationToken.None);
+
+        // Assert
+        result.QuotaDecremented.ShouldBeTrue();
+        _unitOfWork.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Exactly(2));
     }
 
     // ─── PartnerAdvice — quota not decremented ────────────────────────────────
@@ -152,7 +267,7 @@ public class AutoAssistantOrchestratorTests
                 Mode = "PartnerAdvice",
                 IsValid = true,
                 ShouldEscalate = false,
-                ShouldDecrementQuota = false  // PartnerAdvice never decrements
+                ShouldDecrementQuota = false
             });
 
         _llm.Setup(l => l.GenerateTextAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
@@ -168,7 +283,7 @@ public class AutoAssistantOrchestratorTests
     // ─── Invalid / off-topic request ─────────────────────────────────────────
 
     [Fact]
-    public async Task ProcessAsync_WithInvalidClassification_ShouldNotCallGenerateText()
+    public async Task ProcessAsync_WithInvalidClassification_ShouldNotCallLlmForResponse()
     {
         // Arrange
         var chat = Chat.Create(Guid.NewGuid(), ChatMode.FaultHelp, "Test chat");
@@ -190,6 +305,10 @@ public class AutoAssistantOrchestratorTests
         result.WasValid.ShouldBeFalse();
         result.QuotaDecremented.ShouldBeFalse();
 
+        _llm.Verify(l => l.GenerateStructuredAsync<DiagnosticsLlmResult>(
+            It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+
         _llm.Verify(l => l.GenerateTextAsync(
             It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()),
             Times.Never);
@@ -204,11 +323,7 @@ public class AutoAssistantOrchestratorTests
 
         _llm.Setup(l => l.GenerateStructuredAsync<ClassificationResult>(
                 It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ClassificationResult
-            {
-                IsValid = false,
-                RejectionReason = "unsafe"
-            });
+            .ReturnsAsync(new ClassificationResult { IsValid = false, RejectionReason = "unsafe" });
 
         // Act
         await _sut.ProcessAsync(chat, customer, "Illegal question", "ru", CancellationToken.None);
@@ -242,7 +357,7 @@ public class AutoAssistantOrchestratorTests
     // ─── Classifier failure — fail open ──────────────────────────────────────
 
     [Fact]
-    public async Task ProcessAsync_WhenClassifierThrows_ShouldFailOpenAndProceed()
+    public async Task ProcessAsync_FaultHelp_WhenClassifierThrows_ShouldFailOpenAndProceed()
     {
         // Arrange
         var chat = Chat.Create(Guid.NewGuid(), ChatMode.FaultHelp, "Test chat");
@@ -252,14 +367,15 @@ public class AutoAssistantOrchestratorTests
                 It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new HttpRequestException("LLM unavailable"));
 
-        _llm.Setup(l => l.GenerateTextAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync("Fallback answer");
+        _llm.Setup(l => l.GenerateStructuredAsync<DiagnosticsLlmResult>(
+                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(MakeFollowUp("What type of noise?"));
 
         // Act — should not throw
         var result = await _sut.ProcessAsync(chat, customer, "Noise in engine", "ru", CancellationToken.None);
 
         // Assert — proceeded despite classifier failure
         result.WasValid.ShouldBeTrue();
-        result.AssistantReply.ShouldBe("Fallback answer");
+        result.AssistantReply.ShouldBe("What type of noise?");
     }
 }
