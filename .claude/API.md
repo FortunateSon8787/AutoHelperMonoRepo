@@ -448,7 +448,7 @@ Soft-delete записи. Требует `Authorization: Bearer`.
 
 ### POST /api/chats
 
-Создать новую чат-сессию. Режимы `FaultHelp` и `WorkClarification` требуют `SubscriptionStatus = Premium`. Режим `PartnerAdvice` — бесплатный.
+Создать новую чат-сессию. Режимы `FaultHelp` и `WorkClarification` требуют активной платной подписки. Режим `PartnerAdvice` — бесплатный.
 
 **Request:**
 ```json
@@ -467,7 +467,7 @@ Soft-delete записи. Требует `Authorization: Bearer`.
 ```
 
 **Errors:**
-- `403 Forbidden` — режим требует активной Premium-подписки
+- `403 Forbidden` — режим требует активной подписки
 - `400 Bad Request` — ошибки валидации
 
 ---
@@ -490,7 +490,8 @@ Soft-delete записи. Требует `Authorization: Bearer`.
   {
     "id": "uuid",
     "role": "Assistant",
-    "content": "Стук при запуске может указывать на...",
+    "content": null,
+    "structuredPayload": { "...": "...structured JSON response..." },
     "isValid": true,
     "createdAt": "2026-03-28T20:01:02Z"
   }
@@ -510,35 +511,61 @@ Soft-delete записи. Требует `Authorization: Bearer`.
 ```json
 {
   "content": "Слышу стук при запуске холодного двигателя",
-  "locale": "ru"
+  "locale": "ru",
+  "formData": {
+    "vehicleId": "uuid",
+    "symptoms": "стук при холодном запуске",
+    "recentIncidents": "ничего подозрительного",
+    "previousIssues": ""
+  }
 }
 ```
 
 - `locale` — язык ответа LLM (по умолчанию `"ru"`)
+- `formData` — опционально; структурированные поля формы для режимов `FaultHelp` и `WorkClarification`
 
 **Response 200:**
 ```json
 {
-  "assistantReply": "Стук при холодном запуске часто указывает на...",
-  "wasValid": true
+  "wasValid": true,
+  "chatStatus": "awaiting_user_answers",
+  "structuredPayload": {
+    "mode": "diagnostics",
+    "response_stage": "follow_up_questions",
+    "follow_up_questions": [
+      {
+        "field_key": "timing_belt_replacement_date",
+        "question_text": "Как давно вы производили замену ГРМ?",
+        "input_type": "textbox",
+        "placeholder": "Пример: 20 000 км назад",
+        "is_required": true,
+        "validation_hint": "Укажите примерный срок или пробег"
+      }
+    ]
+  }
 }
 ```
 
 - `wasValid: false` — запрос был off-topic; вернулась стандартная заглушка
+- `chatStatus` — текущее состояние чата: `active` | `awaiting_user_answers` | `final_answer_sent` | `completed`
+- `structuredPayload` — JSON-ответ LLM по соответствующей JSON Schema (зависит от режима и стадии)
 
 **Errors:**
-- `403 Forbidden` — требуется Premium-подписка
+- `403 Forbidden` — требуется активная подписка
 - `404 Not Found` — чат не найден
+- `409 Conflict` — чат завершён (`completed`), запись не принимается
 
 ---
 
 **Бизнес-правила:**
-- `FaultHelp` (Режим 1) и `WorkClarification` (Режим 2) — только `SubscriptionStatus = Premium`
+- `FaultHelp` (Режим 1) и `WorkClarification` (Режим 2) — только активная платная подписка
 - `PartnerAdvice` (Режим 3) — бесплатен для всех клиентов
-- Topic guard проверяет релевантность вопроса перед вызовом LLM
+- RequestClassifier (gpt-5.4-nano) проверяет релевантность запроса перед основным вызовом LLM
 - Невалидные сообщения хранятся для аудита, но не уменьшают счётчик подписки
 - История, передаваемая LLM, фильтрует `isValid=false` сообщения
 - LLM API ключ хранится только на бэкенде (LlmSettings, никогда не в браузере)
+- В режиме `diagnostics`: после `final_answer_sent` разрешён ровно 1 дополнительный вопрос; затем чат → `completed`
+- `completed`-чаты доступны только для чтения (GET), новые сообщения не принимаются (`409`)
 
 ---
 
