@@ -102,6 +102,40 @@ namespace AutoHelper.Infrastructure.Migrations
                     b.ToTable("chats", (string)null);
                 });
 
+            modelBuilder.Entity("AutoHelper.Domain.Chats.InvalidChatRequest", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ChatId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("CustomerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("RejectionReason")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<string>("UserInput")
+                        .IsRequired()
+                        .HasMaxLength(4096)
+                        .HasColumnType("character varying(4096)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ChatId");
+
+                    b.HasIndex("CustomerId");
+
+                    b.ToTable("invalid_chat_requests", (string)null);
+                });
+
             modelBuilder.Entity("AutoHelper.Domain.Chats.Message", b =>
                 {
                     b.Property<Guid>("Id")
@@ -141,6 +175,11 @@ namespace AutoHelper.Infrastructure.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
+
+                    b.Property<int>("AiRequestsRemaining")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
 
                     b.Property<string>("AuthProvider")
                         .IsRequired()

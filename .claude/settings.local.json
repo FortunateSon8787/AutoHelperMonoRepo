@@ -16,6 +16,9 @@
       "Bash(find c:/Users/DNK/Documents/Claude/Projects/AutoHelper/AutoHelperMonoRepo/backend -name appsettings*.json -type f)",
       "Skill(nextjs-anti-patterns)",
       "Skill(nextjs-anti-patterns:*)"
+    ],
+    "additionalDirectories": [
+      "c:\\Users\\DNK\\Documents\\Claude\\Projects\\AutoHelper\\AutoHelperMonoRepo\\.claude"
     ]
   }
 }
