@@ -66,11 +66,23 @@ public static class ChatsEndpoints
             }
             : null;
 
+        WorkClarificationInput? workClarificationInput = request.WorkClarificationInput is not null
+            ? new WorkClarificationInput
+            {
+                WorksPerformed = request.WorkClarificationInput.WorksPerformed,
+                WorkReason = request.WorkClarificationInput.WorkReason,
+                LaborCost = request.WorkClarificationInput.LaborCost,
+                PartsCost = request.WorkClarificationInput.PartsCost,
+                Guarantees = request.WorkClarificationInput.Guarantees
+            }
+            : null;
+
         var command = new CreateChatCommand(
             Mode: request.Mode,
             Title: request.Title,
             VehicleId: request.VehicleId,
-            DiagnosticsInput: diagnosticsInput);
+            DiagnosticsInput: diagnosticsInput,
+            WorkClarificationInput: workClarificationInput);
 
         var result = await mediator.Send(command, ct);
 
@@ -155,11 +167,19 @@ public static class ChatsEndpoints
         string? RecentEvents,
         string? PreviousIssues);
 
+    private sealed record WorkClarificationInputRequest(
+        string WorksPerformed,
+        string WorkReason,
+        decimal LaborCost,
+        decimal PartsCost,
+        string? Guarantees);
+
     private sealed record CreateChatApiRequest(
         ChatMode Mode,
         string Title,
         Guid? VehicleId,
-        DiagnosticsInputRequest? DiagnosticsInput);
+        DiagnosticsInputRequest? DiagnosticsInput,
+        WorkClarificationInputRequest? WorkClarificationInput);
 
     private sealed record CreateChatApiResponse(Guid ChatId, string? InitialAssistantReply);
 

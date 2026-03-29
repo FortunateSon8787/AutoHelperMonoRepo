@@ -29,6 +29,9 @@ public sealed class CreateChatCommandHandler(
         if (request.Mode == ChatMode.FaultHelp && request.DiagnosticsInput is null)
             return Result<CreateChatResponse>.Failure(ChatErrors.DiagnosticsInputRequired);
 
+        if (request.Mode == ChatMode.WorkClarification && request.WorkClarificationInput is null)
+            return Result<CreateChatResponse>.Failure(ChatErrors.WorkClarificationInputRequired);
+
         var chat = Chat.Create(
             customerId: currentUser.Id.Value,
             mode: request.Mode,
@@ -38,12 +41,23 @@ public sealed class CreateChatCommandHandler(
         chats.Add(chat);
         await unitOfWork.SaveChangesAsync(ct);
 
+        const string defaultLocale = "ru";
+
         // For FaultHelp, immediately process the initial diagnostics form
         if (request.Mode == ChatMode.FaultHelp)
         {
-            var locale = "ru"; // Default; will be part of request in future
             var orchResult = await orchestrator.ProcessDiagnosticsInitialAsync(
-                chat, customer, request.DiagnosticsInput!, locale, ct);
+                chat, customer, request.DiagnosticsInput!, defaultLocale, ct);
+
+            return Result<CreateChatResponse>.Success(
+                new CreateChatResponse(chat.Id, orchResult.AssistantReply));
+        }
+
+        // For WorkClarification, immediately process the work analysis form
+        if (request.Mode == ChatMode.WorkClarification)
+        {
+            var orchResult = await orchestrator.ProcessWorkClarificationInitialAsync(
+                chat, customer, request.WorkClarificationInput!, defaultLocale, ct);
 
             return Result<CreateChatResponse>.Success(
                 new CreateChatResponse(chat.Id, orchResult.AssistantReply));
