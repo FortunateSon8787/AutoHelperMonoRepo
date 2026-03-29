@@ -1,4 +1,5 @@
 using AutoHelper.Application.Common.Behaviors;
+using AutoHelper.Application.Features.Chats.Orchestration;
 using FluentValidation;
 using MediatR;
 using Microsoft.Extensions.Configuration;
@@ -21,6 +22,9 @@ public static class DependencyInjection
         });
 
         services.AddValidatorsFromAssembly(assembly);
+
+        // AI orchestration
+        services.AddScoped<AutoAssistantOrchestrator>();
 
         return services;
     }

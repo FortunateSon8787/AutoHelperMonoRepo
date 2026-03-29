@@ -26,6 +26,7 @@ public sealed class AppDbContext(
     public DbSet<AdCampaign> AdCampaigns => Set<AdCampaign>();
     public DbSet<Chat> Chats => Set<Chat>();
     public DbSet<Message> Messages => Set<Message>();
+    public DbSet<InvalidChatRequest> InvalidChatRequests => Set<InvalidChatRequest>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

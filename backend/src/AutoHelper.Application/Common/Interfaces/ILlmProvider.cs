@@ -1,38 +1,40 @@
-using AutoHelper.Domain.Chats;
-
 namespace AutoHelper.Application.Common.Interfaces;
 
 /// <summary>
-/// Abstraction over a Large Language Model provider (e.g., OpenAI).
+/// Abstraction over a Large Language Model provider (e.g., OpenAI Responses API).
 /// Implementations live in Infrastructure and must never expose the API key to the client.
 /// </summary>
 public interface ILlmProvider
 {
     /// <summary>
-    /// Sends the conversation history to the LLM and returns the assistant's reply.
+    /// Generates a structured JSON response validated against a JSON schema.
+    /// Uses the provider's Structured Outputs feature to guarantee schema compliance.
+    /// The user input is passed as a separate message — never embedded in systemPrompt.
     /// </summary>
-    /// <param name="mode">Chat mode — shapes the system prompt sent to the model.</param>
-    /// <param name="history">Ordered list of previous messages in the session (User/Assistant alternating).</param>
-    /// <param name="userMessage">The latest user message to respond to.</param>
-    /// <param name="locale">UI locale (e.g. "ru", "en") — the model must reply in this language.</param>
-    /// <param name="vehicleContext">Optional vehicle details injected into the system prompt.</param>
-    /// <param name="ct">Cancellation token.</param>
-    /// <returns>The assistant's reply text.</returns>
-    Task<string> SendAsync(
-        ChatMode mode,
-        IReadOnlyList<LlmMessage> history,
-        string userMessage,
-        string locale,
-        string? vehicleContext,
+    Task<T> GenerateStructuredAsync<T>(
+        string model,
+        string systemPrompt,
+        string userInput,
+        CancellationToken ct)
+        where T : class;
+
+    /// <summary>
+    /// Generates a plain text response from the model.
+    /// The user input is passed as a separate message — never embedded in systemPrompt.
+    /// </summary>
+    Task<string> GenerateTextAsync(
+        string model,
+        string systemPrompt,
+        string userInput,
         CancellationToken ct);
 
     /// <summary>
-    /// Returns true if the user message is on-topic for the given chat mode.
-    /// Used by the topic guard before consuming quota.
+    /// Compresses a long conversation history into a concise summary.
+    /// Called by ContextAssembler when the message history exceeds the token budget.
     /// </summary>
-    Task<bool> IsOnTopicAsync(
-        ChatMode mode,
-        string userMessage,
+    Task<string> SummarizeConversationAsync(
+        string model,
+        IReadOnlyList<LlmMessage> messages,
         CancellationToken ct);
 }
 

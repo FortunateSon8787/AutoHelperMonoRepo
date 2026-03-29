@@ -41,6 +41,7 @@ public static class DependencyInjection
         services.AddScoped<IReviewRepository, ReviewRepository>();
         services.AddScoped<IAdCampaignRepository, AdCampaignRepository>();
         services.AddScoped<IChatRepository, ChatRepository>();
+        services.AddScoped<IInvalidChatRequestRepository, InvalidChatRequestRepository>();
 
         // Security
         services.AddSingleton<IPasswordHasher, PasswordHasher>();
@@ -67,6 +68,7 @@ public static class DependencyInjection
         // LLM Provider (OpenAI)
         services.Configure<LlmSettings>(configuration.GetSection(LlmSettings.SectionName));
         services.AddScoped<ILlmProvider, OpenAiLlmProvider>();
+        services.AddScoped<ILlmModelSelector, LlmModelSelector>();
 
         // Select storage implementation based on configured provider.
         // Both MinIO and R2 are S3-compatible; the provider flag controls

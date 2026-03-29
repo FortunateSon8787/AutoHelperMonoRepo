@@ -61,5 +61,9 @@ public sealed class CustomerConfiguration : IEntityTypeConfiguration<Customer>
 
         builder.Property(c => c.AvatarUrl)
             .HasMaxLength(2048);
+
+        builder.Property(c => c.AiRequestsRemaining)
+            .IsRequired()
+            .HasDefaultValue(0);
     }
 }

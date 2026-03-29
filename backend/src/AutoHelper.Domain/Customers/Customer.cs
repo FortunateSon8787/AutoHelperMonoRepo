@@ -123,6 +123,26 @@ public sealed class Customer : AggregateRoot<Guid>
     /// <summary>URL of the customer's avatar stored in object storage. Null until first upload.</summary>
     public string? AvatarUrl { get; private set; }
 
+    /// <summary>
+    /// Number of AI requests remaining in the current billing period.
+    /// Decremented by modes 1 (FaultHelp) and 2 (WorkClarification).
+    /// Mode 3 (PartnerAdvice) never decrements this counter.
+    /// </summary>
+    public int AiRequestsRemaining { get; private set; }
+
+    /// <summary>
+    /// Decrements the AI request quota by one.
+    /// Returns false when the quota is already exhausted.
+    /// </summary>
+    public bool DecrementAiQuota()
+    {
+        if (AiRequestsRemaining <= 0)
+            return false;
+
+        AiRequestsRemaining--;
+        return true;
+    }
+
     /// <summary>Updates optional contact information.</summary>
     public void UpdateContacts(string? contacts)
     {
