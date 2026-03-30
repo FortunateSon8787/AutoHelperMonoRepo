@@ -6,6 +6,7 @@ using AutoHelper.Application.Features.Chats.SendMessage;
 using AutoHelper.Domain.Chats;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using PartnerAdviceInput = AutoHelper.Domain.Chats.PartnerAdviceInput;
 
 namespace AutoHelper.Api.Features.Chats;
 
@@ -77,12 +78,24 @@ public static class ChatsEndpoints
             }
             : null;
 
+        PartnerAdviceInput? partnerAdviceInput = request.PartnerAdviceInput is not null
+            ? new PartnerAdviceInput
+            {
+                Request = request.PartnerAdviceInput.Request,
+                Lat = request.PartnerAdviceInput.Lat,
+                Lng = request.PartnerAdviceInput.Lng,
+                Urgency = request.PartnerAdviceInput.Urgency
+            }
+            : null;
+
         var command = new CreateChatCommand(
             Mode: request.Mode,
             Title: request.Title,
             VehicleId: request.VehicleId,
             DiagnosticsInput: diagnosticsInput,
-            WorkClarificationInput: workClarificationInput);
+            WorkClarificationInput: workClarificationInput,
+            PartnerAdviceInput: partnerAdviceInput,
+            Locale: request.Locale ?? "ru");
 
         var result = await mediator.Send(command, ct);
 
@@ -174,12 +187,20 @@ public static class ChatsEndpoints
         decimal PartsCost,
         string? Guarantees);
 
+    private sealed record PartnerAdviceInputRequest(
+        string Request,
+        double Lat,
+        double Lng,
+        string? Urgency);
+
     private sealed record CreateChatApiRequest(
         ChatMode Mode,
         string Title,
         Guid? VehicleId,
         DiagnosticsInputRequest? DiagnosticsInput,
-        WorkClarificationInputRequest? WorkClarificationInput);
+        WorkClarificationInputRequest? WorkClarificationInput,
+        PartnerAdviceInputRequest? PartnerAdviceInput,
+        string? Locale);
 
     private sealed record CreateChatApiResponse(Guid ChatId, string? InitialAssistantReply);
 

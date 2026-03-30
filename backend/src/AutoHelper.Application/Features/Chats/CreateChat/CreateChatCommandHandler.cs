@@ -32,6 +32,9 @@ public sealed class CreateChatCommandHandler(
         if (request.Mode == ChatMode.WorkClarification && request.WorkClarificationInput is null)
             return Result<CreateChatResponse>.Failure(ChatErrors.WorkClarificationInputRequired);
 
+        if (request.Mode == ChatMode.PartnerAdvice && request.PartnerAdviceInput is null)
+            return Result<CreateChatResponse>.Failure(ChatErrors.PartnerAdviceInputRequired);
+
         var chat = Chat.Create(
             customerId: currentUser.Id.Value,
             mode: request.Mode,
@@ -41,13 +44,13 @@ public sealed class CreateChatCommandHandler(
         chats.Add(chat);
         await unitOfWork.SaveChangesAsync(ct);
 
-        const string defaultLocale = "ru";
+        var locale = request.Locale;
 
         // For FaultHelp, immediately process the initial diagnostics form
         if (request.Mode == ChatMode.FaultHelp)
         {
             var orchResult = await orchestrator.ProcessDiagnosticsInitialAsync(
-                chat, customer, request.DiagnosticsInput!, defaultLocale, ct);
+                chat, customer, request.DiagnosticsInput!, locale, ct);
 
             return Result<CreateChatResponse>.Success(
                 new CreateChatResponse(chat.Id, orchResult.AssistantReply));
@@ -57,7 +60,17 @@ public sealed class CreateChatCommandHandler(
         if (request.Mode == ChatMode.WorkClarification)
         {
             var orchResult = await orchestrator.ProcessWorkClarificationInitialAsync(
-                chat, customer, request.WorkClarificationInput!, defaultLocale, ct);
+                chat, customer, request.WorkClarificationInput!, locale, ct);
+
+            return Result<CreateChatResponse>.Success(
+                new CreateChatResponse(chat.Id, orchResult.AssistantReply));
+        }
+
+        // For PartnerAdvice, immediately process partner search + LLM formatting
+        if (request.Mode == ChatMode.PartnerAdvice)
+        {
+            var orchResult = await orchestrator.ProcessPartnerAdviceInitialAsync(
+                chat, customer, request.PartnerAdviceInput!, locale, ct);
 
             return Result<CreateChatResponse>.Success(
                 new CreateChatResponse(chat.Id, orchResult.AssistantReply));

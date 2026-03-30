@@ -13,9 +13,15 @@ namespace AutoHelper.Application.Features.Chats.CreateChat;
 /// <param name="WorkClarificationInput">
 /// Required when Mode = WorkClarification. Describes works performed, costs, and guarantees.
 /// </param>
+/// <param name="PartnerAdviceInput">
+/// Required when Mode = PartnerAdvice. Contains the user's request text and geolocation for proximity search.
+/// </param>
+/// <param name="Locale">UI locale used to instruct the LLM to reply in the correct language.</param>
 public sealed record CreateChatCommand(
     ChatMode Mode,
     string Title,
     Guid? VehicleId = null,
     DiagnosticsInput? DiagnosticsInput = null,
-    WorkClarificationInput? WorkClarificationInput = null) : IRequest<Result<CreateChatResponse>>;
+    WorkClarificationInput? WorkClarificationInput = null,
+    PartnerAdviceInput? PartnerAdviceInput = null,
+    string Locale = "ru") : IRequest<Result<CreateChatResponse>>;

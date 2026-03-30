@@ -13,5 +13,6 @@ public static class ChatErrors
     public const string CreateSubscriptionRequired = "AI chat requires an active Premium subscription.";
     public const string DiagnosticsInputRequired = "DiagnosticsInput is required for FaultHelp mode.";
     public const string WorkClarificationInputRequired = "WorkClarificationInput is required for WorkClarification mode.";
+    public const string PartnerAdviceInputRequired = "PartnerAdviceInput is required for PartnerAdvice mode.";
     public const string ChatIsCompleted = "This chat is completed and no longer accepts messages.";
 }

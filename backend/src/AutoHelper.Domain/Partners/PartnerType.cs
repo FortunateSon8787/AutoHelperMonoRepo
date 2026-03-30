@@ -5,6 +5,8 @@ public enum PartnerType
     AutoService,
     CarWash,
     Towing,
+    TireService,
+    AutoElectrician,
     AutoShop,
     Other
 }

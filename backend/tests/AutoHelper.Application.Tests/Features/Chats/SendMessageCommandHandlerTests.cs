@@ -5,6 +5,7 @@ using AutoHelper.Application.Features.Chats.Orchestration;
 using AutoHelper.Application.Features.Chats.SendMessage;
 using AutoHelper.Domain.Chats;
 using AutoHelper.Domain.Customers;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Shouldly;
@@ -21,6 +22,8 @@ public class SendMessageCommandHandlerTests
     private readonly Mock<IVehicleRepository> _vehicles = new();
     private readonly Mock<IServiceRecordRepository> _serviceRecords = new();
     private readonly Mock<IMarketPriceGateway> _marketPrices = new();
+    private readonly Mock<IPartnerSearchService> _partnerSearch = new();
+    private readonly Mock<IConfiguration> _configuration = new();
     private readonly Mock<IUnitOfWork> _unitOfWork = new();
     private readonly Mock<ILlmModelSelector> _modelSelector = new();
     private readonly Mock<ICurrentUser> _currentUser = new();
@@ -42,12 +45,20 @@ public class SendMessageCommandHandlerTests
             .Setup(m => m.GetMarketPriceBenchmarksAsync(It.IsAny<string>(), It.IsAny<decimal>(), It.IsAny<decimal>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((string?)null);
 
+        _partnerSearch
+            .Setup(p => p.FindPartnersAsync(It.IsAny<double>(), It.IsAny<double>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync([]);
+
+        _configuration.Setup(c => c["PartnerAdvice:MaxResults"]).Returns("5");
+
         var orchestrator = new AutoAssistantOrchestrator(
             _llm.Object,
             _invalidRequests.Object,
             _vehicles.Object,
             _serviceRecords.Object,
             _marketPrices.Object,
+            _partnerSearch.Object,
+            _configuration.Object,
             _unitOfWork.Object,
             _modelSelector.Object,
             Mock.Of<ILogger<AutoAssistantOrchestrator>>());

@@ -22,6 +22,17 @@ public interface IPartnerRepository
     /// <summary>Returns all active and verified partners for geographic proximity search.</summary>
     Task<IReadOnlyList<Partner>> SearchByLocationAsync(CancellationToken ct);
 
+    /// <summary>
+    /// Returns active, verified partners of the given type within the specified radius (in km).
+    /// Includes IsOpenNow logic based on the current UTC time.
+    /// </summary>
+    Task<IReadOnlyList<Partner>> SearchByTypeAndLocationAsync(
+        PartnerType type,
+        double lat,
+        double lng,
+        double radiusKm,
+        CancellationToken ct);
+
     /// <summary>Returns all partners pending administrator verification.</summary>
     Task<IReadOnlyList<Partner>> GetPendingVerificationAsync(CancellationToken ct);
 

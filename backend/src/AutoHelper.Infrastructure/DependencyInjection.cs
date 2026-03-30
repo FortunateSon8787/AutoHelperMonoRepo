@@ -1,7 +1,9 @@
 using Amazon.S3;
 using AutoHelper.Application.Common.Interfaces;
+using AutoHelper.Application.Features.Partners.PartnerSearch;
 using AutoHelper.Infrastructure.Ai;
 using AutoHelper.Infrastructure.Common;
+using AutoHelper.Infrastructure.ExternalServices;
 using AutoHelper.Infrastructure.Persistence;
 using AutoHelper.Infrastructure.Persistence.Repositories;
 using AutoHelper.Infrastructure.Security;
@@ -70,6 +72,13 @@ public static class DependencyInjection
         services.AddScoped<ILlmProvider, OpenAiLlmProvider>();
         services.AddScoped<ILlmModelSelector, LlmModelSelector>();
         services.AddScoped<IMarketPriceGateway, LlmMarketPriceGateway>();
+
+        // Google Places API (New)
+        services.Configure<GooglePlacesSettings>(configuration.GetSection(GooglePlacesSettings.SectionName));
+        services.AddHttpClient<IGooglePlacesService, GooglePlacesService>();
+
+        // Partner search (own DB + Google Places fallback)
+        services.AddScoped<IPartnerSearchService, PartnerSearchService>();
 
         // Select storage implementation based on configured provider.
         // Both MinIO and R2 are S3-compatible; the provider flag controls
