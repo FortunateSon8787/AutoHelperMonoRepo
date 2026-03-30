@@ -237,6 +237,67 @@ customer.AddDomainEvent(new CustomerRegisteredEvent(customer.Id, customer.Email)
 
 ## Frontend Conventions (Next.js / TypeScript)
 
+### Дизайн-система — СТРОГОЕ ПРАВИЛО
+
+Все новые страницы и компоненты должны следовать дизайн-системе проекта. Подробно: `.claude/FRONTEND.md` → раздел «Дизайн-система».
+
+**Ключевые правила стилизации:**
+
+```tsx
+// ✅ Правильно — используем токены дизайн-системы
+<div className="min-h-screen bg-background">
+<div className="bg-card border border-border rounded-2xl shadow-card">
+<p className="text-muted-foreground">
+<Button variant="accent" size="lg">
+
+// ❌ Запрещено — хардкод цветов/размеров вне дизайн-системы
+<div className="bg-gray-50">
+<div className="bg-white border border-gray-200 rounded-xl">
+<p className="text-gray-500">
+<button className="bg-blue-600 text-white">
+```
+
+**Алерты:**
+```tsx
+// Ошибка
+<div className="bg-destructive/5 border border-destructive/20 text-destructive rounded-xl px-4 py-3 text-sm">
+// Успех
+<div className="bg-success/5 border border-success/20 text-success rounded-xl px-4 py-3 text-sm">
+```
+
+**Нативные `<select>` и `<textarea>`** — использовать классы из `lib/form-styles.ts`:
+```tsx
+import { nativeSelectCn, nativeTextareaCn } from "@/lib/form-styles";
+<select className={nativeSelectCn} />
+<textarea className={nativeTextareaCn} />
+```
+
+**Загрузка / ошибка страницы** — единый паттерн:
+```tsx
+if (isLoading) return (
+  <div className="min-h-screen flex items-center justify-center bg-background">
+    <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+  </div>
+);
+```
+
+### AppHeader
+
+Для **всех** внутренних страниц (dashboard, profile, partner) используется `<AppHeader />`:
+```tsx
+import { AppHeader } from "@/components/AppHeader";
+
+// Стандартное использование
+<AppHeader />
+
+// С action-кнопками (Logout и т.д.)
+<AppHeader>
+  <Button variant="ghost" size="sm" onClick={handleLogout}>...</Button>
+</AppHeader>
+```
+
+`LocaleSwitcher` встроен в `AppHeader`. **Не добавлять** `LocaleSwitcher` напрямую на страницы.
+
 ### i18n — СТРОГОЕ ПРАВИЛО
 
 **Все текстовые строки в UI хранятся только в файлах переводов.** Хардкод строк в компонентах — **запрещён**.
@@ -248,6 +309,7 @@ return <h1>{t('title')}</h1>;
 
 // ❌ Запрещено
 return <h1>Вход в систему</h1>;
+return <Link href="/partner/cabinet">← Партнёрский кабинет</Link>;
 ```
 
 Файлы переводов: `frontend/messages/ru.json`, `frontend/messages/en.json`
@@ -259,6 +321,10 @@ return <h1>Вход в систему</h1>;
     "login": { "title": "...", "subtitle": "...", "emailLabel": "..." },
     "register": { "title": "...", "subtitle": "...", ... },
     "errors": { "invalidCredentials": "...", "emailTaken": "..." }
+  },
+  "adCampaigns": {
+    "backToPartnerCabinet": "...",
+    ...
   },
   "common": { "submit": "...", "loading": "...", "or": "..." }
 }
@@ -292,7 +358,7 @@ const PUBLIC_ROUTES = ["/auth/login", "/auth/register"];
 
 ### HTTP-клиент
 
-Используется `axios` (`services/authService.ts` как пример). Каждый модуль имеет свой сервис:
+Используется `axios`. Каждый модуль имеет свой сервис в `services/`:
 
 ```typescript
 // services/vehicleService.ts

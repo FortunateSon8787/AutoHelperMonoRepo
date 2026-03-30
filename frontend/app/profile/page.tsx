@@ -11,6 +11,7 @@ import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { AppHeader } from "@/components/AppHeader";
 import { authService } from "@/services/authService";
 import { profileService, ProfileServiceError } from "@/services/profileService";
 import type { ClientProfile } from "@/types/client";
@@ -28,8 +29,6 @@ export default function ProfilePage() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
-
-  // ─── Schema (uses translations — must live inside component) ──────────────
 
   const profileSchema = z.object({
     name: z
@@ -103,16 +102,16 @@ export default function ProfilePage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
       </div>
     );
   }
 
   if (loadError) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-        <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg px-6 py-4 text-sm">
+      <div className="min-h-screen flex items-center justify-center bg-background px-4">
+        <div className="bg-destructive/5 border border-destructive/20 text-destructive rounded-xl px-6 py-4 text-sm">
           {loadError}
         </div>
       </div>
@@ -120,60 +119,59 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 px-4 py-10">
-      <div className="max-w-lg mx-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-gray-900 flex items-center justify-center text-white font-bold text-lg">
-              A
-            </div>
-            <span className="text-xl font-bold text-gray-900">AutoHelper</span>
-          </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleLogout}
-            disabled={isLoggingOut}
-            className="text-gray-500 hover:text-gray-900"
-          >
-            {isLoggingOut ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <LogOut className="h-4 w-4" />
-            )}
-            <span className="ml-1.5">{t("logoutButton")}</span>
-          </Button>
-        </div>
+    <div className="min-h-screen bg-background">
+      <AppHeader>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={handleLogout}
+          disabled={isLoggingOut}
+          className="text-muted-foreground hover:text-foreground"
+        >
+          {isLoggingOut ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <LogOut className="h-4 w-4" />
+          )}
+          <span className="ml-1">{t("logoutButton")}</span>
+        </Button>
+      </AppHeader>
 
-        <div className="bg-white border border-gray-200 rounded-xl p-8 shadow-sm">
+      <div className="max-w-lg mx-auto px-4 py-10">
+        <div className="bg-card border border-border rounded-2xl p-8 shadow-card">
           {/* Title */}
           <div className="flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
-              <User className="h-5 w-5 text-gray-500" />
+            <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center">
+              <User className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-gray-900">{t("title")}</h1>
-              <p className="text-sm text-gray-500">{profile?.email}</p>
+              <h1 className="text-xl font-semibold text-foreground">{t("title")}</h1>
+              <p className="text-sm text-muted-foreground">{profile?.email}</p>
             </div>
           </div>
 
           {/* Meta info */}
-          <div className="flex items-center gap-4 mb-6 pb-6 border-b border-gray-100 text-xs text-gray-400">
-            <span>{t("subscription")}: <span className="text-gray-600 font-medium">{profile?.subscriptionStatus}</span></span>
-            <span>{t("provider")}: <span className="text-gray-600 font-medium">{profile?.authProvider}</span></span>
+          <div className="flex items-center gap-4 mb-6 pb-6 border-b border-border text-xs text-muted-foreground">
+            <span>
+              {t("subscription")}:{" "}
+              <span className="text-foreground font-medium">{profile?.subscriptionStatus}</span>
+            </span>
+            <span>
+              {t("provider")}:{" "}
+              <span className="text-foreground font-medium">{profile?.authProvider}</span>
+            </span>
           </div>
 
           {/* Server error */}
           {serverError && (
-            <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 text-sm mb-5">
+            <div className="bg-destructive/5 border border-destructive/20 text-destructive rounded-xl px-4 py-3 text-sm mb-5">
               {serverError}
             </div>
           )}
 
           {/* Success */}
           {successMessage && (
-            <div className="bg-green-50 border border-green-200 text-green-700 rounded-lg px-4 py-3 text-sm mb-5">
+            <div className="bg-success/5 border border-success/20 text-success rounded-xl px-4 py-3 text-sm mb-5">
               {successMessage}
             </div>
           )}
@@ -189,10 +187,10 @@ export default function ProfilePage() {
                 placeholder={t("namePlaceholder")}
                 autoComplete="name"
                 {...register("name")}
-                className={errors.name ? "border-red-500" : ""}
+                className={errors.name ? "border-destructive focus-visible:ring-destructive" : ""}
               />
               {errors.name && (
-                <p className="text-xs text-red-500">{errors.name.message}</p>
+                <p className="text-xs text-destructive">{errors.name.message}</p>
               )}
             </div>
 
@@ -205,9 +203,8 @@ export default function ProfilePage() {
                 value={profile?.email ?? ""}
                 readOnly
                 disabled
-                className="bg-gray-50 text-gray-500 cursor-not-allowed"
               />
-              <p className="text-xs text-gray-400">{t("emailReadOnly")}</p>
+              <p className="text-xs text-muted-foreground">{t("emailReadOnly")}</p>
             </div>
 
             {/* Contacts */}
@@ -218,14 +215,14 @@ export default function ProfilePage() {
                 type="text"
                 placeholder={t("contactsPlaceholder")}
                 {...register("contacts")}
-                className={errors.contacts ? "border-red-500" : ""}
+                className={errors.contacts ? "border-destructive focus-visible:ring-destructive" : ""}
               />
               {errors.contacts && (
-                <p className="text-xs text-red-500">{errors.contacts.message}</p>
+                <p className="text-xs text-destructive">{errors.contacts.message}</p>
               )}
             </div>
 
-            <Button type="submit" className="w-full mt-2" disabled={isSubmitting}>
+            <Button type="submit" className="w-full mt-2" size="lg" disabled={isSubmitting}>
               {isSubmitting ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />

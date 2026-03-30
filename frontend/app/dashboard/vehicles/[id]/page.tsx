@@ -12,17 +12,20 @@ import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { AppHeader } from "@/components/AppHeader";
+import { cn } from "@/lib/utils";
+import { nativeSelectCn } from "@/lib/form-styles";
 import { vehicleService, VehicleServiceError } from "@/services/vehicleService";
 import type { Vehicle, VehicleStatus } from "@/types/vehicle";
 
 // ─── Status badge ──────────────────────────────────────────────────────────────
 
 const STATUS_COLORS: Record<VehicleStatus, string> = {
-  Active: "bg-green-100 text-green-700",
-  ForSale: "bg-blue-100 text-blue-700",
-  InRepair: "bg-yellow-100 text-yellow-700",
-  Recycled: "bg-gray-100 text-gray-600",
-  Dismantled: "bg-red-100 text-red-700",
+  Active: "bg-success/10 text-success",
+  ForSale: "bg-accent/10 text-accent",
+  InRepair: "bg-amber-50 text-amber-700",
+  Recycled: "bg-secondary text-muted-foreground",
+  Dismantled: "bg-destructive/10 text-destructive",
 };
 
 const ALL_STATUSES: VehicleStatus[] = ["Active", "ForSale", "InRepair", "Recycled", "Dismantled"];
@@ -155,7 +158,6 @@ export default function VehicleDetailPage() {
     setPartnerNameError(null);
     setDocumentError(null);
 
-    // Client-side validation
     if (selectedStatus === "InRepair") {
       if (!partnerName.trim()) {
         setPartnerNameError(ts("validation.partnerNameRequired"));
@@ -193,7 +195,6 @@ export default function VehicleDetailPage() {
       setStatusSuccess(ts("changeSuccess"));
       setVehicle((prev) => (prev ? { ...prev, status: selectedStatus } : prev));
 
-      // Clear conditional fields after success
       if (selectedStatus !== "InRepair") setPartnerName("");
       if (selectedStatus !== "Recycled" && selectedStatus !== "Dismantled") {
         setDocumentFile(null);
@@ -212,16 +213,16 @@ export default function VehicleDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
       </div>
     );
   }
 
   if (loadError) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-        <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg px-6 py-4 text-sm">
+      <div className="min-h-screen flex items-center justify-center bg-background px-4">
+        <div className="bg-destructive/5 border border-destructive/20 text-destructive rounded-xl px-6 py-4 text-sm">
           {loadError}
         </div>
       </div>
@@ -229,40 +230,34 @@ export default function VehicleDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 px-4 py-10">
-      <div className="max-w-lg mx-auto">
-        {/* Header */}
-        <div className="flex items-center gap-3 mb-8">
-          <div className="w-9 h-9 rounded-lg bg-gray-900 flex items-center justify-center text-white font-bold text-lg">
-            A
-          </div>
-          <span className="text-xl font-bold text-gray-900">AutoHelper</span>
-        </div>
+    <div className="min-h-screen bg-background">
+      <AppHeader />
 
+      <div className="max-w-lg mx-auto px-4 py-10">
         {/* Back link */}
         <Link
           href="/dashboard/vehicles"
-          className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 mb-6 transition-colors"
+          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-6 transition-colors"
         >
           <ArrowLeft className="h-4 w-4" />
           {tList("title")}
         </Link>
 
         {/* ─── Edit details card ───────────────────────────────────────────── */}
-        <div className="bg-white border border-gray-200 rounded-xl p-8 shadow-sm mb-6">
-          <h1 className="text-xl font-bold text-gray-900 mb-1">{t("editTitle")}</h1>
+        <div className="bg-card border border-border rounded-2xl p-8 shadow-card mb-6">
+          <h1 className="text-xl font-semibold text-foreground mb-1">{t("editTitle")}</h1>
           {vehicle && (
-            <p className="text-sm text-gray-400 mb-6">VIN: {vehicle.vin}</p>
+            <p className="text-sm text-muted-foreground mb-6">VIN: {vehicle.vin}</p>
           )}
 
           {serverError && (
-            <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 text-sm mb-5">
+            <div className="bg-destructive/5 border border-destructive/20 text-destructive rounded-xl px-4 py-3 text-sm mb-5">
               {serverError}
             </div>
           )}
 
           {successMessage && (
-            <div className="bg-green-50 border border-green-200 text-green-700 rounded-lg px-4 py-3 text-sm mb-5">
+            <div className="bg-success/5 border border-success/20 text-success rounded-xl px-4 py-3 text-sm mb-5">
               {successMessage}
             </div>
           )}
@@ -275,9 +270,9 @@ export default function VehicleDetailPage() {
                   id="brand"
                   placeholder={t("brandPlaceholder")}
                   {...register("brand")}
-                  className={errors.brand ? "border-red-500" : ""}
+                  className={errors.brand ? "border-destructive" : ""}
                 />
-                {errors.brand && <p className="text-xs text-red-500">{errors.brand.message}</p>}
+                {errors.brand && <p className="text-xs text-destructive">{errors.brand.message}</p>}
               </div>
 
               <div className="space-y-1.5">
@@ -286,9 +281,9 @@ export default function VehicleDetailPage() {
                   id="model"
                   placeholder={t("modelPlaceholder")}
                   {...register("model")}
-                  className={errors.model ? "border-red-500" : ""}
+                  className={errors.model ? "border-destructive" : ""}
                 />
-                {errors.model && <p className="text-xs text-red-500">{errors.model.message}</p>}
+                {errors.model && <p className="text-xs text-destructive">{errors.model.message}</p>}
               </div>
 
               <div className="space-y-1.5">
@@ -298,9 +293,9 @@ export default function VehicleDetailPage() {
                   type="number"
                   placeholder={t("yearPlaceholder")}
                   {...register("year", { valueAsNumber: true })}
-                  className={errors.year ? "border-red-500" : ""}
+                  className={errors.year ? "border-destructive" : ""}
                 />
-                {errors.year && <p className="text-xs text-red-500">{errors.year.message}</p>}
+                {errors.year && <p className="text-xs text-destructive">{errors.year.message}</p>}
               </div>
 
               <div className="space-y-1.5">
@@ -309,9 +304,9 @@ export default function VehicleDetailPage() {
                   id="color"
                   placeholder={t("colorPlaceholder")}
                   {...register("color")}
-                  className={errors.color ? "border-red-500" : ""}
+                  className={errors.color ? "border-destructive" : ""}
                 />
-                {errors.color && <p className="text-xs text-red-500">{errors.color.message}</p>}
+                {errors.color && <p className="text-xs text-destructive">{errors.color.message}</p>}
               </div>
 
               <div className="col-span-2 space-y-1.5">
@@ -321,13 +316,13 @@ export default function VehicleDetailPage() {
                   type="number"
                   placeholder={t("mileagePlaceholder")}
                   {...register("mileage", { valueAsNumber: true })}
-                  className={errors.mileage ? "border-red-500" : ""}
+                  className={errors.mileage ? "border-destructive" : ""}
                 />
-                {errors.mileage && <p className="text-xs text-red-500">{errors.mileage.message}</p>}
+                {errors.mileage && <p className="text-xs text-destructive">{errors.mileage.message}</p>}
               </div>
             </div>
 
-            <Button type="submit" className="w-full mt-2" disabled={isSubmitting}>
+            <Button type="submit" className="w-full mt-2" size="lg" disabled={isSubmitting}>
               {isSubmitting ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -341,30 +336,29 @@ export default function VehicleDetailPage() {
         </div>
 
         {/* ─── Status management card ──────────────────────────────────────── */}
-        <div className="bg-white border border-gray-200 rounded-xl p-8 shadow-sm">
-          <h2 className="text-lg font-bold text-gray-900 mb-1">{ts("sectionTitle")}</h2>
+        <div className="bg-card border border-border rounded-2xl p-8 shadow-card">
+          <h2 className="text-lg font-semibold text-foreground mb-1">{ts("sectionTitle")}</h2>
 
-          {/* Current status badge */}
           {vehicle && (
-            <p className="text-sm text-gray-500 mb-6">
+            <p className="text-sm text-muted-foreground mb-6">
               {ts("currentStatus")}:{" "}
-              <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${STATUS_COLORS[vehicle.status]}`}>
+              <span className={cn("inline-block px-2 py-0.5 rounded-lg text-xs font-medium", STATUS_COLORS[vehicle.status])}>
                 {ts(`values.${vehicle.status}`)}
               </span>
               {vehicle.partnerName && (
-                <span className="ml-2 text-gray-400">· {vehicle.partnerName}</span>
+                <span className="ml-2 text-muted-foreground">· {vehicle.partnerName}</span>
               )}
             </p>
           )}
 
           {statusError && (
-            <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 text-sm mb-5">
+            <div className="bg-destructive/5 border border-destructive/20 text-destructive rounded-xl px-4 py-3 text-sm mb-5">
               {statusError}
             </div>
           )}
 
           {statusSuccess && (
-            <div className="bg-green-50 border border-green-200 text-green-700 rounded-lg px-4 py-3 text-sm mb-5">
+            <div className="bg-success/5 border border-success/20 text-success rounded-xl px-4 py-3 text-sm mb-5">
               {statusSuccess}
             </div>
           )}
@@ -383,7 +377,7 @@ export default function VehicleDetailPage() {
                   setStatusError(null);
                   setStatusSuccess(null);
                 }}
-                className="w-full h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                className={nativeSelectCn}
               >
                 {ALL_STATUSES.map((s) => (
                   <option key={s} value={s}>
@@ -402,10 +396,10 @@ export default function VehicleDetailPage() {
                   placeholder={ts("partnerNamePlaceholder")}
                   value={partnerName}
                   onChange={(e) => setPartnerName(e.target.value)}
-                  className={partnerNameError ? "border-red-500" : ""}
+                  className={partnerNameError ? "border-destructive" : ""}
                 />
                 {partnerNameError && (
-                  <p className="text-xs text-red-500">{partnerNameError}</p>
+                  <p className="text-xs text-destructive">{partnerNameError}</p>
                 )}
               </div>
             )}
@@ -423,11 +417,11 @@ export default function VehicleDetailPage() {
                     setDocumentFile(e.target.files?.[0] ?? null);
                     setDocumentError(null);
                   }}
-                  className="block w-full text-sm text-gray-500 file:mr-4 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-sm file:font-medium file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200 cursor-pointer"
+                  className="block w-full text-sm text-muted-foreground file:mr-4 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-secondary file:text-foreground hover:file:bg-muted cursor-pointer"
                 />
-                <p className="text-xs text-gray-400">{ts("documentHint")}</p>
+                <p className="text-xs text-muted-foreground">{ts("documentHint")}</p>
                 {documentError && (
-                  <p className="text-xs text-red-500">{documentError}</p>
+                  <p className="text-xs text-destructive">{documentError}</p>
                 )}
               </div>
             )}
@@ -435,6 +429,7 @@ export default function VehicleDetailPage() {
             <Button
               type="button"
               className="w-full"
+              size="lg"
               onClick={onStatusChange}
               disabled={isStatusSubmitting}
             >

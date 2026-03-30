@@ -11,6 +11,7 @@ import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { AppHeader } from "@/components/AppHeader";
 import { vehicleService, VehicleServiceError } from "@/services/vehicleService";
 import type { Vehicle } from "@/types/vehicle";
 
@@ -107,16 +108,16 @@ export default function MyVehiclesPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
       </div>
     );
   }
 
   if (loadError) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-        <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg px-6 py-4 text-sm">
+      <div className="min-h-screen flex items-center justify-center bg-background px-4">
+        <div className="bg-destructive/5 border border-destructive/20 text-destructive rounded-xl px-6 py-4 text-sm">
           {loadError}
         </div>
       </div>
@@ -124,21 +125,17 @@ export default function MyVehiclesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 px-4 py-10">
-      <div className="max-w-2xl mx-auto">
-        {/* Header */}
-        <div className="flex items-center gap-3 mb-8">
-          <div className="w-9 h-9 rounded-lg bg-gray-900 flex items-center justify-center text-white font-bold text-lg">
-            A
-          </div>
-          <span className="text-xl font-bold text-gray-900">AutoHelper</span>
-        </div>
+    <div className="min-h-screen bg-background">
+      <AppHeader />
 
+      <div className="max-w-2xl mx-auto px-4 py-10">
         {/* Title + Add button */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-2">
-            <Car className="h-5 w-5 text-gray-600" />
-            <h1 className="text-xl font-bold text-gray-900">{t("title")}</h1>
+            <div className="w-9 h-9 rounded-xl bg-accent/10 flex items-center justify-center">
+              <Car className="h-4 w-4 text-accent" />
+            </div>
+            <h1 className="text-xl font-semibold text-foreground">{t("title")}</h1>
           </div>
           <Button
             size="sm"
@@ -149,25 +146,25 @@ export default function MyVehiclesPage() {
             }}
             variant={showAddForm ? "outline" : "default"}
           >
-            {showAddForm ? <X className="h-4 w-4 mr-1" /> : <Plus className="h-4 w-4 mr-1" />}
+            {showAddForm ? <X className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
             {showAddForm ? tf("cancelButton") : t("addButton")}
           </Button>
         </div>
 
         {/* Success message */}
         {formSuccess && (
-          <div className="bg-green-50 border border-green-200 text-green-700 rounded-lg px-4 py-3 text-sm mb-5">
+          <div className="bg-success/5 border border-success/20 text-success rounded-xl px-4 py-3 text-sm mb-5">
             {formSuccess}
           </div>
         )}
 
         {/* Add form */}
         {showAddForm && (
-          <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm mb-6">
-            <h2 className="text-base font-semibold text-gray-900 mb-4">{tf("addTitle")}</h2>
+          <div className="bg-card border border-border rounded-2xl p-6 shadow-card mb-6">
+            <h2 className="text-base font-semibold text-foreground mb-4">{tf("addTitle")}</h2>
 
             {formError && (
-              <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 text-sm mb-4">
+              <div className="bg-destructive/5 border border-destructive/20 text-destructive rounded-xl px-4 py-3 text-sm mb-4">
                 {formError}
               </div>
             )}
@@ -180,9 +177,9 @@ export default function MyVehiclesPage() {
                     id="vin"
                     placeholder={tf("vinPlaceholder")}
                     {...register("vin")}
-                    className={errors.vin ? "border-red-500" : ""}
+                    className={errors.vin ? "border-destructive" : ""}
                   />
-                  {errors.vin && <p className="text-xs text-red-500">{errors.vin.message}</p>}
+                  {errors.vin && <p className="text-xs text-destructive">{errors.vin.message}</p>}
                 </div>
 
                 <div className="space-y-1.5">
@@ -191,9 +188,9 @@ export default function MyVehiclesPage() {
                     id="brand"
                     placeholder={tf("brandPlaceholder")}
                     {...register("brand")}
-                    className={errors.brand ? "border-red-500" : ""}
+                    className={errors.brand ? "border-destructive" : ""}
                   />
-                  {errors.brand && <p className="text-xs text-red-500">{errors.brand.message}</p>}
+                  {errors.brand && <p className="text-xs text-destructive">{errors.brand.message}</p>}
                 </div>
 
                 <div className="space-y-1.5">
@@ -202,9 +199,9 @@ export default function MyVehiclesPage() {
                     id="model"
                     placeholder={tf("modelPlaceholder")}
                     {...register("model")}
-                    className={errors.model ? "border-red-500" : ""}
+                    className={errors.model ? "border-destructive" : ""}
                   />
-                  {errors.model && <p className="text-xs text-red-500">{errors.model.message}</p>}
+                  {errors.model && <p className="text-xs text-destructive">{errors.model.message}</p>}
                 </div>
 
                 <div className="space-y-1.5">
@@ -214,9 +211,9 @@ export default function MyVehiclesPage() {
                     type="number"
                     placeholder={tf("yearPlaceholder")}
                     {...register("year", { valueAsNumber: true })}
-                    className={errors.year ? "border-red-500" : ""}
+                    className={errors.year ? "border-destructive" : ""}
                   />
-                  {errors.year && <p className="text-xs text-red-500">{errors.year.message}</p>}
+                  {errors.year && <p className="text-xs text-destructive">{errors.year.message}</p>}
                 </div>
 
                 <div className="space-y-1.5">
@@ -225,9 +222,9 @@ export default function MyVehiclesPage() {
                     id="color"
                     placeholder={tf("colorPlaceholder")}
                     {...register("color")}
-                    className={errors.color ? "border-red-500" : ""}
+                    className={errors.color ? "border-destructive" : ""}
                   />
-                  {errors.color && <p className="text-xs text-red-500">{errors.color.message}</p>}
+                  {errors.color && <p className="text-xs text-destructive">{errors.color.message}</p>}
                 </div>
 
                 <div className="space-y-1.5">
@@ -237,9 +234,9 @@ export default function MyVehiclesPage() {
                     type="number"
                     placeholder={tf("mileagePlaceholder")}
                     {...register("mileage", { valueAsNumber: true })}
-                    className={errors.mileage ? "border-red-500" : ""}
+                    className={errors.mileage ? "border-destructive" : ""}
                   />
-                  {errors.mileage && <p className="text-xs text-red-500">{errors.mileage.message}</p>}
+                  {errors.mileage && <p className="text-xs text-destructive">{errors.mileage.message}</p>}
                 </div>
               </div>
 
@@ -259,22 +256,25 @@ export default function MyVehiclesPage() {
 
         {/* Vehicle list */}
         {vehicles.length === 0 ? (
-          <div className="bg-white border border-gray-200 rounded-xl p-10 text-center text-gray-400 text-sm shadow-sm">
-            <Car className="h-10 w-10 mx-auto mb-3 text-gray-300" />
-            {t("emptyState")}
+          <div className="bg-card border border-border rounded-2xl p-10 text-center shadow-card">
+            <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-3">
+              <Car className="h-7 w-7 text-muted-foreground" />
+            </div>
+            <p className="text-sm text-muted-foreground">{t("emptyState")}</p>
           </div>
         ) : (
           <div className="space-y-3">
             {vehicles.map((v) => (
               <div
                 key={v.id}
-                className="bg-white border border-gray-200 rounded-xl px-6 py-4 shadow-sm flex items-center justify-between"
+                className="bg-card border border-border rounded-2xl px-6 py-4 shadow-card hover:shadow-card-hover transition-shadow flex items-center justify-between"
               >
                 <div>
-                  <p className="font-semibold text-gray-900">
-                    {v.brand} {v.model} <span className="text-gray-400 font-normal">({v.year})</span>
+                  <p className="font-semibold text-foreground">
+                    {v.brand} {v.model}{" "}
+                    <span className="text-muted-foreground font-normal">({v.year})</span>
                   </p>
-                  <p className="text-xs text-gray-400 mt-0.5">
+                  <p className="text-xs text-muted-foreground mt-0.5">
                     {t("vinLabel")}: {v.vin}
                     {v.color ? ` · ${v.color}` : ""}
                     {` · ${v.mileage.toLocaleString()} ${t("km")}`}

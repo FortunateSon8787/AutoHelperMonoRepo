@@ -9,6 +9,9 @@ import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { AppHeader } from "@/components/AppHeader";
+import { nativeTextareaCn } from "@/lib/form-styles";
+import { cn } from "@/lib/utils";
 import {
   serviceRecordService,
   ServiceRecordServiceError,
@@ -101,38 +104,14 @@ export default function ServiceRecordsPage() {
 
     const validOps = operations.filter((op) => op.trim().length > 0);
 
-    if (!formValues.title.trim()) {
-      setFormError(tf("validation.titleRequired"));
-      return;
-    }
-    if (!formValues.description.trim()) {
-      setFormError(tf("validation.descriptionRequired"));
-      return;
-    }
-    if (!formValues.performedAt) {
-      setFormError(tf("validation.performedAtRequired"));
-      return;
-    }
-    if (new Date(formValues.performedAt) > new Date()) {
-      setFormError(tf("validation.performedAtFuture"));
-      return;
-    }
-    if (Number(formValues.cost) < 0) {
-      setFormError(tf("validation.costInvalid"));
-      return;
-    }
-    if (!formValues.executorName.trim()) {
-      setFormError(tf("validation.executorNameRequired"));
-      return;
-    }
-    if (validOps.length === 0) {
-      setFormError(tf("validation.operationsRequired"));
-      return;
-    }
-    if (!uploadedDocumentUrl) {
-      setFormError(tf("validation.documentRequired"));
-      return;
-    }
+    if (!formValues.title.trim()) { setFormError(tf("validation.titleRequired")); return; }
+    if (!formValues.description.trim()) { setFormError(tf("validation.descriptionRequired")); return; }
+    if (!formValues.performedAt) { setFormError(tf("validation.performedAtRequired")); return; }
+    if (new Date(formValues.performedAt) > new Date()) { setFormError(tf("validation.performedAtFuture")); return; }
+    if (Number(formValues.cost) < 0) { setFormError(tf("validation.costInvalid")); return; }
+    if (!formValues.executorName.trim()) { setFormError(tf("validation.executorNameRequired")); return; }
+    if (validOps.length === 0) { setFormError(tf("validation.operationsRequired")); return; }
+    if (!uploadedDocumentUrl) { setFormError(tf("validation.documentRequired")); return; }
 
     setIsSubmitting(true);
     try {
@@ -147,18 +126,14 @@ export default function ServiceRecordsPage() {
         documentUrl: uploadedDocumentUrl,
       });
 
-      // Fetch the newly created record and prepend to list
-      const newRecord = await serviceRecordService.getById(
-        created.serviceRecordId
-      );
+      const newRecord = await serviceRecordService.getById(created.serviceRecordId);
       setRecords((prev) => [newRecord, ...prev]);
 
       setFormSuccess(tf("createSuccess"));
       setShowForm(false);
       resetForm();
     } catch (err) {
-      const code =
-        err instanceof ServiceRecordServiceError ? err.code : "unknown";
+      const code = err instanceof ServiceRecordServiceError ? err.code : "unknown";
       setFormError(tf(`errors.${code}`));
     } finally {
       setIsSubmitting(false);
@@ -166,14 +141,7 @@ export default function ServiceRecordsPage() {
   };
 
   const resetForm = () => {
-    setFormValues({
-      title: "",
-      description: "",
-      performedAt: "",
-      cost: "",
-      executorName: "",
-      executorContacts: "",
-    });
+    setFormValues({ title: "", description: "", performedAt: "", cost: "", executorName: "", executorContacts: "" });
     setOperations([""]);
     setUploadedDocumentUrl(null);
     setDocumentError(null);
@@ -185,16 +153,16 @@ export default function ServiceRecordsPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
       </div>
     );
   }
 
   if (loadError) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-        <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg px-6 py-4 text-sm">
+      <div className="min-h-screen flex items-center justify-center bg-background px-4">
+        <div className="bg-destructive/5 border border-destructive/20 text-destructive rounded-xl px-6 py-4 text-sm">
           {loadError}
         </div>
       </div>
@@ -202,20 +170,14 @@ export default function ServiceRecordsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 px-4 py-10">
-      <div className="max-w-2xl mx-auto">
-        {/* Header */}
-        <div className="flex items-center gap-3 mb-8">
-          <div className="w-9 h-9 rounded-lg bg-gray-900 flex items-center justify-center text-white font-bold text-lg">
-            A
-          </div>
-          <span className="text-xl font-bold text-gray-900">AutoHelper</span>
-        </div>
+    <div className="min-h-screen bg-background">
+      <AppHeader />
 
+      <div className="max-w-2xl mx-auto px-4 py-10">
         {/* Back link */}
         <Link
           href={`/dashboard/vehicles/${params.id}`}
-          className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 mb-6 transition-colors"
+          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-6 transition-colors"
         >
           <ArrowLeft className="h-4 w-4" />
           {tf("cancelButton")}
@@ -223,7 +185,7 @@ export default function ServiceRecordsPage() {
 
         {/* Title + Add button */}
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">{t("title")}</h1>
+          <h1 className="text-xl font-semibold text-foreground">{t("title")}</h1>
           {!showForm && (
             <Button
               size="sm"
@@ -232,39 +194,34 @@ export default function ServiceRecordsPage() {
                 setFormSuccess(null);
               }}
             >
-              <Plus className="h-4 w-4 mr-1" />
+              <Plus className="h-4 w-4" />
               {t("addButton")}
             </Button>
           )}
         </div>
 
         {formSuccess && (
-          <div className="bg-green-50 border border-green-200 text-green-700 rounded-lg px-4 py-3 text-sm mb-5">
+          <div className="bg-success/5 border border-success/20 text-success rounded-xl px-4 py-3 text-sm mb-5">
             {formSuccess}
           </div>
         )}
 
         {/* ─── Add record form ───────────────────────────────────────────── */}
         {showForm && (
-          <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm mb-6">
+          <div className="bg-card border border-border rounded-2xl p-6 shadow-card mb-6">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-900">
-                {tf("addTitle")}
-              </h2>
+              <h2 className="text-base font-semibold text-foreground">{tf("addTitle")}</h2>
               <button
                 type="button"
-                onClick={() => {
-                  setShowForm(false);
-                  resetForm();
-                }}
-                className="text-gray-400 hover:text-gray-600"
+                onClick={() => { setShowForm(false); resetForm(); }}
+                className="text-muted-foreground hover:text-foreground transition-colors"
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
 
             {formError && (
-              <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 text-sm mb-4">
+              <div className="bg-destructive/5 border border-destructive/20 text-destructive rounded-xl px-4 py-3 text-sm mb-4">
                 {formError}
               </div>
             )}
@@ -276,9 +233,7 @@ export default function ServiceRecordsPage() {
                   id="title"
                   placeholder={tf("titlePlaceholder")}
                   value={formValues.title}
-                  onChange={(e) =>
-                    setFormValues((v) => ({ ...v, title: e.target.value }))
-                  }
+                  onChange={(e) => setFormValues((v) => ({ ...v, title: e.target.value }))}
                 />
               </div>
 
@@ -289,13 +244,8 @@ export default function ServiceRecordsPage() {
                   rows={3}
                   placeholder={tf("descriptionPlaceholder")}
                   value={formValues.description}
-                  onChange={(e) =>
-                    setFormValues((v) => ({
-                      ...v,
-                      description: e.target.value,
-                    }))
-                  }
-                  className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring resize-none"
+                  onChange={(e) => setFormValues((v) => ({ ...v, description: e.target.value }))}
+                  className={nativeTextareaCn}
                 />
               </div>
 
@@ -307,12 +257,7 @@ export default function ServiceRecordsPage() {
                     type="date"
                     value={formValues.performedAt}
                     max={new Date().toISOString().split("T")[0]}
-                    onChange={(e) =>
-                      setFormValues((v) => ({
-                        ...v,
-                        performedAt: e.target.value,
-                      }))
-                    }
+                    onChange={(e) => setFormValues((v) => ({ ...v, performedAt: e.target.value }))}
                   />
                 </div>
 
@@ -325,9 +270,7 @@ export default function ServiceRecordsPage() {
                     step={0.01}
                     placeholder={tf("costPlaceholder")}
                     value={formValues.cost}
-                    onChange={(e) =>
-                      setFormValues((v) => ({ ...v, cost: e.target.value }))
-                    }
+                    onChange={(e) => setFormValues((v) => ({ ...v, cost: e.target.value }))}
                   />
                 </div>
               </div>
@@ -339,29 +282,17 @@ export default function ServiceRecordsPage() {
                     id="executorName"
                     placeholder={tf("executorNamePlaceholder")}
                     value={formValues.executorName}
-                    onChange={(e) =>
-                      setFormValues((v) => ({
-                        ...v,
-                        executorName: e.target.value,
-                      }))
-                    }
+                    onChange={(e) => setFormValues((v) => ({ ...v, executorName: e.target.value }))}
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label htmlFor="executorContacts">
-                    {tf("executorContactsLabel")}
-                  </Label>
+                  <Label htmlFor="executorContacts">{tf("executorContactsLabel")}</Label>
                   <Input
                     id="executorContacts"
                     placeholder={tf("executorContactsPlaceholder")}
                     value={formValues.executorContacts}
-                    onChange={(e) =>
-                      setFormValues((v) => ({
-                        ...v,
-                        executorContacts: e.target.value,
-                      }))
-                    }
+                    onChange={(e) => setFormValues((v) => ({ ...v, executorContacts: e.target.value }))}
                   />
                 </div>
               </div>
@@ -383,10 +314,8 @@ export default function ServiceRecordsPage() {
                     {operations.length > 1 && (
                       <button
                         type="button"
-                        onClick={() =>
-                          setOperations(operations.filter((_, i) => i !== idx))
-                        }
-                        className="text-gray-400 hover:text-red-500"
+                        onClick={() => setOperations(operations.filter((_, i) => i !== idx))}
+                        className="text-muted-foreground hover:text-destructive transition-colors"
                       >
                         <X className="h-4 w-4" />
                       </button>
@@ -396,7 +325,7 @@ export default function ServiceRecordsPage() {
                 <button
                   type="button"
                   onClick={() => setOperations([...operations, ""])}
-                  className="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                  className="text-sm text-accent hover:text-accent/80 flex items-center gap-1 transition-colors"
                 >
                   <Plus className="h-3.5 w-3.5" />
                   {tf("addOperationButton")}
@@ -412,29 +341,25 @@ export default function ServiceRecordsPage() {
                   type="file"
                   accept="application/pdf"
                   onChange={handleFileChange}
-                  className="block w-full text-sm text-gray-500 file:mr-4 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-sm file:font-medium file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200 cursor-pointer"
+                  className="block w-full text-sm text-muted-foreground file:mr-4 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-secondary file:text-foreground hover:file:bg-muted cursor-pointer"
                 />
-                <p className="text-xs text-gray-400">{tf("documentHint")}</p>
+                <p className="text-xs text-muted-foreground">{tf("documentHint")}</p>
                 {isUploading && (
-                  <p className="text-xs text-blue-500 flex items-center gap-1">
+                  <p className="text-xs text-accent flex items-center gap-1">
                     <Loader2 className="h-3 w-3 animate-spin" />
                     {tf("documentUploading")}
                   </p>
                 )}
                 {uploadedDocumentUrl && !isUploading && (
-                  <p className="text-xs text-green-600">{tf("documentUploaded")}</p>
+                  <p className="text-xs text-success">{tf("documentUploaded")}</p>
                 )}
                 {documentError && (
-                  <p className="text-xs text-red-500">{documentError}</p>
+                  <p className="text-xs text-destructive">{documentError}</p>
                 )}
               </div>
 
               <div className="flex gap-3 pt-2">
-                <Button
-                  type="submit"
-                  disabled={isSubmitting || isUploading}
-                  className="flex-1"
-                >
+                <Button type="submit" disabled={isSubmitting || isUploading} className="flex-1">
                   {isSubmitting ? (
                     <>
                       <Loader2 className="h-4 w-4 animate-spin" />
@@ -447,10 +372,7 @@ export default function ServiceRecordsPage() {
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => {
-                    setShowForm(false);
-                    resetForm();
-                  }}
+                  onClick={() => { setShowForm(false); resetForm(); }}
                 >
                   {tf("cancelButton")}
                 </Button>
@@ -461,7 +383,7 @@ export default function ServiceRecordsPage() {
 
         {/* ─── Records list ──────────────────────────────────────────────── */}
         {records.length === 0 ? (
-          <div className="bg-white border border-gray-200 rounded-xl p-8 shadow-sm text-center text-sm text-gray-400">
+          <div className="bg-card border border-border rounded-2xl p-8 shadow-card text-center text-sm text-muted-foreground">
             {t("emptyState")}
           </div>
         ) : (
@@ -469,20 +391,18 @@ export default function ServiceRecordsPage() {
             {records.map((record) => (
               <div
                 key={record.id}
-                className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm"
+                className="bg-card border border-border rounded-2xl p-5 shadow-card hover:shadow-card-hover transition-shadow"
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-gray-900 truncate">
-                      {record.title}
-                    </p>
-                    <p className="text-sm text-gray-400 mt-0.5">
+                    <p className="font-semibold text-foreground truncate">{record.title}</p>
+                    <p className="text-sm text-muted-foreground mt-0.5">
                       {t("performedAtLabel")}:{" "}
                       {new Date(record.performedAt).toLocaleDateString()}
                       {" · "}
                       {t("executorLabel")}: {record.executorName}
                     </p>
-                    <p className="text-sm font-medium text-gray-700 mt-1">
+                    <p className="text-sm font-medium text-foreground mt-1">
                       {t("costLabel")}: {record.cost.toLocaleString()}{" "}
                       {t("currency")}
                     </p>
@@ -492,7 +412,7 @@ export default function ServiceRecordsPage() {
                     className="shrink-0"
                   >
                     <Button variant="outline" size="sm">
-                      <FileText className="h-3.5 w-3.5 mr-1" />
+                      <FileText className="h-3.5 w-3.5" />
                       {t("viewButton")}
                     </Button>
                   </Link>

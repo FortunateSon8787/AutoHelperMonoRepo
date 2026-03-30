@@ -347,6 +347,7 @@
   "adCampaigns": {
     "title": "Ad Campaigns",
     "subtitle": "Manage advertising campaigns for your partner profile",
+    "backToPartnerCabinet": "Partner Cabinet",
     "createButton": "Create Campaign",
     "emptyState": "You have no ad campaigns yet",
     "editButton": "Edit",

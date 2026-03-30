@@ -3,6 +3,7 @@
 import { useTransition } from "react";
 import { useLocale } from "next-intl";
 import { setLocaleCookie } from "@/app/actions/locale";
+import { cn } from "@/lib/utils";
 
 const localeLabels: Record<string, string> = {
   ru: "RU",
@@ -20,17 +21,18 @@ export function LocaleSwitcher() {
   };
 
   return (
-    <div className="fixed top-4 right-4 z-50 flex gap-1 bg-white border border-gray-200 rounded-lg p-1 shadow-sm">
+    <div className="flex gap-0.5 bg-secondary border border-border rounded-lg p-0.5">
       {Object.entries(localeLabels).map(([loc, label]) => (
         <button
           key={loc}
           onClick={() => handleChange(loc)}
           disabled={isPending || locale === loc}
-          className={`px-3 py-1 text-xs font-semibold rounded-md transition-colors ${
+          className={cn(
+            "px-2.5 py-1 text-xs font-semibold rounded-md transition-all",
             locale === loc
-              ? "bg-gray-900 text-white"
-              : "text-gray-500 hover:text-gray-900"
-          }`}
+              ? "bg-card text-foreground shadow-sm"
+              : "text-muted-foreground hover:text-foreground"
+          )}
         >
           {label}
         </button>

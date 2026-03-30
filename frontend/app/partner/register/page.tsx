@@ -11,6 +11,8 @@ import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { AppHeader } from "@/components/AppHeader";
+import { nativeSelectCn, nativeTextareaCn } from "@/lib/form-styles";
 import { partnerService, PartnerServiceError } from "@/services/partnerService";
 import { PARTNER_TYPES } from "@/types/partner";
 
@@ -106,38 +108,32 @@ export default function PartnerRegisterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 px-4 py-10">
-      <div className="max-w-2xl mx-auto">
-        {/* Header */}
-        <div className="flex items-center gap-3 mb-8">
-          <div className="w-9 h-9 rounded-lg bg-gray-900 flex items-center justify-center text-white font-bold text-lg">
-            A
-          </div>
-          <span className="text-xl font-bold text-gray-900">AutoHelper</span>
-        </div>
+    <div className="min-h-screen bg-background">
+      <AppHeader />
 
-        <div className="bg-white border border-gray-200 rounded-xl p-8 shadow-sm">
+      <div className="max-w-2xl mx-auto px-4 py-10">
+        <div className="bg-card border border-border rounded-2xl p-8 shadow-card">
           {/* Title */}
           <div className="flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
-              <Building2 className="h-5 w-5 text-gray-500" />
+            <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center">
+              <Building2 className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-gray-900">{t("title")}</h1>
-              <p className="text-sm text-gray-500">{t("subtitle")}</p>
+              <h1 className="text-xl font-semibold text-foreground">{t("title")}</h1>
+              <p className="text-sm text-muted-foreground">{t("subtitle")}</p>
             </div>
           </div>
 
           {/* Server error */}
           {serverError && (
-            <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 text-sm mb-5">
+            <div className="bg-destructive/5 border border-destructive/20 text-destructive rounded-xl px-4 py-3 text-sm mb-5">
               {serverError}
             </div>
           )}
 
           {/* Success */}
           {successMessage && (
-            <div className="bg-green-50 border border-green-200 text-green-700 rounded-lg px-4 py-3 text-sm mb-5">
+            <div className="bg-success/5 border border-success/20 text-success rounded-xl px-4 py-3 text-sm mb-5">
               {successMessage}
             </div>
           )}
@@ -150,9 +146,9 @@ export default function PartnerRegisterPage() {
                 id="name"
                 placeholder={t("namePlaceholder")}
                 {...register("name")}
-                className={errors.name ? "border-red-500" : ""}
+                className={errors.name ? "border-destructive" : ""}
               />
-              {errors.name && <p className="text-xs text-red-500">{errors.name.message}</p>}
+              {errors.name && <p className="text-xs text-destructive">{errors.name.message}</p>}
             </div>
 
             {/* Type */}
@@ -161,7 +157,7 @@ export default function PartnerRegisterPage() {
               <select
                 id="type"
                 {...register("type")}
-                className={`w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${errors.type ? "border-red-500" : ""}`}
+                className={errors.type ? `${nativeSelectCn} border-destructive` : nativeSelectCn}
               >
                 <option value="">—</option>
                 {PARTNER_TYPES.map((pt) => (
@@ -170,7 +166,7 @@ export default function PartnerRegisterPage() {
                   </option>
                 ))}
               </select>
-              {errors.type && <p className="text-xs text-red-500">{errors.type.message}</p>}
+              {errors.type && <p className="text-xs text-destructive">{errors.type.message}</p>}
             </div>
 
             {/* Specialization */}
@@ -180,9 +176,9 @@ export default function PartnerRegisterPage() {
                 id="specialization"
                 placeholder={t("specializationPlaceholder")}
                 {...register("specialization")}
-                className={errors.specialization ? "border-red-500" : ""}
+                className={errors.specialization ? "border-destructive" : ""}
               />
-              {errors.specialization && <p className="text-xs text-red-500">{errors.specialization.message}</p>}
+              {errors.specialization && <p className="text-xs text-destructive">{errors.specialization.message}</p>}
             </div>
 
             {/* Description */}
@@ -193,9 +189,9 @@ export default function PartnerRegisterPage() {
                 placeholder={t("descriptionPlaceholder")}
                 rows={3}
                 {...register("description")}
-                className={`w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none ${errors.description ? "border-red-500" : ""}`}
+                className={errors.description ? `${nativeTextareaCn} border-destructive` : nativeTextareaCn}
               />
-              {errors.description && <p className="text-xs text-red-500">{errors.description.message}</p>}
+              {errors.description && <p className="text-xs text-destructive">{errors.description.message}</p>}
             </div>
 
             {/* Address */}
@@ -205,9 +201,9 @@ export default function PartnerRegisterPage() {
                 id="address"
                 placeholder={t("addressPlaceholder")}
                 {...register("address")}
-                className={errors.address ? "border-red-500" : ""}
+                className={errors.address ? "border-destructive" : ""}
               />
-              {errors.address && <p className="text-xs text-red-500">{errors.address.message}</p>}
+              {errors.address && <p className="text-xs text-destructive">{errors.address.message}</p>}
             </div>
 
             {/* Location */}
@@ -219,9 +215,9 @@ export default function PartnerRegisterPage() {
                   type="number"
                   step="any"
                   {...register("locationLat", { valueAsNumber: true })}
-                  className={errors.locationLat ? "border-red-500" : ""}
+                  className={errors.locationLat ? "border-destructive" : ""}
                 />
-                {errors.locationLat && <p className="text-xs text-red-500">{errors.locationLat.message}</p>}
+                {errors.locationLat && <p className="text-xs text-destructive">{errors.locationLat.message}</p>}
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="locationLng">{t("locationLngLabel")}</Label>
@@ -230,9 +226,9 @@ export default function PartnerRegisterPage() {
                   type="number"
                   step="any"
                   {...register("locationLng", { valueAsNumber: true })}
-                  className={errors.locationLng ? "border-red-500" : ""}
+                  className={errors.locationLng ? "border-destructive" : ""}
                 />
-                {errors.locationLng && <p className="text-xs text-red-500">{errors.locationLng.message}</p>}
+                {errors.locationLng && <p className="text-xs text-destructive">{errors.locationLng.message}</p>}
               </div>
             </div>
 
@@ -244,9 +240,9 @@ export default function PartnerRegisterPage() {
                   id="workingOpenFrom"
                   placeholder={t("workingOpenFromPlaceholder")}
                   {...register("workingOpenFrom")}
-                  className={errors.workingOpenFrom ? "border-red-500" : ""}
+                  className={errors.workingOpenFrom ? "border-destructive" : ""}
                 />
-                {errors.workingOpenFrom && <p className="text-xs text-red-500">{errors.workingOpenFrom.message}</p>}
+                {errors.workingOpenFrom && <p className="text-xs text-destructive">{errors.workingOpenFrom.message}</p>}
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="workingOpenTo">{t("workingOpenToLabel")}</Label>
@@ -254,9 +250,9 @@ export default function PartnerRegisterPage() {
                   id="workingOpenTo"
                   placeholder={t("workingOpenToPlaceholder")}
                   {...register("workingOpenTo")}
-                  className={errors.workingOpenTo ? "border-red-500" : ""}
+                  className={errors.workingOpenTo ? "border-destructive" : ""}
                 />
-                {errors.workingOpenTo && <p className="text-xs text-red-500">{errors.workingOpenTo.message}</p>}
+                {errors.workingOpenTo && <p className="text-xs text-destructive">{errors.workingOpenTo.message}</p>}
               </div>
             </div>
 
@@ -267,9 +263,9 @@ export default function PartnerRegisterPage() {
                 id="workingDays"
                 placeholder={t("workingDaysPlaceholder")}
                 {...register("workingDays")}
-                className={errors.workingDays ? "border-red-500" : ""}
+                className={errors.workingDays ? "border-destructive" : ""}
               />
-              {errors.workingDays && <p className="text-xs text-red-500">{errors.workingDays.message}</p>}
+              {errors.workingDays && <p className="text-xs text-destructive">{errors.workingDays.message}</p>}
             </div>
 
             {/* Phone */}
@@ -280,9 +276,9 @@ export default function PartnerRegisterPage() {
                 type="tel"
                 placeholder={t("contactsPhonePlaceholder")}
                 {...register("contactsPhone")}
-                className={errors.contactsPhone ? "border-red-500" : ""}
+                className={errors.contactsPhone ? "border-destructive" : ""}
               />
-              {errors.contactsPhone && <p className="text-xs text-red-500">{errors.contactsPhone.message}</p>}
+              {errors.contactsPhone && <p className="text-xs text-destructive">{errors.contactsPhone.message}</p>}
             </div>
 
             {/* Website */}
@@ -296,10 +292,10 @@ export default function PartnerRegisterPage() {
               />
             </div>
 
-            <Button type="submit" className="w-full mt-2" disabled={isSubmitting}>
+            <Button type="submit" className="w-full mt-2" size="lg" disabled={isSubmitting}>
               {isSubmitting ? (
                 <>
-                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  <Loader2 className="h-4 w-4 animate-spin" />
                   {t("submittingButton")}
                 </>
               ) : (

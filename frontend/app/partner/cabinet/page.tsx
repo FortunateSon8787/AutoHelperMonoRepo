@@ -10,6 +10,8 @@ import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { AppHeader } from "@/components/AppHeader";
+import { nativeTextareaCn } from "@/lib/form-styles";
 import { partnerService, PartnerServiceError } from "@/services/partnerService";
 import type { PartnerProfile } from "@/types/partner";
 
@@ -144,16 +146,16 @@ export default function PartnerCabinetPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
       </div>
     );
   }
 
   if (loadError) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-        <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg px-6 py-4 text-sm">
+      <div className="min-h-screen flex items-center justify-center bg-background px-4">
+        <div className="bg-destructive/5 border border-destructive/20 text-destructive rounded-xl px-6 py-4 text-sm">
           {loadError}
         </div>
       </div>
@@ -161,19 +163,13 @@ export default function PartnerCabinetPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 px-4 py-10">
-      <div className="max-w-2xl mx-auto">
-        {/* Header */}
-        <div className="flex items-center gap-3 mb-8">
-          <div className="w-9 h-9 rounded-lg bg-gray-900 flex items-center justify-center text-white font-bold text-lg">
-            A
-          </div>
-          <span className="text-xl font-bold text-gray-900">AutoHelper</span>
-        </div>
+    <div className="min-h-screen bg-background">
+      <AppHeader />
 
-        {/* Status badge */}
+      <div className="max-w-2xl mx-auto px-4 py-10">
+        {/* Pending verification banner */}
         {profile && !profile.isActive && (
-          <div className="flex items-center gap-2 bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-lg px-4 py-3 text-sm mb-5">
+          <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 text-amber-800 rounded-xl px-4 py-3 text-sm mb-5">
             <Clock className="h-4 w-4 flex-shrink-0" />
             <span>
               {profile.isVerified ? t("inactive") : t("pendingVerification")}
@@ -181,16 +177,16 @@ export default function PartnerCabinetPage() {
           </div>
         )}
 
-        <div className="bg-white border border-gray-200 rounded-xl p-8 shadow-sm">
+        <div className="bg-card border border-border rounded-2xl p-8 shadow-card">
           {/* Title row */}
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
-                <Building2 className="h-5 w-5 text-gray-500" />
+              <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center">
+                <Building2 className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-gray-900">{t("title")}</h1>
-                <p className="text-sm text-gray-500">
+                <h1 className="text-xl font-semibold text-foreground">{t("title")}</h1>
+                <p className="text-sm text-muted-foreground">
                   {t(`types.${profile?.type as Parameters<typeof t>[0]}`)}
                 </p>
               </div>
@@ -203,25 +199,25 @@ export default function PartnerCabinetPage() {
             )}
           </div>
 
-          {/* Status section */}
-          <div className="flex items-center gap-4 mb-6 pb-6 border-b border-gray-100 text-xs text-gray-400">
+          {/* Verification status */}
+          <div className="flex items-center gap-4 mb-6 pb-6 border-b border-border text-xs text-muted-foreground">
             <span className="flex items-center gap-1">
               {profile?.isVerified ? (
-                <CheckCircle className="h-3.5 w-3.5 text-green-500" />
+                <CheckCircle className="h-3.5 w-3.5 text-success" />
               ) : (
-                <Clock className="h-3.5 w-3.5 text-yellow-500" />
+                <Clock className="h-3.5 w-3.5 text-amber-500" />
               )}
-              <span className={profile?.isVerified ? "text-green-600" : "text-yellow-600"}>
+              <span className={profile?.isVerified ? "text-success" : "text-amber-600"}>
                 {profile?.isVerified ? t("verified") : t("notVerified")}
               </span>
             </span>
             <span className="flex items-center gap-1">
               {profile?.isActive ? (
-                <CheckCircle className="h-3.5 w-3.5 text-green-500" />
+                <CheckCircle className="h-3.5 w-3.5 text-success" />
               ) : (
-                <XCircle className="h-3.5 w-3.5 text-gray-400" />
+                <XCircle className="h-3.5 w-3.5 text-muted-foreground" />
               )}
-              <span className={profile?.isActive ? "text-green-600" : "text-gray-500"}>
+              <span className={profile?.isActive ? "text-success" : "text-muted-foreground"}>
                 {profile?.isActive ? t("active") : t("notActive")}
               </span>
             </span>
@@ -229,14 +225,14 @@ export default function PartnerCabinetPage() {
 
           {/* Server error */}
           {serverError && (
-            <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 text-sm mb-5">
+            <div className="bg-destructive/5 border border-destructive/20 text-destructive rounded-xl px-4 py-3 text-sm mb-5">
               {serverError}
             </div>
           )}
 
           {/* Success */}
           {successMessage && (
-            <div className="bg-green-50 border border-green-200 text-green-700 rounded-lg px-4 py-3 text-sm mb-5">
+            <div className="bg-success/5 border border-success/20 text-success rounded-xl px-4 py-3 text-sm mb-5">
               {successMessage}
             </div>
           )}
@@ -264,14 +260,14 @@ export default function PartnerCabinetPage() {
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div className="space-y-1.5">
                 <Label htmlFor="name">{t("nameLabel")}</Label>
-                <Input id="name" {...register("name")} className={errors.name ? "border-red-500" : ""} />
-                {errors.name && <p className="text-xs text-red-500">{errors.name.message}</p>}
+                <Input id="name" {...register("name")} className={errors.name ? "border-destructive" : ""} />
+                {errors.name && <p className="text-xs text-destructive">{errors.name.message}</p>}
               </div>
 
               <div className="space-y-1.5">
                 <Label htmlFor="specialization">{t("specializationLabel")}</Label>
-                <Input id="specialization" {...register("specialization")} className={errors.specialization ? "border-red-500" : ""} />
-                {errors.specialization && <p className="text-xs text-red-500">{errors.specialization.message}</p>}
+                <Input id="specialization" {...register("specialization")} className={errors.specialization ? "border-destructive" : ""} />
+                {errors.specialization && <p className="text-xs text-destructive">{errors.specialization.message}</p>}
               </div>
 
               <div className="space-y-1.5">
@@ -280,48 +276,48 @@ export default function PartnerCabinetPage() {
                   id="description"
                   rows={3}
                   {...register("description")}
-                  className={`w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none ${errors.description ? "border-red-500" : ""}`}
+                  className={errors.description ? `${nativeTextareaCn} border-destructive` : nativeTextareaCn}
                 />
-                {errors.description && <p className="text-xs text-red-500">{errors.description.message}</p>}
+                {errors.description && <p className="text-xs text-destructive">{errors.description.message}</p>}
               </div>
 
               <div className="space-y-1.5">
                 <Label htmlFor="address">{t("addressLabel")}</Label>
-                <Input id="address" {...register("address")} className={errors.address ? "border-red-500" : ""} />
-                {errors.address && <p className="text-xs text-red-500">{errors.address.message}</p>}
+                <Input id="address" {...register("address")} className={errors.address ? "border-destructive" : ""} />
+                {errors.address && <p className="text-xs text-destructive">{errors.address.message}</p>}
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <Label htmlFor="locationLat">Lat</Label>
-                  <Input id="locationLat" type="number" step="any" {...register("locationLat", { valueAsNumber: true })} className={errors.locationLat ? "border-red-500" : ""} />
+                  <Input id="locationLat" type="number" step="any" {...register("locationLat", { valueAsNumber: true })} className={errors.locationLat ? "border-destructive" : ""} />
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="locationLng">Lng</Label>
-                  <Input id="locationLng" type="number" step="any" {...register("locationLng", { valueAsNumber: true })} className={errors.locationLng ? "border-red-500" : ""} />
+                  <Input id="locationLng" type="number" step="any" {...register("locationLng", { valueAsNumber: true })} className={errors.locationLng ? "border-destructive" : ""} />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <Label htmlFor="workingOpenFrom">Open from</Label>
-                  <Input id="workingOpenFrom" placeholder="09:00" {...register("workingOpenFrom")} className={errors.workingOpenFrom ? "border-red-500" : ""} />
+                  <Input id="workingOpenFrom" placeholder="09:00" {...register("workingOpenFrom")} className={errors.workingOpenFrom ? "border-destructive" : ""} />
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="workingOpenTo">Open to</Label>
-                  <Input id="workingOpenTo" placeholder="18:00" {...register("workingOpenTo")} className={errors.workingOpenTo ? "border-red-500" : ""} />
+                  <Input id="workingOpenTo" placeholder="18:00" {...register("workingOpenTo")} className={errors.workingOpenTo ? "border-destructive" : ""} />
                 </div>
               </div>
 
               <div className="space-y-1.5">
                 <Label htmlFor="workingDays">{t("workingHoursLabel")}</Label>
-                <Input id="workingDays" placeholder="Mon-Fri" {...register("workingDays")} className={errors.workingDays ? "border-red-500" : ""} />
+                <Input id="workingDays" placeholder="Mon-Fri" {...register("workingDays")} className={errors.workingDays ? "border-destructive" : ""} />
               </div>
 
               <div className="space-y-1.5">
                 <Label htmlFor="contactsPhone">{t("phoneLabel")}</Label>
-                <Input id="contactsPhone" type="tel" {...register("contactsPhone")} className={errors.contactsPhone ? "border-red-500" : ""} />
-                {errors.contactsPhone && <p className="text-xs text-red-500">{errors.contactsPhone.message}</p>}
+                <Input id="contactsPhone" type="tel" {...register("contactsPhone")} className={errors.contactsPhone ? "border-destructive" : ""} />
+                {errors.contactsPhone && <p className="text-xs text-destructive">{errors.contactsPhone.message}</p>}
               </div>
 
               <div className="space-y-1.5">
@@ -330,17 +326,17 @@ export default function PartnerCabinetPage() {
               </div>
 
               <div className="flex gap-3 mt-2">
-                <Button type="submit" className="flex-1" disabled={isSubmitting}>
+                <Button type="submit" className="flex-1" size="lg" disabled={isSubmitting}>
                   {isSubmitting ? (
                     <>
-                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      <Loader2 className="h-4 w-4 animate-spin" />
                       {t("savingButton")}
                     </>
                   ) : (
                     t("saveButton")
                   )}
                 </Button>
-                <Button type="button" variant="outline" className="flex-1" onClick={handleCancel}>
+                <Button type="button" variant="outline" size="lg" className="flex-1" onClick={handleCancel}>
                   {t("cancelButton")}
                 </Button>
               </div>
@@ -357,8 +353,8 @@ export default function PartnerCabinetPage() {
 function InfoRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex gap-2">
-      <span className="text-gray-400 min-w-[140px]">{label}:</span>
-      <span className="text-gray-800">{value}</span>
+      <span className="text-muted-foreground min-w-[140px]">{label}:</span>
+      <span className="text-foreground">{value}</span>
     </div>
   );
 }

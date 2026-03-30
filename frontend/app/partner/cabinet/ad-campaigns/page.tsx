@@ -5,13 +5,20 @@ import { useTranslations } from "next-intl";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import Link from "next/link";
+import { Loader2, ArrowLeft, Plus, X } from "lucide-react";
 import {
   adCampaignService,
   AdCampaignServiceError,
 } from "@/services/adCampaignService";
 import type { AdCampaign } from "@/types/adCampaign";
 import { AD_TYPES, TARGET_CATEGORIES } from "@/types/adCampaign";
-import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { AppHeader } from "@/components/AppHeader";
+import { nativeSelectCn, nativeTextareaCn } from "@/lib/form-styles";
+import { cn } from "@/lib/utils";
 
 // ─── Form schema ──────────────────────────────────────────────────────────────
 
@@ -19,9 +26,7 @@ function buildSchema(t: ReturnType<typeof useTranslations<"adCampaigns">>) {
   return z
     .object({
       type: z.string().min(1, t("validation.typeRequired")),
-      targetCategory: z
-        .string()
-        .min(1, t("validation.targetCategoryRequired")),
+      targetCategory: z.string().min(1, t("validation.targetCategoryRequired")),
       content: z
         .string()
         .min(1, t("validation.contentRequired"))
@@ -132,9 +137,7 @@ export default function AdCampaignsPage() {
         await adCampaignService.updateCampaign(editingId, payload);
         setSuccessMessage(t("updateSuccess"));
         setCampaigns((prev) =>
-          prev.map((c) =>
-            c.id === editingId ? { ...c, ...payload } : c
-          )
+          prev.map((c) => (c.id === editingId ? { ...c, ...payload } : c))
         );
       } else {
         const { campaignId } = await adCampaignService.createCampaign(payload);
@@ -181,88 +184,91 @@ export default function AdCampaignsPage() {
   // ─── Render ───────────────────────────────────────────────────────────────
 
   return (
-    <main className="min-h-screen bg-gray-50 py-8 px-4">
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
+    <div className="min-h-screen bg-background">
+      <AppHeader />
+
+      <div className="max-w-4xl mx-auto px-4 py-10">
+        {/* Page header */}
         <div className="flex items-center justify-between mb-6">
           <div>
             <Link
               href="/partner/cabinet"
-              className="text-sm text-blue-600 hover:underline mb-1 block"
+              className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-1 transition-colors"
             >
-              ← Партнёрский кабинет
+              <ArrowLeft className="h-3.5 w-3.5" />
+              {t("backToPartnerCabinet")}
             </Link>
-            <h1 className="text-2xl font-bold text-gray-900">{t("title")}</h1>
-            <p className="text-gray-500 text-sm mt-1">{t("subtitle")}</p>
+            <h1 className="text-xl font-semibold text-foreground">{t("title")}</h1>
+            <p className="text-sm text-muted-foreground mt-0.5">{t("subtitle")}</p>
           </div>
-          <button
-            onClick={openCreate}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
-          >
-            + {t("createButton")}
-          </button>
+          <Button onClick={openCreate}>
+            <Plus className="h-4 w-4" />
+            {t("createButton")}
+          </Button>
         </div>
 
         {/* Success message */}
         {successMessage && (
-          <div className="mb-4 p-3 bg-green-50 text-green-700 rounded-lg text-sm">
+          <div className="bg-success/5 border border-success/20 text-success rounded-xl px-4 py-3 text-sm mb-5">
             {successMessage}
           </div>
         )}
 
         {/* Load error */}
         {loadError && (
-          <div className="mb-4 p-3 bg-red-50 text-red-600 rounded-lg text-sm">
+          <div className="bg-destructive/5 border border-destructive/20 text-destructive rounded-xl px-4 py-3 text-sm mb-5">
             {loadError}
           </div>
         )}
 
         {/* Loading */}
         {isLoading && (
-          <div className="text-center py-12 text-gray-500">
+          <div className="flex items-center justify-center py-12 text-muted-foreground gap-2">
+            <Loader2 className="h-5 w-5 animate-spin" />
             {tCommon("loading")}
           </div>
         )}
 
         {/* Empty state */}
         {!isLoading && !loadError && campaigns.length === 0 && (
-          <div className="text-center py-12 text-gray-500 bg-white rounded-xl border border-gray-200">
+          <div className="bg-card border border-border rounded-2xl p-10 text-center text-sm text-muted-foreground shadow-card">
             {t("emptyState")}
           </div>
         )}
 
         {/* Campaigns list */}
         {!isLoading && campaigns.length > 0 && (
-          <div className="space-y-4">
+          <div className="space-y-3">
             {campaigns.map((campaign) => (
               <div
                 key={campaign.id}
-                className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm"
+                className="bg-card border border-border rounded-2xl p-5 shadow-card hover:shadow-card-hover transition-shadow"
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
                       <span
-                        className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${
+                        className={cn(
+                          "inline-block px-2 py-0.5 rounded-lg text-xs font-medium",
                           campaign.isActive
-                            ? "bg-green-100 text-green-700"
-                            : "bg-gray-100 text-gray-600"
-                        }`}
+                            ? "bg-success/10 text-success"
+                            : "bg-secondary text-muted-foreground"
+                        )}
                       >
                         {campaign.isActive ? t("activeLabel") : t("inactiveLabel")}
                       </span>
-                      <span className="text-xs text-gray-500">
+                      <span className="text-xs text-muted-foreground">
                         {t(`types.${campaign.type as "OfferBlock" | "Banner"}`)}
                       </span>
-                      <span className="text-xs text-gray-400">·</span>
-                      <span className="text-xs text-gray-500">
+                      <span className="text-xs text-muted-foreground">·</span>
+                      <span className="text-xs text-muted-foreground">
                         {t(`categories.${campaign.targetCategory as "AutoService" | "CarWash" | "Towing" | "AutoShop" | "Other"}`)}
                       </span>
                     </div>
 
-                    <p className="text-sm text-gray-800 truncate">{campaign.content}</p>
+                    <p className="text-sm text-foreground truncate">{campaign.content}</p>
 
-                    <div className="mt-2 flex flex-wrap gap-3 text-xs text-gray-500">
+                    <div className="mt-2 flex flex-wrap gap-3 text-xs text-muted-foreground">
                       <span>
                         {t("startsAtLabel")}: {new Date(campaign.startsAt).toLocaleDateString()}
                       </span>
@@ -279,18 +285,12 @@ export default function AdCampaignsPage() {
                   </div>
 
                   <div className="flex gap-2 flex-shrink-0">
-                    <button
-                      onClick={() => openEdit(campaign)}
-                      className="text-sm text-blue-600 hover:underline"
-                    >
+                    <Button variant="outline" size="sm" onClick={() => openEdit(campaign)}>
                       {t("editButton")}
-                    </button>
-                    <button
-                      onClick={() => handleDelete(campaign.id)}
-                      className="text-sm text-red-500 hover:underline"
-                    >
+                    </Button>
+                    <Button variant="ghost" size="sm" onClick={() => handleDelete(campaign.id)} className="text-destructive hover:text-destructive hover:bg-destructive/5">
                       {t("deleteButton")}
-                    </button>
+                    </Button>
                   </div>
                 </div>
               </div>
@@ -300,28 +300,36 @@ export default function AdCampaignsPage() {
 
         {/* Create/Edit modal */}
         {isFormOpen && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-xl w-full max-w-lg shadow-xl">
+          <div className="fixed inset-0 bg-foreground/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-card border border-border rounded-2xl w-full max-w-lg shadow-2xl">
               <div className="p-6">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">
-                  {editingId ? t("editButton") : t("createButton")}
-                </h2>
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-lg font-semibold text-foreground">
+                    {editingId ? t("editButton") : t("createButton")}
+                  </h2>
+                  <button
+                    type="button"
+                    onClick={() => setIsFormOpen(false)}
+                    className="text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
+                </div>
 
                 {formError && (
-                  <div className="mb-4 p-3 bg-red-50 text-red-600 rounded-lg text-sm">
+                  <div className="bg-destructive/5 border border-destructive/20 text-destructive rounded-xl px-4 py-3 text-sm mb-4">
                     {formError}
                   </div>
                 )}
 
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                   {/* Type */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      {t("typeLabel")}
-                    </label>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="type">{t("typeLabel")}</Label>
                     <select
+                      id="type"
                       {...register("type")}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className={errors.type ? `${nativeSelectCn} border-destructive` : nativeSelectCn}
                     >
                       <option value="">—</option>
                       {AD_TYPES.map((type) => (
@@ -331,18 +339,17 @@ export default function AdCampaignsPage() {
                       ))}
                     </select>
                     {errors.type && (
-                      <p className="mt-1 text-xs text-red-500">{errors.type.message}</p>
+                      <p className="text-xs text-destructive">{errors.type.message}</p>
                     )}
                   </div>
 
                   {/* Target category */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      {t("targetCategoryLabel")}
-                    </label>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="targetCategory">{t("targetCategoryLabel")}</Label>
                     <select
+                      id="targetCategory"
                       {...register("targetCategory")}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className={errors.targetCategory ? `${nativeSelectCn} border-destructive` : nativeSelectCn}
                     >
                       <option value="">—</option>
                       {TARGET_CATEGORIES.map((cat) => (
@@ -352,51 +359,48 @@ export default function AdCampaignsPage() {
                       ))}
                     </select>
                     {errors.targetCategory && (
-                      <p className="mt-1 text-xs text-red-500">{errors.targetCategory.message}</p>
+                      <p className="text-xs text-destructive">{errors.targetCategory.message}</p>
                     )}
                   </div>
 
                   {/* Content */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      {t("contentLabel")}
-                    </label>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="content">{t("contentLabel")}</Label>
                     <textarea
+                      id="content"
                       {...register("content")}
                       rows={3}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className={errors.content ? `${nativeTextareaCn} border-destructive` : nativeTextareaCn}
                     />
                     {errors.content && (
-                      <p className="mt-1 text-xs text-red-500">{errors.content.message}</p>
+                      <p className="text-xs text-destructive">{errors.content.message}</p>
                     )}
                   </div>
 
                   {/* Dates */}
                   <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        {t("startsAtLabel")}
-                      </label>
-                      <input
+                    <div className="space-y-1.5">
+                      <Label htmlFor="startsAt">{t("startsAtLabel")}</Label>
+                      <Input
+                        id="startsAt"
                         type="datetime-local"
                         {...register("startsAt")}
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className={errors.startsAt ? "border-destructive" : ""}
                       />
                       {errors.startsAt && (
-                        <p className="mt-1 text-xs text-red-500">{errors.startsAt.message}</p>
+                        <p className="text-xs text-destructive">{errors.startsAt.message}</p>
                       )}
                     </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        {t("endsAtLabel")}
-                      </label>
-                      <input
+                    <div className="space-y-1.5">
+                      <Label htmlFor="endsAt">{t("endsAtLabel")}</Label>
+                      <Input
+                        id="endsAt"
                         type="datetime-local"
                         {...register("endsAt")}
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className={errors.endsAt ? "border-destructive" : ""}
                       />
                       {errors.endsAt && (
-                        <p className="mt-1 text-xs text-red-500">{errors.endsAt.message}</p>
+                        <p className="text-xs text-destructive">{errors.endsAt.message}</p>
                       )}
                     </div>
                   </div>
@@ -407,29 +411,34 @@ export default function AdCampaignsPage() {
                       type="checkbox"
                       id="showToAnonymous"
                       {...register("showToAnonymous")}
-                      className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      className="h-4 w-4 rounded border-border text-accent focus:ring-ring"
                     />
-                    <label htmlFor="showToAnonymous" className="text-sm text-gray-700">
+                    <Label htmlFor="showToAnonymous" className="font-normal cursor-pointer">
                       {t("showToAnonymousLabel")}
-                    </label>
+                    </Label>
                   </div>
 
                   {/* Actions */}
                   <div className="flex gap-3 pt-2">
-                    <button
-                      type="submit"
-                      disabled={isSaving}
-                      className="flex-1 bg-blue-600 text-white py-2 rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors"
-                    >
-                      {isSaving ? t("savingButton") : t("saveButton")}
-                    </button>
-                    <button
+                    <Button type="submit" disabled={isSaving} className="flex-1" size="lg">
+                      {isSaving ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          {t("savingButton")}
+                        </>
+                      ) : (
+                        t("saveButton")
+                      )}
+                    </Button>
+                    <Button
                       type="button"
+                      variant="outline"
+                      size="lg"
+                      className="flex-1"
                       onClick={() => setIsFormOpen(false)}
-                      className="flex-1 border border-gray-300 text-gray-700 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors"
                     >
                       {t("cancelButton")}
-                    </button>
+                    </Button>
                   </div>
                 </form>
               </div>
@@ -437,6 +446,6 @@ export default function AdCampaignsPage() {
           </div>
         )}
       </div>
-    </main>
+    </div>
   );
 }

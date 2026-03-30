@@ -3,11 +3,69 @@
 ## Стек
 
 - **Next.js 15** (App Router, TypeScript)
-- **Tailwind CSS** — стилизация
+- **Tailwind CSS 3** — стилизация (дизайн-система на CSS-переменных)
 - **next-intl** — мультиязычность (ru/en)
 - **Axios** — HTTP-клиент (auth, profile)
 - **react-hook-form + zod** — формы и валидация
 - **Docker** — standalone output (`output: "standalone"` в `next.config.ts`)
+
+---
+
+## Дизайн-система
+
+Визуальный стиль — Modern SaaS Light (основан на Figma Make reference в `figma-make-reference/`).
+
+### Цветовые токены (globals.css)
+
+| Токен | Значение | Использование |
+|-------|----------|---------------|
+| `--primary` | navy `#0f1c3f` | Кнопки default, логотип, заголовки |
+| `--accent` | cyan `#06b6d4` | Highlight, иконки, focus ring, loading |
+| `--success` | green `#10b981` | Успех, чекмарки |
+| `--destructive` | red `#ef4444` | Ошибки, удаление |
+| `--background` | `#f8f9fb` | Фон страниц |
+| `--card` | `#ffffff` | Фон карточек |
+| `--border` | `rgba(15,28,63,0.1)` | Границы элементов |
+| `--muted-foreground` | `#6b7280` | Подсказки, метаданные |
+| `--radius` | `0.75rem` | Базовый border-radius |
+
+### Border-radius
+
+| Класс | Размер | Применение |
+|-------|--------|------------|
+| `rounded-lg` | 0.75rem | Теги, маленькие элементы |
+| `rounded-xl` | 1rem | Кнопки, инпуты, алерты |
+| `rounded-2xl` | 1.25rem | Карточки, формы |
+| `rounded-3xl` | 1.75rem | Крупные блоки |
+
+### Тени (tailwind.config.ts)
+
+- `shadow-card` — стандартная тень карточки
+- `shadow-card-hover` — тень при hover
+
+### Паттерны компонентов
+
+**Карточка:**
+```tsx
+<div className="bg-card border border-border rounded-2xl p-6 shadow-card hover:shadow-card-hover transition-shadow">
+```
+
+**Алерт ошибки:**
+```tsx
+<div className="bg-destructive/5 border border-destructive/20 text-destructive rounded-xl px-4 py-3 text-sm">
+```
+
+**Алерт успеха:**
+```tsx
+<div className="bg-success/5 border border-success/20 text-success rounded-xl px-4 py-3 text-sm">
+```
+
+**Иконка-бокс:**
+```tsx
+<div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center">
+  <Icon className="h-5 w-5 text-primary" />
+</div>
+```
 
 ---
 
@@ -16,259 +74,259 @@
 ```
 frontend/
 ├── app/                      # App Router
-│   ├── layout.tsx            # Root layout (NextIntlClientProvider, шрифты)
-│   ├── page.tsx              # Главная страница (/) → redirect на /auth/login
-│   ├── globals.css           # Глобальные стили
+│   ├── layout.tsx            # Root layout (NextIntlClientProvider, шрифты Geist)
+│   ├── page.tsx              # / → redirect на /auth/login
+│   ├── globals.css           # Дизайн-токены (CSS-переменные) + base Tailwind
+│   ├── actions/
+│   │   └── locale.ts         # Server Action для смены языка (cookie NEXT_LOCALE)
 │   ├── auth/
 │   │   ├── login/page.tsx    # Страница входа (Client Component)
 │   │   └── register/page.tsx # Страница регистрации (Client Component)
 │   ├── profile/
 │   │   └── page.tsx          # Профиль клиента (Client Component, требует авторизации)
 │   ├── vehicles/
-│   │   └── [vin]/page.tsx    # Публичная карточка владельца авто по VIN (Server Component, SSR)
-│   ├── vehicles/
-│   │   ├── page.tsx          # Публичный поиск авто по VIN (Server Component, без авторизации)
-│   │   └── [vin]/page.tsx    # Публичная карточка владельца авто по VIN (Server Component, SSR)
+│   │   ├── page.tsx          # Публичный поиск авто по VIN
+│   │   └── [vin]/page.tsx    # Публичная карточка владельца авто по VIN (SSR)
 │   ├── dashboard/
 │   │   └── vehicles/
-│   │       ├── page.tsx      # Список авто + форма добавления (Client Component, требует авторизации)
+│   │       ├── page.tsx      # Список авто + форма добавления
 │   │       └── [id]/
-│   │           ├── page.tsx  # Редактирование авто (Client Component, требует авторизации)
+│   │           ├── page.tsx  # Редактирование авто + смена статуса
 │   │           └── service-records/
-│   │               ├── page.tsx           # Список записей обслуживания (Client Component, требует авторизации)
-│   │               └── [recordId]/page.tsx # Детали записи обслуживания (Client Component, требует авторизации)
-│   └── actions/              # Server Actions
+│   │               ├── page.tsx            # Список + форма добавления записи ТО
+│   │               └── [recordId]/page.tsx # Детали записи ТО (просмотр PDF)
+│   └── partner/
+│       ├── register/page.tsx         # Регистрация партнёра
+│       └── cabinet/
+│           ├── page.tsx              # Кабинет партнёра (просмотр + редактирование)
+│           └── ad-campaigns/page.tsx # Управление рекламными кампаниями
 │
 ├── components/
-│   ├── LocaleSwitcher.tsx    # Переключатель языка (ru/en)
-│   └── ui/                   # Reusable UI компоненты
-│       ├── button.tsx
-│       ├── input.tsx
-│       └── label.tsx
+│   ├── AppLogo.tsx           # Логотип AutoHelper (navy квадрат + текст, с href)
+│   ├── AppHeader.tsx         # Sticky header для auth/dashboard страниц
+│   ├── LocaleSwitcher.tsx    # Переключатель RU/EN (pill-стиль, встроен в AppHeader)
+│   ├── pdf-preview-modal.tsx # Модальный просмотр PDF
+│   ├── ads/
+│   │   ├── AdBanner.tsx      # Рекламный баннер
+│   │   └── OffersBlock.tsx   # Блок рекламных предложений
+│   ├── partners/
+│   │   └── PartnersMap.tsx   # Карта партнёров (Leaflet/OSM)
+│   └── ui/
+│       ├── button.tsx        # Button (варианты: default, accent, outline, secondary, ghost, link)
+│       ├── input.tsx         # Input (rounded-xl, ring=accent)
+│       └── label.tsx         # Label
+│
+├── lib/
+│   ├── utils.ts              # cn() — clsx + tailwind-merge
+│   └── form-styles.ts        # nativeSelectCn, nativeTextareaCn — классы для <select> и <textarea>
 │
 ├── services/
-│   ├── authService.ts        # HTTP-функции для auth API (axios, withCredentials)
-│   ├── profileService.ts     # HTTP-функции для /api/clients/me (axios + Bearer token)
-│   ├── vehicleService.ts     # HTTP-функции для /api/vehicles (auth CRUD + public SSR getOwnerByVin)
-│   └── partnerService.ts     # HTTP-функции для /api/partners (register, profile, searchNearby, getById)
-│
-├── contexts/
-│   └── AuthContext.tsx       # React Context: user, accessToken, isAuthenticated, login/logout
+│   ├── authService.ts        # POST /api/auth/* (withCredentials)
+│   ├── profileService.ts     # GET/PATCH /api/clients/me (Bearer token)
+│   ├── vehicleService.ts     # /api/vehicles (auth CRUD + public SSR)
+│   ├── serviceRecordService.ts # /api/service-records
+│   ├── partnerService.ts     # /api/partners
+│   └── adCampaignService.ts  # /api/ad-campaigns
 │
 ├── types/
-│   ├── auth.ts               # LoginRequest, RegisterRequest, TokenResponse, AuthUser, AuthContextValue
+│   ├── auth.ts               # LoginRequest, RegisterRequest, TokenResponse, AuthUser
 │   ├── client.ts             # ClientProfile, UpdateProfileRequest
-│   └── vehicle.ts            # VehicleOwner, Vehicle, VehicleStatus, CreateVehicleRequest, UpdateVehicleRequest
+│   ├── vehicle.ts            # Vehicle, VehicleStatus, VehicleOwner, Create/UpdateRequest
+│   ├── serviceRecord.ts      # ServiceRecord, CreateServiceRecordRequest
+│   ├── partner.ts            # PartnerProfile, PARTNER_TYPES, etc.
+│   └── adCampaign.ts         # AdCampaign, AD_TYPES, TARGET_CATEGORIES
 │
 ├── i18n/
-│   └── request.ts            # next-intl server-side конфиг (locale из cookie)
+│   └── request.ts            # next-intl server конфиг (locale из cookie)
 │
 ├── messages/
 │   ├── ru.json               # Русские переводы
 │   └── en.json               # Английские переводы
 │
-├── lib/                      # Утилиты
 ├── middleware.ts             # Auth guard (проверка refreshToken cookie)
 ├── next.config.ts            # Next.js конфиг + next-intl plugin
-└── tailwind.config.ts
+└── tailwind.config.ts        # Дизайн-токены: colors (card, accent, success), borderRadius, boxShadow
 ```
 
 ---
 
-## Маршрутизация (App Router)
+## Shared UI-компоненты
 
-### Публичные маршруты (без авторизации)
+### AppLogo
+
+Логотип — navy квадрат с буквой «A» + текст AutoHelper. Принимает `href` (по умолчанию `/`).
+
+```tsx
+import { AppLogo } from "@/components/AppLogo";
+<AppLogo href="/" />
+```
+
+### AppHeader
+
+Sticky header для внутренних страниц. Содержит AppLogo + LocaleSwitcher. Принимает `children` для дополнительных кнопок (например, Logout).
+
+```tsx
+import { AppHeader } from "@/components/AppHeader";
+
+// Без дополнительных кнопок
+<AppHeader />
+
+// С кнопкой
+<AppHeader>
+  <Button variant="ghost" size="sm" onClick={handleLogout}>
+    <LogOut className="h-4 w-4" />
+    {t("logoutButton")}
+  </Button>
+</AppHeader>
+```
+
+### Button
+
+Варианты: `default` (navy), `accent` (cyan), `outline`, `secondary`, `ghost`, `link`.
+Размеры: `sm`, `default` (h-10), `lg` (h-12), `icon`.
+
+```tsx
+<Button variant="accent" size="lg">Основной CTA</Button>
+<Button variant="outline" size="sm">Вторичное действие</Button>
+```
+
+### Input
+
+`rounded-xl`, `bg-input` token, cyan focus ring. Для ошибки добавляй `className="border-destructive"`.
+
+### form-styles.ts
+
+Для нативных `<select>` и `<textarea>` используй готовые классы:
+
+```tsx
+import { nativeSelectCn, nativeTextareaCn } from "@/lib/form-styles";
+
+<select className={nativeSelectCn} {...register("type")} />
+<textarea className={nativeTextareaCn} rows={3} {...register("description")} />
+
+// При ошибке:
+<select className={errors.type ? `${nativeSelectCn} border-destructive` : nativeSelectCn} />
+```
+
+---
+
+## Маршрутизация
+
+### Публичные маршруты
 
 ```typescript
 // middleware.ts
 const PUBLIC_ROUTES = ["/auth/login", "/auth/register"];
-// Также публичны по паттерну: /vehicles/* (проверяется отдельно)
+// Также публичны: /vehicles/*, /partners/*
 ```
 
 ### Реализованные маршруты
 
-| Путь | Тип компонента | Авторизация | Описание |
-|------|----------------|-------------|----------|
-| `/` | Server | — | Redirect на `/auth/login` |
+| Путь | Тип | Авторизация | Описание |
+|------|-----|-------------|----------|
+| `/` | Server | — | Redirect → `/auth/login` |
 | `/auth/login` | Client | Нет | Форма входа |
 | `/auth/register` | Client | Нет | Форма регистрации |
-| `/profile` | Client | Да | Профиль клиента (имя, контакты, аватар, смена пароля) |
+| `/profile` | Client | Да | Профиль клиента |
 | `/vehicles` | Server | Нет | Публичный поиск авто по VIN |
-| `/vehicles/[vin]` | Server (SSR) | Нет | Публичная карточка владельца авто по VIN |
-| `/dashboard/vehicles` | Client | Да | Список авто пользователя + форма добавления |
-| `/dashboard/vehicles/[id]` | Client | Да | Редактирование авто (VIN read-only) |
-| `/dashboard/vehicles/[id]/service-records` | Client | Да | Список записей обслуживания авто |
-| `/dashboard/vehicles/[id]/service-records/[recordId]` | Client | Да | Детали / редактирование записи обслуживания |
-| `/partners` | Client | Нет | Геолокационный поиск партнёров + карта Leaflet/OSM |
-| `/partners/[id]` | Server (SSR) | Нет | Публичный профиль верифицированного партнёра |
-
-### Роутинг по ролям (планируется / частично реализовано)
-
-| Раздел | Путь | Роль | Статус |
-|--------|------|------|--------|
-| Дашборд клиента | `/dashboard` | Customer | Планируется |
-| Мои авто | `/dashboard/vehicles` | Customer | ✅ Реализовано (AUT-13) |
-| AI-чат | `/dashboard/chat` | Customer (Premium) | Планируется |
-| Подписка | `/dashboard/subscription` | Customer | Планируется |
-| Кабинет партнёра | `/partner` | Partner | Планируется |
-| Админ-панель | `/admin` | Admin / Superadmin | Планируется |
+| `/vehicles/[vin]` | Server (SSR) | Нет | Публичная карточка владельца |
+| `/dashboard/vehicles` | Client | Да | Список авто + добавление |
+| `/dashboard/vehicles/[id]` | Client | Да | Редактирование авто, смена статуса |
+| `/dashboard/vehicles/[id]/service-records` | Client | Да | Список и создание записей ТО |
+| `/dashboard/vehicles/[id]/service-records/[recordId]` | Client | Да | Детали записи ТО |
+| `/partners` | Client | Нет | Геолокационный поиск + карта Leaflet |
+| `/partners/[id]` | Server (SSR) | Нет | Публичный профиль партнёра |
+| `/partner/register` | Client | Да | Регистрация как партнёр |
+| `/partner/cabinet` | Client | Да | Кабинет партнёра (профиль) |
+| `/partner/cabinet/ad-campaigns` | Client | Да | Рекламные кампании партнёра |
 
 ---
 
 ## i18n — next-intl
 
-### Как использовать в компонентах
+### Использование
 
 **Client Component:**
 ```typescript
 'use client';
 import { useTranslations } from 'next-intl';
 
-export function LoginForm() {
-  const t = useTranslations('auth.login');
-  return <h1>{t('title')}</h1>;
-}
+const t = useTranslations('auth.login');
+return <h1>{t('title')}</h1>;
 ```
 
 **Server Component:**
 ```typescript
 import { getTranslations } from 'next-intl/server';
 
-export default async function LoginPage() {
-  const t = await getTranslations('auth.login');
-  return <h1>{t('title')}</h1>;
-}
+const t = await getTranslations('auth.login');
+return <h1>{t('title')}</h1>;
 ```
 
-### Структура файлов переводов
+### Язык
 
-```json
-// messages/ru.json
-{
-  "auth": {
-    "login": { "title": "Вход", ... },
-    "register": { "title": "Регистрация", ... },
-    "errors": { "invalidCredentials": "...", "emailTaken": "...", ... }
-  },
-  "profile": {
-    "title": "Профиль",
-    "name": "Имя",
-    "contacts": "Контакты",
-    ...
-  },
-  "vehicles": {
-    "owner": "Владелец",
-    ...
-  },
-  "common": {
-    "submit": "Отправить",
-    "loading": "Загрузка...",
-    "or": "или"
-  }
-}
+- Язык определяется из cookie `NEXT_LOCALE` → `i18n/request.ts`
+- `LocaleSwitcher` меняет язык через Server Action (`app/actions/locale.ts`)
+- Переводы в `messages/ru.json` и `messages/en.json`
+
+### Ключи верхнего уровня
+
 ```
-
-### Язык и LocaleSwitcher
-
-- Язык определяется из cookie → `i18n/request.ts`
-- `LocaleSwitcher` компонент — реализован в `components/LocaleSwitcher.tsx`
-- Меняет язык через Server Action (cookie `NEXT_LOCALE`)
+auth.login, auth.register, auth.errors
+profile, profile.validation, profile.errors
+vehicles.list, vehicles.form, vehicles.status
+serviceRecords.list, serviceRecords.form
+partner.register, partner.register.validation, partner.register.errors
+partner.cabinet, partner.cabinet.errors
+adCampaigns, adCampaigns.errors, adCampaigns.validation
+common
+```
 
 ---
 
-## HTTP-клиент (Axios / fetch)
+## HTTP-клиент (Axios)
 
-Все API-вызовы через сервисы в `services/`. Три паттерна:
+Три паттерна:
 
 **1. Auth (withCredentials):**
 ```typescript
-// services/authService.ts
-const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL,
-  headers: { 'Content-Type': 'application/json' },
-  withCredentials: true,  // для httpOnly cookie (refresh token)
-});
+// services/authService.ts — httpOnly cookie (refresh token)
+const api = axios.create({ baseURL: ..., withCredentials: true });
 ```
 
 **2. Authenticated (Bearer token):**
 ```typescript
-// services/profileService.ts — interceptor добавляет Authorization: Bearer <token>
+// services/profileService.ts, vehicleService.ts — interceptor добавляет Authorization
 ```
 
-**3. Public SSR (fetch с кэшем):**
+**3. Public SSR (fetch):**
 ```typescript
 // services/vehicleService.ts — fetch + revalidate: 60
 ```
 
-**Переменные окружения:**
-- `NEXT_PUBLIC_API_URL` — URL бэкенда (по умолчанию `http://localhost:8080`)
-
-### Паттерн сервиса с авторизацией (vehicleService — реализован)
-
-```typescript
-// services/vehicleService.ts
-// Axios instance с Bearer-интерцептором (из localStorage "accessToken")
-// + VehicleServiceError с кодами: unauthorized | notFound | conflict | badRequest | serverError | unknown
-export const vehicleService = {
-  async getMyVehicles(): Promise<Vehicle[]> { ... },
-  async getById(id: string): Promise<Vehicle> { ... },
-  async create(data: CreateVehicleRequest): Promise<{ vehicleId: string }> { ... },
-  async update(id: string, data: UpdateVehicleRequest): Promise<void> { ... },
-  async getOwnerByVin(vin: string): Promise<VehicleOwner> { ... }, // public SSR
-};
-```
+**Переменная окружения:** `NEXT_PUBLIC_API_URL` (по умолчанию `http://localhost:8080`)
 
 ---
 
-## Auth Flow (текущая реализация)
+## Auth Flow
 
 ```
-1. Пользователь заходит на защищённый маршрут
+1. Пользователь → защищённый маршрут
 2. middleware.ts проверяет cookie 'refreshToken'
-3. Если нет → redirect на /auth/login
-4. Login form → authService.login() → POST /api/auth/login
-5. Сохранить accessToken (memory/context) и refreshToken (cookie)
+3. Если нет → redirect /auth/login
+4. Login → authService.login() → POST /api/auth/login
+5. accessToken → localStorage/memory, refreshToken → httpOnly cookie
 6. При 401 → authService.refreshToken() → POST /api/auth/refresh
 7. Logout → authService.logout() → POST /api/auth/logout → clear cookies
-```
-
-Стратегия хранения токенов:
-- `refreshToken` → httpOnly cookie
-- `accessToken` → in-memory (React state в AuthContext)
-
----
-
-## SEO-страницы (Server Components + SSR)
-
-Публичные страницы, требующие SSR:
-
-| Страница | Путь | Данные |
-|----------|------|--------|
-| Карточка владельца авто | `/vehicles/[vin]` | SSR, данные по VIN |
-| Профиль партнёра | `/partners/[id]` | SSR (планируется) |
-| Каталог продаж | `/sale` | SSG/ISR (планируется) |
-
-**Паттерн:**
-```typescript
-// app/vehicles/[vin]/page.tsx — Server Component
-export async function generateMetadata({ params }: { params: { vin: string } }) {
-  const owner = await vehicleService.getOwnerByVin(params.vin);
-  return { title: `Владелец ${params.vin} — AutoHelper` };
-}
-
-export default async function VehiclePage({ params }: { params: { vin: string } }) {
-  const owner = await vehicleService.getOwnerByVin(params.vin);
-  return <OwnerCard owner={owner} />;
-}
 ```
 
 ---
 
 ## Docker (Frontend)
 
-`frontend/Dockerfile` — multi-stage build:
-1. `deps` — `npm ci`
-2. `builder` — `npm run build` (bakes `NEXT_PUBLIC_*` vars)
-3. `runner` — копирует `.next/standalone`, запускает `node server.js`
+`frontend/Dockerfile` — multi-stage:
+1. `deps` → `npm ci`
+2. `builder` → `npm run build` (bakes `NEXT_PUBLIC_*`)
+3. `runner` → `.next/standalone`, `node server.js`
 
-**NEXT_PUBLIC_API_URL** задаётся через `build args` в docker-compose.yml.
+`NEXT_PUBLIC_API_URL` задаётся через `build args` в `docker-compose.yml`.
