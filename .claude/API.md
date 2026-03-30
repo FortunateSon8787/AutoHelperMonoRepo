@@ -450,12 +450,43 @@ Soft-delete записи. Требует `Authorization: Bearer`.
 
 Создать новую чат-сессию. Режимы `FaultHelp` и `WorkClarification` требуют активной платной подписки. Режим `PartnerAdvice` — бесплатный.
 
-**Request:**
+Для `FaultHelp` и `WorkClarification` первый ответ ассистента возвращается **сразу** в теле ответа на создание чата.
+
+**Request (FaultHelp):**
 ```json
 {
   "mode": "FaultHelp",
   "title": "Стук в двигателе",
-  "vehicleId": "uuid"
+  "vehicleId": "uuid",
+  "diagnosticsInput": {
+    "symptoms": "Стук при холодном запуске",
+    "recentEvents": "Заменил масло 2 недели назад",
+    "previousIssues": "Раньше такого не было"
+  }
+}
+```
+
+**Request (WorkClarification):**
+```json
+{
+  "mode": "WorkClarification",
+  "title": "Проверка замены тормозных колодок",
+  "vehicleId": "uuid",
+  "workClarificationInput": {
+    "worksPerformed": "Замена тормозных колодок передних колёс",
+    "workReason": "Скрип при торможении",
+    "laborCost": 3000,
+    "partsCost": 5000,
+    "guarantees": "6 месяцев на работу и детали"
+  }
+}
+```
+
+**Request (PartnerAdvice):**
+```json
+{
+  "mode": "PartnerAdvice",
+  "title": "Поиск автосервиса рядом"
 }
 ```
 
@@ -463,12 +494,17 @@ Soft-delete записи. Требует `Authorization: Bearer`.
 
 **Response 201:**
 ```json
-{ "chatId": "uuid" }
+{
+  "chatId": "uuid",
+  "initialAssistantReply": "Уточняющий вопрос или готовый анализ (для FaultHelp и WorkClarification)"
+}
 ```
+
+- `initialAssistantReply` — `null` для `PartnerAdvice`; для `FaultHelp` может содержать follow-up вопрос или сразу диагноз; для `WorkClarification` всегда содержит полный структурированный анализ (чат сразу закрывается)
 
 **Errors:**
 - `403 Forbidden` — режим требует активной подписки
-- `400 Bad Request` — ошибки валидации
+- `400 Bad Request` — отсутствует `diagnosticsInput` для FaultHelp, `workClarificationInput` для WorkClarification, или ошибки валидации
 
 ---
 
@@ -505,67 +541,53 @@ Soft-delete записи. Требует `Authorization: Bearer`.
 
 ### POST /api/chats/{chatId}/messages
 
-Отправить сообщение в чат и получить ответ LLM. Off-topic запросы сохраняются с `isValid=false` и не расходуют квоту.
+Отправить follow-up сообщение в чат и получить ответ LLM. Используется только для `FaultHelp` (после уточняющего вопроса) и `PartnerAdvice`. `WorkClarification` является одношаговым и не принимает follow-up сообщений (чат уже `Completed`).
+
+Off-topic запросы сохраняются с `isValid=false` и не расходуют квоту.
 
 **Request:**
 ```json
 {
-  "content": "Слышу стук при запуске холодного двигателя",
-  "locale": "ru",
-  "formData": {
-    "vehicleId": "uuid",
-    "symptoms": "стук при холодном запуске",
-    "recentIncidents": "ничего подозрительного",
-    "previousIssues": ""
-  }
+  "content": "Стук появляется только при холодном запуске, проходит через 5 минут",
+  "locale": "ru"
 }
 ```
 
 - `locale` — язык ответа LLM (по умолчанию `"ru"`)
-- `formData` — опционально; структурированные поля формы для режимов `FaultHelp` и `WorkClarification`
 
 **Response 200:**
 ```json
 {
+  "assistantReply": "Текстовый ответ ассистента (markdown)",
   "wasValid": true,
-  "chatStatus": "awaiting_user_answers",
-  "structuredPayload": {
-    "mode": "diagnostics",
-    "response_stage": "follow_up_questions",
-    "follow_up_questions": [
-      {
-        "field_key": "timing_belt_replacement_date",
-        "question_text": "Как давно вы производили замену ГРМ?",
-        "input_type": "textbox",
-        "placeholder": "Пример: 20 000 км назад",
-        "is_required": true,
-        "validation_hint": "Укажите примерный срок или пробег"
-      }
-    ]
-  }
+  "responseStage": "follow_up",
+  "chatStatus": "AwaitingUserAnswers"
 }
 ```
 
-- `wasValid: false` — запрос был off-topic; вернулась стандартная заглушка
-- `chatStatus` — текущее состояние чата: `active` | `awaiting_user_answers` | `final_answer_sent` | `completed`
-- `structuredPayload` — JSON-ответ LLM по соответствующей JSON Schema (зависит от режима и стадии)
+- `wasValid: false` — запрос был off-topic; вернулась стандартная заглушка, квота не уменьшена
+- `responseStage` — `"follow_up"` | `"diagnostic_result"` для FaultHelp; `null` для PartnerAdvice
+- `chatStatus` — текущее состояние чата: `Active` | `AwaitingUserAnswers` | `FinalAnswerSent` | `Completed`
 
 **Errors:**
 - `403 Forbidden` — требуется активная подписка
-- `404 Not Found` — чат не найден
-- `409 Conflict` — чат завершён (`completed`), запись не принимается
+- `404 Not Found` — чат не найден или принадлежит другому пользователю
+- `409 Conflict` — чат завершён (`Completed`), новые сообщения не принимаются
 
 ---
 
-**Бизнес-правила:**
+**Бизнес-правила чатов:**
 - `FaultHelp` (Режим 1) и `WorkClarification` (Режим 2) — только активная платная подписка
 - `PartnerAdvice` (Режим 3) — бесплатен для всех клиентов
-- RequestClassifier (gpt-5.4-nano) проверяет релевантность запроса перед основным вызовом LLM
-- Невалидные сообщения хранятся для аудита, но не уменьшают счётчик подписки
-- История, передаваемая LLM, фильтрует `isValid=false` сообщения
-- LLM API ключ хранится только на бэкенде (LlmSettings, никогда не в браузере)
-- В режиме `diagnostics`: после `final_answer_sent` разрешён ровно 1 дополнительный вопрос; затем чат → `completed`
-- `completed`-чаты доступны только для чтения (GET), новые сообщения не принимаются (`409`)
+- RequestClassifier (router model, gpt-4.1-nano) проверяет релевантность запроса перед основным вызовом LLM
+- Невалидные сообщения хранятся в `InvalidChatRequests` для аудита, но не уменьшают счётчик подписки
+- История, передаваемая LLM, фильтрует `IsValid=false` сообщения
+- LLM API ключ хранится только на бэкенде (`LlmSettings`), никогда не в браузере
+- `FaultHelp`: после `FinalAnswerSent` разрешён ровно 1 дополнительный вопрос; затем чат → `Completed`
+- `WorkClarification`: одношаговый — форма → LLM → чат сразу `Completed`, follow-up невозможен
+- `Completed`-чаты доступны только для чтения (GET), новые сообщения не принимаются (`409`)
+- Суммаризация истории запускается автоматически при ≥ 20 сообщениях в чате
+- При ошибке classifier-а: fail open (обработка продолжается, ошибка логируется)
 
 ---
 

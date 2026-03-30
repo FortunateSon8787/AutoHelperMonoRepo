@@ -193,28 +193,83 @@ ServiceRecord : AggregateRoot<Guid>
 
 ---
 
-### Chat & Message — **реализованы** (AUT-17 / Epic AUT-4)
+### Chat & Message — **реализованы** (AUT-17, AUT-19, AUT-20 / Epic AUT-4)
 
-**Файлы:** `Domain/Chats/Chat.cs`, `Domain/Chats/Message.cs`
+**Файлы:** `Domain/Chats/Chat.cs`, `Domain/Chats/Message.cs`, `Domain/Chats/DiagnosticsInput.cs`, `Domain/Chats/WorkClarificationInput.cs`
 
 ```
 Chat : AggregateRoot<Guid>
 ├── CustomerId: Guid
-├── VehicleId: Guid?           (опционально — привязка к конкретному авто)
-├── Mode: ChatMode             (FaultHelp | WorkClarification | PartnerAdvice)
-├── Title: string              (пользовательское название сессии, max 200)
+├── VehicleId: Guid?                   (опционально — привязка к конкретному авто)
+├── Mode: ChatMode                     (FaultHelp | WorkClarification | PartnerAdvice)
+├── Status: ChatStatus                 (Active | AwaitingUserAnswers | FinalAnswerSent | Completed)
+├── Title: string                      (пользовательское название сессии, max 200)
 ├── CreatedAt: DateTime
-└── Messages: List<Message>   (private backing field, PropertyAccessMode.Field)
+├── AllowOneAdditionalQuestion: bool   (true после FinalAnswerSent; один доп. вопрос разрешён)
+└── Messages: List<Message>            (private backing field, PropertyAccessMode.Field)
 │
 ├── Factory method:
 │   └── Create(customerId, mode, title, vehicleId?)
 │       ↳ throws DomainException если customerId == Guid.Empty
 │       ↳ throws DomainException если title пустой
 │
-└── Business operations:
-    ├── AddExchange(userContent, assistantContent) — валидный обмен
-    └── AddInvalidUserMessage(userContent)         — off-topic, не уменьшает квоту
+├── Business operations:
+│   ├── AddExchange(userContent, assistantContent) — валидный обмен
+│   ├── AddInvalidUserMessage(userContent)         — off-topic, не уменьшает квоту
+│   └── CanReceiveMessage() → bool
+│
+└── FaultHelp state transitions (только Mode = FaultHelp):
+    ├── TransitionToAwaitingAnswers()  Active → AwaitingUserAnswers
+    ├── TransitionBackToActive()       AwaitingUserAnswers → Active
+    ├── TransitionToFinalAnswerSent()  Active → FinalAnswerSent (AllowOneAdditionalQuestion = true)
+    └── Complete()                     any → Completed
+```
 
+**ChatStatus enum:**
+```csharp
+enum ChatStatus
+{
+    Active,               // чат открыт
+    AwaitingUserAnswers,  // только FaultHelp: ждём ответа на уточняющий вопрос
+    FinalAnswerSent,      // только FaultHelp: диагноз отправлен, один доп. вопрос разрешён
+    Completed             // чат закрыт
+}
+```
+
+**FaultHelp (Mode 1) — стейт-машина:**
+```
+Active → AwaitingUserAnswers ↔ Active → FinalAnswerSent → Completed
+```
+После `FinalAnswerSent` разрешён ровно 1 дополнительный вопрос, после ответа → `Completed`.
+
+**WorkClarification (Mode 2) — одношаговый:**
+```
+Active → (ProcessWorkClarificationInitialAsync) → Completed
+```
+Никаких follow-up. Форма → LLM → чат сразу закрывается.
+
+---
+
+**DiagnosticsInput** _(Domain/Chats/DiagnosticsInput.cs)_ — входная форма Mode 1:
+```
+├── Symptoms: string           (обязателен)
+├── RecentEvents: string?
+└── PreviousIssues: string?
+```
+
+**WorkClarificationInput** _(Domain/Chats/WorkClarificationInput.cs)_ — входная форма Mode 2:
+```
+├── WorksPerformed: string     (перечень работ и деталей; обязателен)
+├── WorkReason: string         (предлог для выполнения работ; обязателен)
+├── LaborCost: decimal         (стоимость работ)
+├── PartsCost: decimal         (стоимость деталей)
+└── Guarantees: string?        (гарантии и обещания сервиса)
+```
+
+---
+
+**Message** _(Domain/Chats/Message.cs)_:
+```
 Message : Entity<Guid>
 ├── ChatId: Guid
 ├── Role: MessageRole          (User | Assistant)
@@ -234,6 +289,26 @@ Message : Entity<Guid>
 - Topic guard: off-topic запросы сохраняются с `IsValid=false`, но не уменьшают квоту
 - История, передаваемая LLM, фильтрует `IsValid=false` сообщения
 - EF: cascade delete сообщений при удалении чата
+
+---
+
+### InvalidChatRequest — **реализован** (AUT-19 / Epic AUT-4)
+
+**Файл:** `Domain/Chats/InvalidChatRequest.cs`
+
+```
+InvalidChatRequest : Entity<Guid>
+├── ChatId: Guid
+├── CustomerId: Guid
+├── UserInput: string          (текст отклонённого запроса)
+├── RejectionReason: string    (off_topic | missing_context | unsafe | out_of_scope)
+└── CreatedAt: DateTime        (UTC)
+│
+└── Factory method:
+    └── Create(chatId, customerId, userInput, rejectionReason)
+```
+
+Одна запись на каждый отклонённый запрос. Используется для аудита off-topic обращений.
 
 ---
 
