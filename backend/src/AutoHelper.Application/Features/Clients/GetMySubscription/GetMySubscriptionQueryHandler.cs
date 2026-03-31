@@ -6,6 +6,7 @@ namespace AutoHelper.Application.Features.Clients.GetMySubscription;
 
 public sealed class GetMySubscriptionQueryHandler(
     ICustomerRepository customers,
+    ISubscriptionPlanConfigRepository planConfigs,
     ICurrentUser currentUser) : IRequestHandler<GetMySubscriptionQuery, Result<SubscriptionResponse>>
 {
     public async Task<Result<SubscriptionResponse>> Handle(GetMySubscriptionQuery request, CancellationToken ct)
@@ -17,6 +18,10 @@ public sealed class GetMySubscriptionQueryHandler(
         if (customer is null)
             return AppErrors.Customer.NotFound;
 
-        return Result<SubscriptionResponse>.Success(SubscriptionResponse.FromCustomer(customer));
+        var config = customer.SubscriptionPlan != Domain.Customers.SubscriptionPlan.None
+            ? await planConfigs.GetByPlanAsync(customer.SubscriptionPlan, ct)
+            : null;
+
+        return Result<SubscriptionResponse>.Success(SubscriptionResponse.FromCustomer(customer, config));
     }
 }

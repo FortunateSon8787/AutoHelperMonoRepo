@@ -14,22 +14,9 @@ import { AppHeader } from "@/components/AppHeader";
 import {
   subscriptionService,
   SubscriptionServiceError,
+  type PlanConfig,
 } from "@/services/subscriptionService";
 import type { SubscriptionInfo } from "@/types/client";
-
-// ─── Plan definitions ─────────────────────────────────────────────────────────
-
-interface PlanDef {
-  key: string;
-  priceUsd: number;
-  quotaPerMonth: number;
-}
-
-const PLANS: PlanDef[] = [
-  { key: "Normal", priceUsd: 4.99, quotaPerMonth: 30 },
-  { key: "Pro", priceUsd: 7.99, quotaPerMonth: 100 },
-  { key: "Max", priceUsd: 12.99, quotaPerMonth: 300 },
-];
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
@@ -39,6 +26,7 @@ export default function SubscriptionPage() {
   const tValidation = useTranslations("subscription.validation");
 
   const [subscription, setSubscription] = useState<SubscriptionInfo | null>(null);
+  const [plans, setPlans] = useState<PlanConfig[]>([]);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [activatingPlan, setActivatingPlan] = useState<string | null>(null);
@@ -64,9 +52,14 @@ export default function SubscriptionPage() {
   });
 
   useEffect(() => {
-    subscriptionService
-      .getMySubscription()
-      .then(setSubscription)
+    Promise.all([
+      subscriptionService.getMySubscription(),
+      subscriptionService.getPlanConfigs(),
+    ])
+      .then(([sub, configs]) => {
+        setSubscription(sub);
+        setPlans(configs);
+      })
       .catch((err: unknown) => {
         if (err instanceof SubscriptionServiceError) {
           setLoadError(tErrors(err.code));
@@ -210,76 +203,78 @@ export default function SubscriptionPage() {
         )}
 
         {/* ── Plan cards ───────────────────────────────────────────────────── */}
-        <div>
-          <h2 className="text-base font-semibold text-foreground mb-1">{t("upgradeTitle")}</h2>
-          <p className="text-sm text-muted-foreground mb-4">{t("upgradeSubtitle")}</p>
+        {plans.length > 0 && (
+          <div>
+            <h2 className="text-base font-semibold text-foreground mb-1">{t("upgradeTitle")}</h2>
+            <p className="text-sm text-muted-foreground mb-4">{t("upgradeSubtitle")}</p>
 
-          <div className="grid gap-4 sm:grid-cols-3">
-            {PLANS.map((plan) => {
-              const isCurrent = plan.key === currentPlanKey;
-              const isActivating = activatingPlan === plan.key;
+            <div className="grid gap-4 sm:grid-cols-3">
+              {plans.map((plan) => {
+                const isCurrent = plan.plan === currentPlanKey;
+                const isActivating = activatingPlan === plan.plan;
 
-              return (
-                <div
-                  key={plan.key}
-                  className={`bg-card border rounded-2xl p-5 shadow-card hover:shadow-card-hover transition-shadow flex flex-col gap-4 ${
-                    isCurrent
-                      ? "border-primary/40 ring-1 ring-primary/20"
-                      : "border-border"
-                  }`}
-                >
-                  {/* Plan header */}
-                  <div>
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-sm font-semibold text-foreground">
-                        {t(`plans.${plan.key}`)}
-                      </span>
-                      {isCurrent && (
-                        <span className="text-xs font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full">
-                          {t("currentPlanBadge")}
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex items-baseline gap-1">
-                      <span className="text-2xl font-bold text-foreground">
-                        ${plan.priceUsd}
-                      </span>
-                      <span className="text-xs text-muted-foreground">{t("perMonth")}</span>
-                    </div>
-                  </div>
-
-                  {/* Quota */}
-                  <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                    <Zap className="h-3.5 w-3.5 text-accent" />
-                    <span>
-                      {plan.quotaPerMonth} {t("requestsPerMonth")}
-                    </span>
-                  </div>
-
-                  {/* CTA */}
-                  <Button
-                    size="sm"
-                    variant={isCurrent ? "outline" : "default"}
-                    className="mt-auto w-full"
-                    disabled={isCurrent || isActivating !== false}
-                    onClick={() => handleActivate(plan.key)}
+                return (
+                  <div
+                    key={plan.plan}
+                    className={`bg-card border rounded-2xl p-5 shadow-card hover:shadow-card-hover transition-shadow flex flex-col gap-4 ${
+                      isCurrent
+                        ? "border-primary/40 ring-1 ring-primary/20"
+                        : "border-border"
+                    }`}
                   >
-                    {isActivating ? (
-                      <>
-                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                        {t("activatingButton")}
-                      </>
-                    ) : isCurrent ? (
-                      <CheckCircle2 className="h-3.5 w-3.5 text-success" />
-                    ) : (
-                      t("activateButton")
-                    )}
-                  </Button>
-                </div>
-              );
-            })}
+                    {/* Plan header */}
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-sm font-semibold text-foreground">
+                          {t(`plans.${plan.plan}`)}
+                        </span>
+                        {isCurrent && (
+                          <span className="text-xs font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full">
+                            {t("currentPlanBadge")}
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-2xl font-bold text-foreground">
+                          ${plan.priceUsd}
+                        </span>
+                        <span className="text-xs text-muted-foreground">{t("perMonth")}</span>
+                      </div>
+                    </div>
+
+                    {/* Quota */}
+                    <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                      <Zap className="h-3.5 w-3.5 text-accent" />
+                      <span>
+                        {plan.monthlyQuota} {t("requestsPerMonth")}
+                      </span>
+                    </div>
+
+                    {/* CTA */}
+                    <Button
+                      size="sm"
+                      variant={isCurrent ? "outline" : "default"}
+                      className="mt-auto w-full"
+                      disabled={isCurrent || activatingPlan !== null}
+                      onClick={() => handleActivate(plan.plan)}
+                    >
+                      {isActivating ? (
+                        <>
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                          {t("activatingButton")}
+                        </>
+                      ) : isCurrent ? (
+                        <CheckCircle2 className="h-3.5 w-3.5 text-success" />
+                      ) : (
+                        t("activateButton")
+                      )}
+                    </Button>
+                  </div>
+                );
+              })}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* ── Top-up form ──────────────────────────────────────────────────── */}
         <div className="bg-card border border-border rounded-2xl p-8 shadow-card">

@@ -36,6 +36,15 @@ function resolveErrorCode(error: unknown): SubscriptionErrorCode {
   return "unknown";
 }
 
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+export interface PlanConfig {
+  id: string;
+  plan: string;
+  priceUsd: number;
+  monthlyQuota: number;
+}
+
 // ─── Subscription Service ─────────────────────────────────────────────────────
 
 export const subscriptionService = {
@@ -45,6 +54,15 @@ export const subscriptionService = {
       return response.data;
     } catch (error) {
       throw new SubscriptionServiceError(resolveErrorCode(error));
+    }
+  },
+
+  async getPlanConfigs(): Promise<PlanConfig[]> {
+    try {
+      const response = await api.get<PlanConfig[]>("/api/subscription-plans");
+      return response.data;
+    } catch {
+      return [];
     }
   },
 

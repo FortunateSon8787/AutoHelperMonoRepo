@@ -7,6 +7,7 @@ namespace AutoHelper.Application.Features.Clients.ActivateSubscription;
 
 public sealed class ActivateSubscriptionCommandHandler(
     ICustomerRepository customers,
+    ISubscriptionPlanConfigRepository planConfigs,
     ICurrentUser currentUser,
     IUnitOfWork unitOfWork) : IRequestHandler<ActivateSubscriptionCommand, Result>
 {
@@ -23,7 +24,11 @@ public sealed class ActivateSubscriptionCommandHandler(
         if (customer is null)
             return AppErrors.Customer.NotFound;
 
-        customer.ActivateSubscription(plan);
+        var config = await planConfigs.GetByPlanAsync(plan, ct);
+        if (config is null)
+            return AppErrors.Subscription.InvalidPlan;
+
+        customer.ActivateSubscription(plan, config.MonthlyQuota);
         await unitOfWork.SaveChangesAsync(ct);
 
         return Result.Success();

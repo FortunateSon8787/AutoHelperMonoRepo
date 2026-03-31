@@ -18,6 +18,7 @@ public sealed class AppDbContext(
     : DbContext(options), IUnitOfWork
 {
     public DbSet<Customer> Customers => Set<Customer>();
+    public DbSet<SubscriptionPlanConfig> SubscriptionPlanConfigs => Set<SubscriptionPlanConfig>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
     public DbSet<Vehicle> Vehicles => Set<Vehicle>();
     public DbSet<ServiceRecord> ServiceRecords => Set<ServiceRecord>();

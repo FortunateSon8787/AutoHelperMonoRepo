@@ -44,6 +44,7 @@ public static class DependencyInjection
         services.AddScoped<IAdCampaignRepository, AdCampaignRepository>();
         services.AddScoped<IChatRepository, ChatRepository>();
         services.AddScoped<IInvalidChatRequestRepository, InvalidChatRequestRepository>();
+        services.AddScoped<ISubscriptionPlanConfigRepository, SubscriptionPlanConfigRepository>();
 
         // Security
         services.AddSingleton<IPasswordHasher, PasswordHasher>();

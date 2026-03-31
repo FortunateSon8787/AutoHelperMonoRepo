@@ -1,3 +1,4 @@
+using AutoHelper.Application.Features.Admin.SubscriptionPlans.GetAllPlanConfigs;
 using AutoHelper.Application.Features.Clients.ActivateSubscription;
 using AutoHelper.Application.Features.Clients.ChangePassword;
 using AutoHelper.Application.Features.Clients.GetMyProfile;
@@ -14,6 +15,12 @@ public static class ClientsEndpoints
 {
     public static void MapClientsEndpoints(this IEndpointRouteBuilder app)
     {
+        // Public — no auth required
+        app.MapGet("/api/subscription-plans", GetAllPlanConfigs)
+            .WithTags("Clients")
+            .WithSummary("Get all subscription plan configurations (price and quota per plan)")
+            .Produces<IReadOnlyList<PlanConfigResponse>>(StatusCodes.Status200OK);
+
         var group = app.MapGroup("/api/clients").WithTags("Clients").RequireAuthorization();
 
         group.MapGet("/me", GetMyProfile)
@@ -191,6 +198,12 @@ public static class ClientsEndpoints
                 detail: result.Error.Description);
 
         return Results.NoContent();
+    }
+
+    private static async Task<IResult> GetAllPlanConfigs(ISender mediator, CancellationToken ct)
+    {
+        var result = await mediator.Send(new GetAllPlanConfigsQuery(), ct);
+        return Results.Ok(result.Value);
     }
 
     // ─── Response DTOs ────────────────────────────────────────────────────────

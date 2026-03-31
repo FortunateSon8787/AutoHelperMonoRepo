@@ -186,9 +186,9 @@ public sealed class Customer : AggregateRoot<Guid>
 
     /// <summary>
     /// Activates or upgrades a paid subscription plan for one month.
-    /// Sets AI requests quota according to the plan.
+    /// The caller is responsible for supplying the correct monthly quota from plan configuration.
     /// </summary>
-    public void ActivateSubscription(SubscriptionPlan plan)
+    public void ActivateSubscription(SubscriptionPlan plan, int monthlyQuota)
     {
         var now = DateTime.UtcNow;
 
@@ -196,7 +196,7 @@ public sealed class Customer : AggregateRoot<Guid>
         SubscriptionStatus = SubscriptionStatus.Premium;
         SubscriptionStartDate = now;
         SubscriptionEndDate = now.AddMonths(1);
-        AiRequestsRemaining = MonthlyRequestsForPlan(plan);
+        AiRequestsRemaining = monthlyQuota;
     }
 
     /// <summary>
@@ -222,12 +222,4 @@ public sealed class Customer : AggregateRoot<Guid>
         AiRequestsRemaining = 0;
     }
 
-    /// <summary>Returns the number of monthly AI requests granted by a plan.</summary>
-    public static int MonthlyRequestsForPlan(SubscriptionPlan plan) => plan switch
-    {
-        SubscriptionPlan.Normal => 30,
-        SubscriptionPlan.Pro    => 100,
-        SubscriptionPlan.Max    => 300,
-        _                       => 0
-    };
 }

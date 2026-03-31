@@ -1,5 +1,6 @@
 using AutoHelper.Api.Extensions;
 using AutoHelper.Api.Features.AdCampaigns;
+using AutoHelper.Api.Features.Admin;
 using AutoHelper.Api.Features.Auth;
 using AutoHelper.Api.Features.Chats;
 using AutoHelper.Api.Features.Clients;
@@ -65,6 +66,7 @@ try
     app.MapPartnerEndpoints();
     app.MapAdCampaignEndpoints();
     app.MapChatEndpoints();
+    app.MapAdminSubscriptionPlansEndpoints();
 
     await app.RunAsync();
 }
