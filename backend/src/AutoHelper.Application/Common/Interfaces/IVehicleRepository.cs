@@ -21,4 +21,8 @@ public interface IVehicleRepository
 
     /// <summary>Adds a new vehicle to the repository (tracked, not yet persisted).</summary>
     void Add(Vehicle vehicle);
+
+    /// <summary>Returns a paged list of vehicles with optional search by VIN, brand, or model.</summary>
+    Task<(IReadOnlyList<Vehicle> Items, int TotalCount)> GetPagedAsync(
+        int page, int pageSize, string? search, CancellationToken ct);
 }

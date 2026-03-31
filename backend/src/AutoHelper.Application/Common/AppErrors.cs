@@ -182,6 +182,9 @@ public static class AppErrors
 
         public static readonly AppError CustomerNotBlocked =
             new("ADMIN_003", "Customer account is not blocked.");
+
+        public static readonly AppError VehicleNotFound =
+            new("ADMIN_004", "Vehicle not found.");
     }
 
     // ─── Subscription ─────────────────────────────────────────────────────────

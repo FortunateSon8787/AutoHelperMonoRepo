@@ -1,5 +1,10 @@
 import axios, { AxiosError } from "axios";
-import type { AdminCustomer, AdminCustomerListResponse } from "@/types/admin";
+import type {
+  AdminCustomer,
+  AdminCustomerListResponse,
+  AdminVehicle,
+  AdminVehicleListResponse,
+} from "@/types/admin";
 
 // ─── Axios Instance ───────────────────────────────────────────────────────────
 
@@ -79,6 +84,33 @@ export const adminService = {
   async unblockCustomer(id: string): Promise<void> {
     try {
       await api.post(`/api/admin/customers/${id}/unblock`);
+    } catch (error) {
+      throw new AdminServiceError(resolveErrorCode(error));
+    }
+  },
+
+  async getVehicles(
+    page: number,
+    pageSize: number,
+    search?: string
+  ): Promise<AdminVehicleListResponse> {
+    try {
+      const params: Record<string, string | number> = { page, pageSize };
+      if (search) params.search = search;
+      const response = await api.get<AdminVehicleListResponse>(
+        "/api/admin/vehicles",
+        { params }
+      );
+      return response.data;
+    } catch (error) {
+      throw new AdminServiceError(resolveErrorCode(error));
+    }
+  },
+
+  async getVehicleById(id: string): Promise<AdminVehicle> {
+    try {
+      const response = await api.get<AdminVehicle>(`/api/admin/vehicles/${id}`);
+      return response.data;
     } catch (error) {
       throw new AdminServiceError(resolveErrorCode(error));
     }

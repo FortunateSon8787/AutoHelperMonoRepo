@@ -22,4 +22,29 @@ public sealed class VehicleRepository(AppDbContext db) : IVehicleRepository
 
     public void Add(Vehicle vehicle) =>
         db.Vehicles.Add(vehicle);
+
+    public async Task<(IReadOnlyList<Vehicle> Items, int TotalCount)> GetPagedAsync(
+        int page, int pageSize, string? search, CancellationToken ct)
+    {
+        var query = db.Vehicles.AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var term = search.Trim().ToUpperInvariant();
+            query = query.Where(v =>
+                v.Vin.Contains(term) ||
+                v.Brand.ToUpper().Contains(term) ||
+                v.Model.ToUpper().Contains(term));
+        }
+
+        var totalCount = await query.CountAsync(ct);
+
+        var items = await query
+            .OrderByDescending(v => v.Id)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(ct);
+
+        return (items, totalCount);
+    }
 }

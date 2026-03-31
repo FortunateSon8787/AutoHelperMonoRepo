@@ -510,6 +510,35 @@
     }
   },
   "admin": {
+    "vehicles": {
+      "title": "Автомобили",
+      "searchPlaceholder": "Поиск по VIN, марке или модели...",
+      "emptyState": "Автомобили не найдены",
+      "totalCount": "Всего {count} автомобилей",
+      "kmUnit": "км",
+      "partnerLabel": "Партнёр",
+      "columns": {
+        "vin": "VIN",
+        "vehicle": "Автомобиль",
+        "year": "Год",
+        "color": "Цвет",
+        "mileage": "Пробег",
+        "status": "Статус",
+        "details": "Детали"
+      },
+      "status": {
+        "Active": "Активен",
+        "ForSale": "Продаётся",
+        "InRepair": "На ремонте",
+        "Recycled": "Утилизирован",
+        "Dismantled": "Разобран"
+      },
+      "errors": {
+        "loadFailed": "Не удалось загрузить список автомобилей",
+        "serverError": "Ошибка сервера. Попробуйте позже",
+        "unknown": "Что-то пошло не так. Попробуйте ещё раз"
+      }
+    },
     "customers": {
       "title": "Клиенты",
       "searchPlaceholder": "Поиск по имени или email...",

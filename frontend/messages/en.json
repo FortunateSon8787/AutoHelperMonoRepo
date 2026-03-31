@@ -510,6 +510,35 @@
     }
   },
   "admin": {
+    "vehicles": {
+      "title": "Vehicles",
+      "searchPlaceholder": "Search by VIN, brand or model...",
+      "emptyState": "No vehicles found",
+      "totalCount": "{count} vehicles total",
+      "kmUnit": "km",
+      "partnerLabel": "Partner",
+      "columns": {
+        "vin": "VIN",
+        "vehicle": "Vehicle",
+        "year": "Year",
+        "color": "Color",
+        "mileage": "Mileage",
+        "status": "Status",
+        "details": "Details"
+      },
+      "status": {
+        "Active": "Active",
+        "ForSale": "For Sale",
+        "InRepair": "In Repair",
+        "Recycled": "Recycled",
+        "Dismantled": "Dismantled"
+      },
+      "errors": {
+        "loadFailed": "Failed to load vehicles",
+        "serverError": "Server error. Please try again later",
+        "unknown": "Something went wrong. Please try again"
+      }
+    },
     "customers": {
       "title": "Customers",
       "searchPlaceholder": "Search by name or email...",
