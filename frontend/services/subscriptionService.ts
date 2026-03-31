@@ -1,4 +1,5 @@
 import axios, { AxiosError } from "axios";
+import { z } from "zod";
 import type { SubscriptionInfo } from "@/types/client";
 
 // ─── Axios Instance ───────────────────────────────────────────────────────────
@@ -15,6 +16,7 @@ export type SubscriptionErrorCode =
   | "unauthorized"
   | "notFound"
   | "badRequest"
+  | "invalidPlan"
   | "serverError"
   | "unknown";
 
@@ -36,14 +38,28 @@ function resolveErrorCode(error: unknown): SubscriptionErrorCode {
   return "unknown";
 }
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+// ─── Allowed Plans ────────────────────────────────────────────────────────────
 
-export interface PlanConfig {
-  id: string;
-  plan: string;
-  priceUsd: number;
-  monthlyQuota: number;
+/** Must match SubscriptionPlan enum values on the backend (excluding None). */
+export const ALLOWED_PLANS = ["Normal", "Pro", "Max"] as const;
+export type AllowedPlan = (typeof ALLOWED_PLANS)[number];
+
+export function isAllowedPlan(value: string): value is AllowedPlan {
+  return (ALLOWED_PLANS as readonly string[]).includes(value);
 }
+
+// ─── Schemas ─────────────────────────────────────────────────────────────────
+
+const planConfigSchema = z.object({
+  id: z.string().uuid(),
+  plan: z.enum(ALLOWED_PLANS),
+  priceUsd: z.number().positive(),
+  monthlyQuota: z.number().int().positive(),
+});
+
+const planConfigsSchema = z.array(planConfigSchema);
+
+export type PlanConfig = z.infer<typeof planConfigSchema>;
 
 // ─── Subscription Service ─────────────────────────────────────────────────────
 
@@ -59,14 +75,15 @@ export const subscriptionService = {
 
   async getPlanConfigs(): Promise<PlanConfig[]> {
     try {
-      const response = await api.get<PlanConfig[]>("/api/subscription-plans");
-      return response.data;
+      const response = await api.get<unknown>("/api/subscription-plans");
+      const parsed = planConfigsSchema.safeParse(response.data);
+      return parsed.success ? parsed.data : [];
     } catch {
       return [];
     }
   },
 
-  async activatePlan(plan: string): Promise<void> {
+  async activatePlan(plan: AllowedPlan): Promise<void> {
     try {
       await api.post("/api/clients/me/subscription/activate", { plan });
     } catch (error) {

@@ -14,6 +14,7 @@ import { AppHeader } from "@/components/AppHeader";
 import {
   subscriptionService,
   SubscriptionServiceError,
+  isAllowedPlan,
   type PlanConfig,
 } from "@/services/subscriptionService";
 import type { SubscriptionInfo } from "@/types/client";
@@ -71,6 +72,8 @@ export default function SubscriptionPage() {
   }, [tErrors]);
 
   const handleActivate = async (planKey: string) => {
+    if (!isAllowedPlan(planKey)) return;
+
     setActivatingPlan(planKey);
     setActionError(null);
     setSuccessMessage(null);
