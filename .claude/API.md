@@ -999,19 +999,86 @@ Soft-delete кампании. Только владелец.
 
 ---
 
-## Административная панель (`/api/admin/...`) — планируется (Epic AUT-7)
+## Административная панель — Клиенты (`/api/admin/customers`) — **реализовано** (AUT-28)
+
+**Доступ:** только роль `admin`.
+
+### GET /api/admin/customers
+
+Пагинированный список клиентов с поиском по имени или email.
+
+**Query parameters:**
+- `page` (int, default 1)
+- `pageSize` (int, default 20)
+- `search` (string, optional) — частичное совпадение с name или email
+
+**Response 200:**
+```json
+{
+  "items": [
+    {
+      "id": "uuid",
+      "name": "Иван Иванов",
+      "email": "ivan@example.com",
+      "contacts": "+7 999 123-45-67",
+      "subscriptionStatus": "Premium",
+      "subscriptionPlan": "Pro",
+      "aiRequestsRemaining": 87,
+      "authProvider": "Local",
+      "registrationDate": "2026-03-24T21:17:00Z",
+      "isBlocked": false,
+      "invalidChatRequestCount": 2
+    }
+  ],
+  "totalCount": 42,
+  "page": 1,
+  "pageSize": 20
+}
+```
+
+---
+
+### GET /api/admin/customers/{id}
+
+Карточка конкретного клиента.
+
+**Response 200:** `AdminCustomerResponse` (аналогично элементу из списка)
+
+**Errors:** `404` — клиент не найден
+
+---
+
+### POST /api/admin/customers/{id}/block
+
+Блокировка аккаунта клиента.
+
+**Response:** `204 No Content`
+
+**Errors:**
+- `404` — клиент не найден (`ADMIN_001`)
+- `400` — аккаунт уже заблокирован (`ADMIN_002`)
+
+---
+
+### POST /api/admin/customers/{id}/unblock
+
+Разблокировка аккаунта клиента.
+
+**Response:** `204 No Content`
+
+**Errors:**
+- `404` — клиент не найден (`ADMIN_001`)
+- `400` — аккаунт не заблокирован (`ADMIN_003`)
+
+---
+
+## Административная панель — прочее (`/api/admin/...`) — планируется (Epic AUT-7)
 
 **Доступ:** только роли `admin` и `superadmin`.
 
 | Метод | Путь | Описание |
 |-------|------|----------|
-| GET | `/api/admin/customers` | Список клиентов (поиск, пагинация) |
-| PUT | `/api/admin/customers/{id}/block` | Блокировка клиента |
 | GET | `/api/admin/vehicles` | Все авто с поиском по VIN |
-| GET | `/api/admin/partners` | Все партнёры |
-| PUT | `/api/admin/partners/{id}/verify` | Верификация партнёра |
-| PUT | `/api/admin/partners/{id}/deactivate` | Деактивация партнёра |
-| GET | `/api/admin/partners/unfit` | Список «потенциально профнепригодных» |
 | GET | `/api/admin/ad-campaigns` | Все рекламные кампании |
 
 ---

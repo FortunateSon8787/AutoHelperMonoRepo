@@ -42,6 +42,9 @@ Customer : AggregateRoot<Guid>
 │   ├── CreateWithPassword(name, email, passwordHash, contacts?)
 │   └── CreateWithGoogle(name, email, googleId, googleEmail?, googlePicture?, googleRefreshToken?, contacts?)
 │
+├── Admin fields:
+│   └── IsBlocked: bool             (default: false; блокировка администратором)
+│
 └── Business operations:
     ├── UpdateGoogleInfo(googlePicture?, googleRefreshToken?)
     ├── UpdateContacts(contacts?)
@@ -52,7 +55,8 @@ Customer : AggregateRoot<Guid>
     ├── TopUpRequests(count)       — разовое пополнение счётчика
     ├── CancelSubscription()       — возврат на free tier
     ├── DecrementAiQuota() → bool  — −1 запрос; false если счётчик уже 0
-    └── MonthlyRequestsForPlan(plan) → int  (static: None=0, Normal=30, Pro=100, Max=300)
+    ├── Block()                    — IsBlocked = true (только admin)
+    └── Unblock()                  — IsBlocked = false (только admin)
 ```
 
 **Domain Events:**
