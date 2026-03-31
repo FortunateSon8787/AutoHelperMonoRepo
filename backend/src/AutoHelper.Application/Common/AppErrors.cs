@@ -170,6 +170,20 @@ public static class AppErrors
             new("CHAT_009", "AI request quota exceeded. Upgrade your plan or top up requests.");
     }
 
+    // ─── Admin ────────────────────────────────────────────────────────────────
+
+    public static class Admin
+    {
+        public static readonly AppError CustomerNotFound =
+            new("ADMIN_001", "Customer not found.");
+
+        public static readonly AppError CustomerAlreadyBlocked =
+            new("ADMIN_002", "Customer account is already blocked.");
+
+        public static readonly AppError CustomerNotBlocked =
+            new("ADMIN_003", "Customer account is not blocked.");
+    }
+
     // ─── Subscription ─────────────────────────────────────────────────────────
 
     public static class Subscription

@@ -67,6 +67,7 @@ try
     app.MapAdCampaignEndpoints();
     app.MapChatEndpoints();
     app.MapAdminSubscriptionPlansEndpoints();
+    app.MapAdminCustomersEndpoints();
 
     await app.RunAsync();
 }

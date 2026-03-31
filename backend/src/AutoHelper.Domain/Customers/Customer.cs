@@ -222,4 +222,15 @@ public sealed class Customer : AggregateRoot<Guid>
         AiRequestsRemaining = 0;
     }
 
+    // ─── Admin operations ─────────────────────────────────────────────────────
+
+    /// <summary>Whether this account has been blocked by an administrator.</summary>
+    public bool IsBlocked { get; private set; }
+
+    /// <summary>Blocks the customer account, preventing login and AI access.</summary>
+    public void Block() => IsBlocked = true;
+
+    /// <summary>Unblocks a previously blocked customer account.</summary>
+    public void Unblock() => IsBlocked = false;
+
 }

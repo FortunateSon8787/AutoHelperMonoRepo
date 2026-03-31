@@ -508,5 +508,46 @@
       "serverError": "Server error. Please try again later",
       "unknown": "Something went wrong. Please try again"
     }
+  },
+  "admin": {
+    "customers": {
+      "title": "Customers",
+      "searchPlaceholder": "Search by name or email...",
+      "emptyState": "No customers found",
+      "totalCount": "{count} customers total",
+      "columns": {
+        "name": "Name",
+        "email": "Email",
+        "subscription": "Subscription",
+        "aiRequests": "AI requests",
+        "invalidRequests": "Invalid requests",
+        "registered": "Registered",
+        "status": "Status"
+      },
+      "status": {
+        "active": "Active",
+        "blocked": "Blocked"
+      },
+      "actions": {
+        "block": "Block",
+        "unblock": "Unblock",
+        "view": "View"
+      },
+      "modal": {
+        "blockTitle": "Block customer",
+        "blockConfirm": "Are you sure you want to block {name}? They will no longer be able to log in.",
+        "unblockTitle": "Unblock customer",
+        "unblockConfirm": "Are you sure you want to unblock {name}?",
+        "cancel": "Cancel",
+        "confirm": "Confirm"
+      },
+      "errors": {
+        "loadFailed": "Failed to load customers",
+        "blockFailed": "Failed to block customer",
+        "unblockFailed": "Failed to unblock customer",
+        "serverError": "Server error. Please try again later",
+        "unknown": "Something went wrong. Please try again"
+      }
+    }
   }
 }

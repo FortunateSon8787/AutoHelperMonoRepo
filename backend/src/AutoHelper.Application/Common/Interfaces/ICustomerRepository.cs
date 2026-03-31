@@ -18,4 +18,13 @@ public interface ICustomerRepository
 
     /// <summary>Adds a new customer to the repository (tracked, not yet persisted).</summary>
     void Add(Customer customer);
+
+    // ─── Admin ────────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Returns a paged list of customers, optionally filtered by a search term
+    /// matched against name or email (case-insensitive, partial match).
+    /// </summary>
+    Task<(IReadOnlyList<Customer> Items, int TotalCount)> GetPagedAsync(
+        int page, int pageSize, string? search, CancellationToken ct);
 }

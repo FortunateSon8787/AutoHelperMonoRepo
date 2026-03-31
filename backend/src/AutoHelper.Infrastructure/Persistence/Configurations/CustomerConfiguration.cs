@@ -75,5 +75,9 @@ public sealed class CustomerConfiguration : IEntityTypeConfiguration<Customer>
         builder.Property(c => c.AiRequestsRemaining)
             .IsRequired()
             .HasDefaultValue(0);
+
+        builder.Property(c => c.IsBlocked)
+            .IsRequired()
+            .HasDefaultValue(false);
     }
 }
