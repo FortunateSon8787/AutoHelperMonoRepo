@@ -37,6 +37,36 @@ public sealed class PartnerRepository(AppDbContext db) : IPartnerRepository
             .ToListAsync(ct)
             .ContinueWith(t => (IReadOnlyList<Partner>)t.Result, ct);
 
+    public async Task<(IReadOnlyList<Partner> Items, int TotalCount)> GetPagedForAdminAsync(
+        int page, int pageSize, string? search, CancellationToken ct)
+    {
+        var query = db.Partners.AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var term = search.Trim().ToLower();
+            query = query.Where(p =>
+                p.Name.ToLower().Contains(term) ||
+                p.Address.ToLower().Contains(term));
+        }
+
+        var totalCount = await query.CountAsync(ct);
+        var items = await query
+            .OrderBy(p => p.Name)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(ct);
+
+        return (items, totalCount);
+    }
+
+    public Task<IReadOnlyList<Partner>> GetPotentiallyUnfitAsync(CancellationToken ct) =>
+        db.Partners
+            .Where(p => p.IsPotentiallyUnfit)
+            .OrderBy(p => p.Name)
+            .ToListAsync(ct)
+            .ContinueWith(t => (IReadOnlyList<Partner>)t.Result, ct);
+
     public async Task<IReadOnlyList<Partner>> SearchByTypeAndLocationAsync(
         PartnerType type,
         double lat,

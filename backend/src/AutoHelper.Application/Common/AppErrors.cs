@@ -185,6 +185,18 @@ public static class AppErrors
 
         public static readonly AppError VehicleNotFound =
             new("ADMIN_004", "Vehicle not found.");
+
+        public static readonly AppError PartnerNotFound =
+            new("ADMIN_005", "Partner not found.");
+
+        public static readonly AppError PartnerAlreadyVerified =
+            new("ADMIN_006", "Partner is already verified.");
+
+        public static readonly AppError PartnerAlreadyDeactivated =
+            new("ADMIN_007", "Partner is already deactivated.");
+
+        public static readonly AppError ReviewNotFound =
+            new("ADMIN_008", "Review not found.");
     }
 
     // ─── Subscription ─────────────────────────────────────────────────────────

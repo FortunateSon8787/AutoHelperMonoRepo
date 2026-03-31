@@ -23,6 +23,9 @@ public interface IAdCampaignRepository
         PartnerType? targetCategory,
         CancellationToken ct);
 
+    /// <summary>Returns all active campaigns belonging to a specific partner.</summary>
+    Task<IReadOnlyList<AdCampaign>> GetActiveByPartnerIdAsync(Guid partnerId, CancellationToken ct);
+
     /// <summary>Adds a new campaign to the repository (tracked, not yet persisted).</summary>
     void Add(AdCampaign campaign);
 }

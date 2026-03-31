@@ -29,6 +29,16 @@ public sealed class ReviewRepository(AppDbContext db) : IReviewRepository
     public Task<int> CountLowRatingsForPartnerAsync(Guid partnerId, CancellationToken ct) =>
         db.Reviews.AsNoTracking().CountAsync(r => r.PartnerId == partnerId && r.Rating < 3, ct);
 
+    public Task<Review?> GetByIdAsync(Guid id, CancellationToken ct) =>
+        db.Reviews.IgnoreQueryFilters().FirstOrDefaultAsync(r => r.Id == id, ct);
+
+    public async Task<IReadOnlyList<Review>> GetLowRatingByPartnerIdAsync(Guid partnerId, CancellationToken ct) =>
+        await db.Reviews
+            .AsNoTracking()
+            .Where(r => r.PartnerId == partnerId && r.Rating < 3)
+            .OrderByDescending(r => r.CreatedAt)
+            .ToListAsync(ct);
+
     public void Add(Review review) =>
         db.Reviews.Add(review);
 }

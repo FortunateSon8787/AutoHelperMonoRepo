@@ -39,6 +39,12 @@ public sealed class AdCampaignRepository(AppDbContext db) : IAdCampaignRepositor
             .ContinueWith(t => (IReadOnlyList<AdCampaign>)t.Result, ct);
     }
 
+    public Task<IReadOnlyList<AdCampaign>> GetActiveByPartnerIdAsync(Guid partnerId, CancellationToken ct) =>
+        db.AdCampaigns
+            .Where(c => c.PartnerId == partnerId && c.IsActive)
+            .ToListAsync(ct)
+            .ContinueWith(t => (IReadOnlyList<AdCampaign>)t.Result, ct);
+
     public void Add(AdCampaign campaign) =>
         db.AdCampaigns.Add(campaign);
 }

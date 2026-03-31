@@ -29,6 +29,12 @@ public interface IReviewRepository
     /// </summary>
     Task<int> CountLowRatingsForPartnerAsync(Guid partnerId, CancellationToken ct);
 
+    /// <summary>Finds a review by its unique identifier (includes soft-deleted).</summary>
+    Task<Review?> GetByIdAsync(Guid id, CancellationToken ct);
+
+    /// <summary>Returns all non-deleted reviews with rating below 3 for a given partner.</summary>
+    Task<IReadOnlyList<Review>> GetLowRatingByPartnerIdAsync(Guid partnerId, CancellationToken ct);
+
     /// <summary>Adds a new review to the repository (tracked, not yet persisted).</summary>
     void Add(Review review);
 }

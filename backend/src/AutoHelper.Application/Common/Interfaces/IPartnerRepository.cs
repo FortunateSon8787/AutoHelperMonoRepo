@@ -36,6 +36,12 @@ public interface IPartnerRepository
     /// <summary>Returns all partners pending administrator verification.</summary>
     Task<IReadOnlyList<Partner>> GetPendingVerificationAsync(CancellationToken ct);
 
+    /// <summary>Returns a paged list of all partners (including unverified/inactive) for admin use, with optional search by name or address.</summary>
+    Task<(IReadOnlyList<Partner> Items, int TotalCount)> GetPagedForAdminAsync(int page, int pageSize, string? search, CancellationToken ct);
+
+    /// <summary>Returns all partners flagged as potentially unfit (IsPotentiallyUnfit = true).</summary>
+    Task<IReadOnlyList<Partner>> GetPotentiallyUnfitAsync(CancellationToken ct);
+
     /// <summary>Adds a new partner to the repository (tracked, not yet persisted).</summary>
     void Add(Partner partner);
 }
