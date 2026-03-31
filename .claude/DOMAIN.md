@@ -141,9 +141,9 @@ Vehicle : AggregateRoot<Guid>
 |----------|----------|-------------|
 | `Active` | По умолчанию | — |
 | `ForSale` | В продаже | — |
-| `InRepair` | В ремонте | `PartnerName` (планируется, AUT-58) |
-| `Recycled` | Утилизирован | `DocumentUrl` PDF (планируется, AUT-59) |
-| `Dismantled` | Разобран | `DocumentUrl` PDF (планируется, AUT-59) |
+| `InRepair` | В ремонте | `PartnerName` (обязательно) |
+| `Recycled` | Утилизирован | `DocumentUrl` PDF (обязательно) |
+| `Dismantled` | Разобран | `DocumentUrl` PDF (обязательно) |
 
 **Бизнес-правила:**
 - VIN уникален — `IVehicleRepository.ExistsByVinAsync` проверяется перед созданием.

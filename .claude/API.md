@@ -1072,13 +1072,61 @@ Soft-delete кампании. Только владелец.
 
 ---
 
+## Административная панель — Автомобили (`/api/admin/vehicles`) — **реализовано** (AUT-29)
+
+**Доступ:** только роль `admin`.
+
+### GET /api/admin/vehicles
+
+Пагинированный список автомобилей с поиском по VIN, марке или модели.
+
+**Query parameters:**
+- `page` (int, default 1)
+- `pageSize` (int, default 20)
+- `search` (string, optional) — частичное совпадение с VIN, Brand или Model (регистронезависимо)
+
+**Response 200:**
+```json
+{
+  "items": [
+    {
+      "id": "uuid",
+      "vin": "1HGCM82633A123456",
+      "brand": "Toyota",
+      "model": "Camry",
+      "year": 2020,
+      "color": "White",
+      "mileage": 45000,
+      "status": "Active",
+      "partnerName": null,
+      "documentUrl": null,
+      "ownerId": "uuid"
+    }
+  ],
+  "totalCount": 18,
+  "page": 1,
+  "pageSize": 20
+}
+```
+
+---
+
+### GET /api/admin/vehicles/{id}
+
+Карточка конкретного автомобиля по UUID.
+
+**Response 200:** `AdminVehicleResponse` (аналогично элементу из списка)
+
+**Errors:** `404` — автомобиль не найден (`ADMIN_004`)
+
+---
+
 ## Административная панель — прочее (`/api/admin/...`) — планируется (Epic AUT-7)
 
 **Доступ:** только роли `admin` и `superadmin`.
 
 | Метод | Путь | Описание |
 |-------|------|----------|
-| GET | `/api/admin/vehicles` | Все авто с поиском по VIN |
 | GET | `/api/admin/ad-campaigns` | Все рекламные кампании |
 
 ---
