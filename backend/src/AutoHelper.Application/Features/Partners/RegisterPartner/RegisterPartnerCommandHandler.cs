@@ -13,22 +13,22 @@ public sealed class RegisterPartnerCommandHandler(
     public async Task<Result<Guid>> Handle(RegisterPartnerCommand request, CancellationToken ct)
     {
         if (currentUser.Id is not { } accountUserId)
-            return Result<Guid>.Failure("User is not authenticated.");
+            return AppErrors.Auth.NotAuthenticated;
 
         var alreadyExists = await partners.ExistsByAccountUserIdAsync(accountUserId, ct);
         if (alreadyExists)
-            return Result<Guid>.Failure("A partner profile already exists for this account.");
+            return AppErrors.Partner.AlreadyExistsForAccount;
 
         if (!Enum.TryParse<PartnerType>(request.Type, ignoreCase: true, out var partnerType))
-            return Result<Guid>.Failure($"Invalid partner type: {request.Type}.");
+            return AppErrors.Partner.InvalidType;
 
         var location = GeoPoint.Create(request.LocationLat, request.LocationLng);
 
         if (!TimeOnly.TryParseExact(request.WorkingOpenFrom, "HH:mm", out var openFrom))
-            return Result<Guid>.Failure("Invalid WorkingOpenFrom format. Expected HH:mm.");
+            return AppErrors.Partner.InvalidWorkingOpenFrom;
 
         if (!TimeOnly.TryParseExact(request.WorkingOpenTo, "HH:mm", out var openTo))
-            return Result<Guid>.Failure("Invalid WorkingOpenTo format. Expected HH:mm.");
+            return AppErrors.Partner.InvalidWorkingOpenTo;
 
         var workingHours = WorkingSchedule.Create(openFrom, openTo, request.WorkingDays);
         var contacts = PartnerContacts.Create(request.ContactsPhone, request.ContactsWebsite, request.ContactsMessengerLinks);

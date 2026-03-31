@@ -1,3 +1,4 @@
+using AutoHelper.Application.Common;
 using AutoHelper.Application.Common.Interfaces;
 using AutoHelper.Application.Features.Vehicles;
 using AutoHelper.Application.Features.Vehicles.ChangeVehicleStatus;
@@ -76,7 +77,8 @@ public static class VehiclesEndpoints
             return Results.NotFound(new ProblemDetails
             {
                 Status = StatusCodes.Status404NotFound,
-                Title = result.Error
+                Title = result.Error!.Code,
+                Detail = result.Error.Description
             });
 
         return Results.Ok(result.Value);
@@ -93,7 +95,8 @@ public static class VehiclesEndpoints
             return Results.NotFound(new ProblemDetails
             {
                 Status = StatusCodes.Status404NotFound,
-                Title = result.Error
+                Title = result.Error!.Code,
+                Detail = result.Error.Description
             });
 
         return Results.Ok(result.Value);
@@ -104,7 +107,10 @@ public static class VehiclesEndpoints
         var result = await mediator.Send(new GetMyVehiclesQuery(), ct);
 
         if (result.IsFailure)
-            return Results.Problem(statusCode: StatusCodes.Status400BadRequest, title: result.Error);
+            return Results.Problem(
+                statusCode: StatusCodes.Status400BadRequest,
+                title: result.Error!.Code,
+                detail: result.Error.Description);
 
         return Results.Ok(result.Value);
     }
@@ -119,7 +125,8 @@ public static class VehiclesEndpoints
         if (result.IsFailure)
             return Results.Problem(
                 statusCode: StatusCodes.Status409Conflict,
-                title: result.Error);
+                title: result.Error!.Code,
+                detail: result.Error.Description);
 
         return Results.Created($"/api/vehicles/{result.Value}", new CreateVehicleResponse(result.Value));
     }
@@ -135,7 +142,8 @@ public static class VehiclesEndpoints
             return Results.NotFound(new ProblemDetails
             {
                 Status = StatusCodes.Status404NotFound,
-                Title = result.Error
+                Title = result.Error!.Code,
+                Detail = result.Error.Description
             });
 
         return Results.Ok(result.Value);
@@ -154,7 +162,8 @@ public static class VehiclesEndpoints
             return Results.NotFound(new ProblemDetails
             {
                 Status = StatusCodes.Status404NotFound,
-                Title = result.Error
+                Title = result.Error!.Code,
+                Detail = result.Error.Description
             });
 
         return Results.NoContent();
@@ -193,11 +202,14 @@ public static class VehiclesEndpoints
 
         if (result.IsFailure)
         {
-            var statusCode = result.Error!.Contains("not found", StringComparison.OrdinalIgnoreCase)
+            var statusCode = result.Error!.Code == AppErrors.Vehicle.NotFound.Code
                 ? StatusCodes.Status404NotFound
                 : StatusCodes.Status400BadRequest;
 
-            return Results.Problem(statusCode: statusCode, title: result.Error);
+            return Results.Problem(
+                statusCode: statusCode,
+                title: result.Error.Code,
+                detail: result.Error.Description);
         }
 
         return Results.NoContent();

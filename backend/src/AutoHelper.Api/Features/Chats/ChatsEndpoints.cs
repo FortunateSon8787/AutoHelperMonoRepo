@@ -1,4 +1,4 @@
-using AutoHelper.Application.Features.Chats;
+using AutoHelper.Application.Common;
 using AutoHelper.Application.Features.Chats.CreateChat;
 using AutoHelper.Application.Features.Chats.GetChatMessages;
 using AutoHelper.Application.Features.Chats.GetMyChats;
@@ -101,12 +101,13 @@ public static class ChatsEndpoints
 
         if (result.IsFailure)
         {
-            if (result.Error == ChatErrors.NotAuthenticated)
+            if (result.Error!.Code == AppErrors.Auth.NotAuthenticated.Code)
                 return Results.Unauthorized();
 
             return Results.Problem(
                 statusCode: StatusCodes.Status403Forbidden,
-                title: result.Error);
+                title: result.Error.Code,
+                detail: result.Error.Description);
         }
 
         return Results.Created(
@@ -125,7 +126,8 @@ public static class ChatsEndpoints
             return Results.NotFound(new ProblemDetails
             {
                 Status = StatusCodes.Status404NotFound,
-                Title = result.Error
+                Title = result.Error!.Code,
+                Detail = result.Error.Description
             });
 
         return Results.Ok(result.Value);
@@ -146,24 +148,29 @@ public static class ChatsEndpoints
 
         if (result.IsFailure)
         {
-            if (result.Error == ChatErrors.ChatNotFound)
+            var errorCode = result.Error!.Code;
+
+            if (errorCode == AppErrors.Chat.NotFound.Code)
                 return Results.NotFound(new ProblemDetails
                 {
                     Status = StatusCodes.Status404NotFound,
-                    Title = result.Error
+                    Title = result.Error.Code,
+                    Detail = result.Error.Description
                 });
 
-            if (result.Error == ChatErrors.NotAuthenticated)
+            if (errorCode == AppErrors.Auth.NotAuthenticated.Code)
                 return Results.Unauthorized();
 
-            if (result.Error == ChatErrors.ChatIsCompleted)
+            if (errorCode == AppErrors.Chat.ChatIsCompleted.Code)
                 return Results.Problem(
                     statusCode: StatusCodes.Status409Conflict,
-                    title: result.Error);
+                    title: result.Error.Code,
+                    detail: result.Error.Description);
 
             return Results.Problem(
                 statusCode: StatusCodes.Status403Forbidden,
-                title: result.Error);
+                title: result.Error.Code,
+                detail: result.Error.Description);
         }
 
         return Results.Ok(new SendMessageApiResponse(

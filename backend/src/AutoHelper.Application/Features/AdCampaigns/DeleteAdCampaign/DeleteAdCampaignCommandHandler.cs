@@ -13,18 +13,18 @@ public sealed class DeleteAdCampaignCommandHandler(
     public async Task<Result> Handle(DeleteAdCampaignCommand request, CancellationToken ct)
     {
         if (currentUser.Id is not { } userId)
-            return Result.Failure("User is not authenticated.");
+            return AppErrors.Auth.NotAuthenticated;
 
         var partner = await partners.GetByAccountUserIdAsync(userId, ct);
         if (partner is null)
-            return Result.Failure("Partner profile not found for this account.");
+            return AppErrors.Partner.ProfileNotFoundForAccount;
 
         var campaign = await campaigns.GetByIdAsync(request.Id, ct);
         if (campaign is null)
-            return Result.Failure("Ad campaign not found.");
+            return AppErrors.AdCampaign.NotFound;
 
         if (campaign.PartnerId != partner.Id)
-            return Result.Failure("Access denied. This campaign belongs to a different partner.");
+            return AppErrors.AdCampaign.AccessDenied;
 
         campaign.Delete();
         await unitOfWork.SaveChangesAsync(ct);

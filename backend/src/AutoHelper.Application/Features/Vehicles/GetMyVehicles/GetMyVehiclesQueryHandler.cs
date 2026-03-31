@@ -12,7 +12,7 @@ public sealed class GetMyVehiclesQueryHandler(
         GetMyVehiclesQuery request, CancellationToken ct)
     {
         if (currentUser.Id is null)
-            return Result<IReadOnlyList<VehicleResponse>>.Failure("User is not authenticated.");
+            return AppErrors.Auth.NotAuthenticated;
 
         var ownerVehicles = await vehicles.GetAllByOwnerIdAsync(currentUser.Id.Value, ct);
 

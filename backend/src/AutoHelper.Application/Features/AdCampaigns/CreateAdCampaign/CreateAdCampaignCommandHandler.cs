@@ -15,20 +15,20 @@ public sealed class CreateAdCampaignCommandHandler(
     public async Task<Result<Guid>> Handle(CreateAdCampaignCommand request, CancellationToken ct)
     {
         if (currentUser.Id is not { } userId)
-            return Result<Guid>.Failure("User is not authenticated.");
+            return AppErrors.Auth.NotAuthenticated;
 
         var partner = await partners.GetByAccountUserIdAsync(userId, ct);
         if (partner is null)
-            return Result<Guid>.Failure("Partner profile not found for this account.");
+            return AppErrors.Partner.ProfileNotFoundForAccount;
 
         if (!partner.IsVerified || !partner.IsActive)
-            return Result<Guid>.Failure("Only verified and active partners can create ad campaigns.");
+            return AppErrors.Partner.NotVerifiedOrInactive;
 
         if (!Enum.TryParse<AdType>(request.Type, ignoreCase: true, out var adType))
-            return Result<Guid>.Failure($"Invalid ad type: {request.Type}.");
+            return AppErrors.AdCampaign.InvalidAdType;
 
         if (!Enum.TryParse<PartnerType>(request.TargetCategory, ignoreCase: true, out var targetCategory))
-            return Result<Guid>.Failure($"Invalid target category: {request.TargetCategory}.");
+            return AppErrors.AdCampaign.InvalidTargetCategory;
 
         var campaign = AdCampaign.Create(
             partnerId: partner.Id,

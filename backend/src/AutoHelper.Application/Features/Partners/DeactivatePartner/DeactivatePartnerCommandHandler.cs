@@ -13,7 +13,7 @@ public sealed class DeactivatePartnerCommandHandler(
         var partner = await partners.GetByIdAsync(request.PartnerId, ct);
 
         if (partner is null)
-            return Result.Failure("Partner not found.");
+            return AppErrors.Partner.NotFound;
 
         partner.Deactivate();
         await unitOfWork.SaveChangesAsync(ct);

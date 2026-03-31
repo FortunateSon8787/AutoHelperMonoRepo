@@ -1,5 +1,8 @@
+using AutoHelper.Application.Features.Clients.ActivateSubscription;
 using AutoHelper.Application.Features.Clients.ChangePassword;
 using AutoHelper.Application.Features.Clients.GetMyProfile;
+using AutoHelper.Application.Features.Clients.GetMySubscription;
+using AutoHelper.Application.Features.Clients.TopUpRequests;
 using AutoHelper.Application.Features.Clients.UpdateMyProfile;
 using AutoHelper.Application.Features.Clients.UploadAvatar;
 using MediatR;
@@ -38,6 +41,23 @@ public static class ClientsEndpoints
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status404NotFound)
             .DisableAntiforgery();
+
+        group.MapGet("/me/subscription", GetMySubscription)
+            .WithSummary("Get the current subscription status and remaining AI requests")
+            .Produces<SubscriptionResponse>(StatusCodes.Status200OK)
+            .ProducesProblem(StatusCodes.Status404NotFound);
+
+        group.MapPost("/me/subscription/activate", ActivateSubscription)
+            .WithSummary("Activate or upgrade a subscription plan (Normal/Pro/Max)")
+            .Produces(StatusCodes.Status204NoContent)
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status404NotFound);
+
+        group.MapPost("/me/subscription/topup", TopUpRequests)
+            .WithSummary("Add a one-time top-up of AI requests to the current quota")
+            .Produces(StatusCodes.Status204NoContent)
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status404NotFound);
     }
 
     // ─── Handlers ─────────────────────────────────────────────────────────────
@@ -52,7 +72,8 @@ public static class ClientsEndpoints
             return Results.NotFound(new ProblemDetails
             {
                 Status = StatusCodes.Status404NotFound,
-                Title = result.Error
+                Title = result.Error!.Code,
+                Detail = result.Error.Description
             });
 
         return Results.Ok(result.Value);
@@ -69,7 +90,8 @@ public static class ClientsEndpoints
             return Results.NotFound(new ProblemDetails
             {
                 Status = StatusCodes.Status404NotFound,
-                Title = result.Error
+                Title = result.Error!.Code,
+                Detail = result.Error.Description
             });
 
         return Results.NoContent();
@@ -93,7 +115,7 @@ public static class ClientsEndpoints
         var result = await mediator.Send(command, ct);
 
         if (result.IsFailure)
-            return Results.Problem(statusCode: StatusCodes.Status400BadRequest, title: result.Error);
+            return Results.Problem(statusCode: StatusCodes.Status400BadRequest, title: result.Error!.Code, detail: result.Error.Description);
 
         return Results.Ok(new AvatarUploadResponse(result.Value));
     }
@@ -107,17 +129,66 @@ public static class ClientsEndpoints
 
         if (result.IsFailure)
         {
-            if (result.Error == "Customer not found.")
+            if (result.Error!.Code == Application.Common.AppErrors.Customer.NotFound.Code)
                 return Results.NotFound(new ProblemDetails
                 {
                     Status = StatusCodes.Status404NotFound,
-                    Title = result.Error
+                    Title = result.Error.Code,
+                    Detail = result.Error.Description
                 });
 
             return Results.Problem(
                 statusCode: StatusCodes.Status400BadRequest,
-                title: result.Error);
+                title: result.Error.Code,
+                detail: result.Error.Description);
         }
+
+        return Results.NoContent();
+    }
+
+    private static async Task<IResult> GetMySubscription(
+        ISender mediator,
+        CancellationToken ct)
+    {
+        var result = await mediator.Send(new GetMySubscriptionQuery(), ct);
+
+        if (result.IsFailure)
+            return Results.Problem(
+                statusCode: StatusCodes.Status404NotFound,
+                title: result.Error!.Code,
+                detail: result.Error.Description);
+
+        return Results.Ok(result.Value);
+    }
+
+    private static async Task<IResult> ActivateSubscription(
+        [FromBody] ActivateSubscriptionCommand command,
+        ISender mediator,
+        CancellationToken ct)
+    {
+        var result = await mediator.Send(command, ct);
+
+        if (result.IsFailure)
+            return Results.Problem(
+                statusCode: StatusCodes.Status400BadRequest,
+                title: result.Error!.Code,
+                detail: result.Error.Description);
+
+        return Results.NoContent();
+    }
+
+    private static async Task<IResult> TopUpRequests(
+        [FromBody] TopUpRequestsCommand command,
+        ISender mediator,
+        CancellationToken ct)
+    {
+        var result = await mediator.Send(command, ct);
+
+        if (result.IsFailure)
+            return Results.Problem(
+                statusCode: StatusCodes.Status400BadRequest,
+                title: result.Error!.Code,
+                detail: result.Error.Description);
 
         return Results.NoContent();
     }

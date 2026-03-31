@@ -14,20 +14,20 @@ public sealed class CreateReviewCommandHandler(
     public async Task<Result<Guid>> Handle(CreateReviewCommand request, CancellationToken ct)
     {
         if (currentUser.Id is not { } customerId)
-            return Result<Guid>.Failure("User is not authenticated.");
+            return AppErrors.Auth.NotAuthenticated;
 
         var partner = await partners.GetByIdAsync(request.PartnerId, ct);
         if (partner is null)
-            return Result<Guid>.Failure($"Partner '{request.PartnerId}' not found.");
+            return AppErrors.Review.PartnerNotFound;
 
         if (!Enum.TryParse<ReviewBasis>(request.Basis, ignoreCase: true, out var basis))
-            return Result<Guid>.Failure($"Invalid review basis: '{request.Basis}'.");
+            return AppErrors.Review.InvalidBasis;
 
         var duplicate = await reviews.ExistsAsync(
             request.PartnerId, customerId, basis, request.InteractionReferenceId, ct);
 
         if (duplicate)
-            return Result<Guid>.Failure("A review for this interaction already exists.");
+            return AppErrors.Review.DuplicateReview;
 
         var review = Review.Create(
             partnerId: request.PartnerId,

@@ -12,7 +12,7 @@ public sealed class GetVehicleByVinQueryHandler(
         var vehicle = await vehicles.GetByVinAsync(request.Vin, ct);
 
         if (vehicle is null)
-            return Result<PublicVehicleResponse>.Failure("Vehicle not found.");
+            return AppErrors.Vehicle.NotFound;
 
         return Result<PublicVehicleResponse>.Success(PublicVehicleResponse.FromVehicle(vehicle));
     }

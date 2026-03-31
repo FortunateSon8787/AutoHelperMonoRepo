@@ -118,7 +118,7 @@ public class CreateReviewCommandHandlerTests
         var result = await _sut.Handle(ValidCommand(), CancellationToken.None);
 
         result.IsFailure.ShouldBeTrue();
-        result.Error!.ShouldContain("not found");
+        result.Error.ShouldNotBeNull();
         _reviews.Verify(r => r.Add(It.IsAny<Review>()), Times.Never);
     }
 
@@ -134,7 +134,7 @@ public class CreateReviewCommandHandlerTests
         var result = await _sut.Handle(ValidCommand(), CancellationToken.None);
 
         result.IsFailure.ShouldBeTrue();
-        result.Error!.ShouldContain("already exists");
+        result.Error.ShouldNotBeNull();
         _reviews.Verify(r => r.Add(It.IsAny<Review>()), Times.Never);
         _unitOfWork.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }

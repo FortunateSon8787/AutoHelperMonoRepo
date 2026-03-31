@@ -12,7 +12,7 @@ public sealed class GetServiceRecordByIdQueryHandler(
     {
         var record = await serviceRecords.GetByIdAsync(request.Id, ct);
         if (record is null)
-            return Result<ServiceRecordResponse>.Failure("Service record not found.");
+            return AppErrors.ServiceRecord.NotFound;
 
         return Result<ServiceRecordResponse>.Success(new ServiceRecordResponse(
             record.Id,

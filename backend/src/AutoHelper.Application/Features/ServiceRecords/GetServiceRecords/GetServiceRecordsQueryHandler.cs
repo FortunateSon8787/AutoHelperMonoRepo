@@ -13,7 +13,7 @@ public sealed class GetServiceRecordsQueryHandler(
     {
         var vehicle = await vehicles.GetByIdAsync(request.VehicleId, ct);
         if (vehicle is null)
-            return Result<IReadOnlyList<ServiceRecordResponse>>.Failure("Vehicle not found.");
+            return AppErrors.Vehicle.NotFound;
 
         var records = await serviceRecords.GetByVehicleIdAsync(request.VehicleId, ct);
 

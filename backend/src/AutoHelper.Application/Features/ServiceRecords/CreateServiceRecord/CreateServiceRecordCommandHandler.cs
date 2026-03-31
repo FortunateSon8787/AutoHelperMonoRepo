@@ -14,14 +14,14 @@ public sealed class CreateServiceRecordCommandHandler(
     public async Task<Result<Guid>> Handle(CreateServiceRecordCommand request, CancellationToken ct)
     {
         if (currentUser.Id is null)
-            return Result<Guid>.Failure("User is not authenticated.");
+            return AppErrors.Auth.NotAuthenticated;
 
         var vehicle = await vehicles.GetByIdAsync(request.VehicleId, ct);
         if (vehicle is null)
-            return Result<Guid>.Failure("Vehicle not found.");
+            return AppErrors.Vehicle.NotFound;
 
         if (vehicle.OwnerId != currentUser.Id.Value)
-            return Result<Guid>.Failure("Access denied. You do not own this vehicle.");
+            return AppErrors.ServiceRecord.AccessDenied;
 
         var record = ServiceRecord.Create(
             vehicleId: request.VehicleId,

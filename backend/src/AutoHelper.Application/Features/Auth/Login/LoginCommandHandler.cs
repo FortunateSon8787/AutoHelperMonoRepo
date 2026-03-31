@@ -17,11 +17,11 @@ public sealed class LoginCommandHandler(
         var customer = await customers.GetByEmailAsync(request.Email, ct);
 
         if (customer is null || customer.PasswordHash is null)
-            return Result<TokenResponse>.Failure("Invalid email or password.");
+            return AppErrors.Auth.InvalidCredentials;
 
         var passwordValid = passwordHasher.Verify(request.Password, customer.PasswordHash);
         if (!passwordValid)
-            return Result<TokenResponse>.Failure("Invalid email or password.");
+            return AppErrors.Auth.InvalidCredentials;
 
         var accessToken = jwtTokenService.GenerateAccessToken(customer);
         var rawRefreshToken = jwtTokenService.GenerateRefreshToken();

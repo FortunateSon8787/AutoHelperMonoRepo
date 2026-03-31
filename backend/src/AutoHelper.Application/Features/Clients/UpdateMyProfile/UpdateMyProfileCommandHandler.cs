@@ -12,11 +12,11 @@ public sealed class UpdateMyProfileCommandHandler(
     public async Task<Result> Handle(UpdateMyProfileCommand request, CancellationToken ct)
     {
         if (currentUser.Id is null)
-            return Result.Failure("User is not authenticated.");
+            return AppErrors.Auth.NotAuthenticated;
 
         var customer = await customers.GetByIdAsync(currentUser.Id.Value, ct);
         if (customer is null)
-            return Result.Failure("Customer not found.");
+            return AppErrors.Customer.NotFound;
 
         customer.UpdateProfile(request.Name, request.Contacts);
         await unitOfWork.SaveChangesAsync(ct);

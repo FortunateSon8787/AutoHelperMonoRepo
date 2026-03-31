@@ -1,6 +1,6 @@
 using AutoFixture;
+using AutoHelper.Application.Common;
 using AutoHelper.Application.Common.Interfaces;
-using AutoHelper.Application.Features.Chats;
 using AutoHelper.Application.Features.Chats.Orchestration;
 using AutoHelper.Application.Features.Chats.SendMessage;
 using AutoHelper.Domain.Chats;
@@ -80,7 +80,7 @@ public class SendMessageCommandHandlerTests
             CancellationToken.None);
 
         result.IsSuccess.ShouldBeFalse();
-        result.Error.ShouldBe(ChatErrors.NotAuthenticated);
+        result.Error.ShouldBe(AppErrors.Auth.NotAuthenticated);
     }
 
     [Fact]
@@ -96,7 +96,7 @@ public class SendMessageCommandHandlerTests
             CancellationToken.None);
 
         result.IsSuccess.ShouldBeFalse();
-        result.Error.ShouldBe(ChatErrors.CustomerNotFound);
+        result.Error.ShouldBe(AppErrors.Chat.CustomerNotFound);
     }
 
     [Fact]
@@ -115,7 +115,7 @@ public class SendMessageCommandHandlerTests
             CancellationToken.None);
 
         result.IsSuccess.ShouldBeFalse();
-        result.Error.ShouldBe(ChatErrors.ChatNotFound);
+        result.Error.ShouldBe(AppErrors.Chat.NotFound);
     }
 
     [Fact]
@@ -137,7 +137,7 @@ public class SendMessageCommandHandlerTests
             CancellationToken.None);
 
         result.IsSuccess.ShouldBeFalse();
-        result.Error.ShouldBe(ChatErrors.SubscriptionRequired);
+        result.Error.ShouldBe(AppErrors.Chat.SubscriptionRequired);
     }
 
     [Fact]

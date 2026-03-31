@@ -52,7 +52,7 @@ public class GetVehicleOwnerQueryHandlerTests
 
         // Assert
         result.IsFailure.ShouldBeTrue();
-        result.Error.ShouldNotBeEmpty();
+        result.Error.ShouldNotBeNull();
         _customers.Verify(r => r.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
@@ -72,7 +72,7 @@ public class GetVehicleOwnerQueryHandlerTests
 
         // Assert
         result.IsFailure.ShouldBeTrue();
-        result.Error.ShouldNotBeEmpty();
+        result.Error.ShouldNotBeNull();
     }
 
     [Fact]

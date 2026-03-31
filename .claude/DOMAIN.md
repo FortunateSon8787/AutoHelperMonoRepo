@@ -24,7 +24,11 @@ Customer : AggregateRoot<Guid>
 ├── PasswordHash: string?       (null для Google OAuth)
 ├── Contacts: string?           (телефон, Telegram и др.)
 ├── AvatarUrl: string?          (URL в object storage)
-├── SubscriptionStatus: SubscriptionStatus
+├── SubscriptionStatus: SubscriptionStatus  (Free | Premium | Suspended)
+├── SubscriptionPlan: SubscriptionPlan      (None | Normal | Pro | Max)
+├── SubscriptionStartDate: DateTime?        (UTC; null для free tier)
+├── SubscriptionEndDate: DateTime?          (UTC; null для free tier)
+├── AiRequestsRemaining: int               (счётчик; уменьшается Режимами 1 и 2)
 ├── RegistrationDate: DateTime
 ├── AuthProvider: AuthProvider
 │
@@ -43,7 +47,12 @@ Customer : AggregateRoot<Guid>
     ├── UpdateContacts(contacts?)
     ├── UpdateProfile(name, contacts?)
     ├── UpdateAvatar(avatarUrl)
-    └── ChangePassword(newPasswordHash) → bool
+    ├── ChangePassword(newPasswordHash) → bool
+    ├── ActivateSubscription(plan) — активирует план, сбрасывает счётчик по тарифу
+    ├── TopUpRequests(count)       — разовое пополнение счётчика
+    ├── CancelSubscription()       — возврат на free tier
+    ├── DecrementAiQuota() → bool  — −1 запрос; false если счётчик уже 0
+    └── MonthlyRequestsForPlan(plan) → int  (static: None=0, Normal=30, Pro=100, Max=300)
 ```
 
 **Domain Events:**
@@ -73,8 +82,20 @@ enum AuthProvider { Local, Google }
 enum SubscriptionStatus
 {
     Free,       // Нет доступа к AI-чату
-    Premium,    // Полный доступ ко всем функциям
+    Premium,    // Полный доступ ко всем функциям (активный план)
     Suspended   // Подписка приостановлена (ошибка оплаты)
+}
+```
+
+### SubscriptionPlan
+
+```csharp
+enum SubscriptionPlan
+{
+    None,    // Free tier
+    Normal,  // $4.99/мес — 30 запросов/мес
+    Pro,     // $7.99/мес — 100 запросов/мес
+    Max      // $12.99/мес — 300 запросов/мес
 }
 ```
 
@@ -312,29 +333,26 @@ InvalidChatRequest : Entity<Guid>
 
 ---
 
-### ChatbotSubscription (Epic AUT-4, AUT-5)
+### Subscription — **реализовано** (AUT-84/85)
 
-```
-ChatbotSubscription : AggregateRoot<Guid>
-├── CustomerId: Guid
-├── Plan: ChatbotPlan          (Regular | Pro | Maximum)
-├── Status: SubscriptionStatus (Active | Cancelled | PastDue)
-├── LemonSqueezySubscriptionId: string?
-├── LemonSqueezyCustomerId: string?
-├── RequestsRemaining: int     (оставшиеся запросы в текущем периоде)
-├── RequestsTotal: int         (лимит по плану)
-├── PeriodStart: DateTime
-├── PeriodEnd: DateTime
-└── CancelledAt: DateTime?
-```
+Подписка встроена в агрегат `Customer` (не отдельная сущность).
+Биллинг через `IBillingService` (интеграция Lemon Squeezy — планируется в Epic AUT-5).
 
 **Тарифы:**
 ```
-Regular  → $4.99/мес,  10 запросов (Режим 1 + Режим 2 суммарно)
-Pro      → $7.99/мес,  20 запросов
-Maximum  → $12.99/мес, 40 запросов
-Разовое пополнение → $3 / 10 запросов
+None    → free tier, 0 запросов
+Normal  → $4.99/мес,  30 запросов/мес
+Pro     → $7.99/мес,  100 запросов/мес
+Max     → $12.99/мес, 300 запросов/мес
+Разовое пополнение → через POST /api/clients/me/subscription/topup
 ```
+
+**Бизнес-правила:**
+- `AiRequestsRemaining` уменьшается только Режимами 1 (FaultHelp) и 2 (WorkClarification)
+- Режим 3 (PartnerAdvice) требует подписки, но счётчик **не уменьшает**
+- Off-topic запросы (IsValid=false) никогда не уменьшают счётчик
+- При `AiRequestsRemaining = 0` → ответ `CHAT_009 QuotaExceeded`
+- `ActivateSubscription(plan)` сбрасывает счётчик до месячного лимита плана
 
 ---
 

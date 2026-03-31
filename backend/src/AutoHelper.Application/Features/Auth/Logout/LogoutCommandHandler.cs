@@ -13,7 +13,7 @@ public sealed class LogoutCommandHandler(
         var token = await refreshTokens.GetByTokenAsync(request.RefreshToken, ct);
 
         if (token is null)
-            return Result.Failure("Refresh token not found.");
+            return AppErrors.Auth.RefreshTokenNotFound;
 
         if (token.IsRevoked)
             return Result.Success(); // already logged out — idempotent

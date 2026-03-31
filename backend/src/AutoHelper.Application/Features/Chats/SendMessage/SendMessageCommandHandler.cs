@@ -16,21 +16,24 @@ public sealed class SendMessageCommandHandler(
     public async Task<Result<SendMessageResponse>> Handle(SendMessageCommand request, CancellationToken ct)
     {
         if (currentUser.Id is null)
-            return Result<SendMessageResponse>.Failure(ChatErrors.NotAuthenticated);
+            return AppErrors.Auth.NotAuthenticated;
 
         var customer = await customers.GetByIdAsync(currentUser.Id.Value, ct);
         if (customer is null)
-            return Result<SendMessageResponse>.Failure(ChatErrors.CustomerNotFound);
+            return AppErrors.Chat.CustomerNotFound;
 
         var chat = await chats.GetByIdAsync(request.ChatId, includeMessages: true, ct);
         if (chat is null || chat.CustomerId != currentUser.Id.Value)
-            return Result<SendMessageResponse>.Failure(ChatErrors.ChatNotFound);
+            return AppErrors.Chat.NotFound;
 
         if (!chat.CanReceiveMessage())
-            return Result<SendMessageResponse>.Failure(ChatErrors.ChatIsCompleted);
+            return AppErrors.Chat.ChatIsCompleted;
 
         if (!CanSendMessage(customer, chat.Mode))
-            return Result<SendMessageResponse>.Failure(ChatErrors.SubscriptionRequired);
+            return AppErrors.Chat.SubscriptionRequired;
+
+        if (RequiresQuota(chat.Mode) && customer.AiRequestsRemaining <= 0)
+            return AppErrors.Chat.QuotaExceeded;
 
         var result = await orchestrator.ProcessAsync(chat, customer, request.Content, request.Locale, ct);
 
@@ -45,4 +48,7 @@ public sealed class SendMessageCommandHandler(
     private static bool CanSendMessage(Customer customer, ChatMode mode) =>
         mode == ChatMode.PartnerAdvice
         || customer.SubscriptionStatus == SubscriptionStatus.Premium;
+
+    private static bool RequiresQuota(ChatMode mode) =>
+        mode is ChatMode.FaultHelp or ChatMode.WorkClarification;
 }

@@ -24,6 +24,15 @@ public sealed class Customer : AggregateRoot<Guid>
 
     public SubscriptionStatus SubscriptionStatus { get; private set; }
 
+    /// <summary>The active paid plan. None means free tier.</summary>
+    public SubscriptionPlan SubscriptionPlan { get; private set; }
+
+    /// <summary>UTC start of the current subscription period. Null for free tier.</summary>
+    public DateTime? SubscriptionStartDate { get; private set; }
+
+    /// <summary>UTC expiry of the current subscription period. Null for free tier.</summary>
+    public DateTime? SubscriptionEndDate { get; private set; }
+
     public DateTime RegistrationDate { get; private set; }
 
     // ─── Auth provider ────────────────────────────────────────────────────────
@@ -174,4 +183,51 @@ public sealed class Customer : AggregateRoot<Guid>
         PasswordHash = newPasswordHash;
         return true;
     }
+
+    /// <summary>
+    /// Activates or upgrades a paid subscription plan for one month.
+    /// Sets AI requests quota according to the plan.
+    /// </summary>
+    public void ActivateSubscription(SubscriptionPlan plan)
+    {
+        var now = DateTime.UtcNow;
+
+        SubscriptionPlan = plan;
+        SubscriptionStatus = SubscriptionStatus.Premium;
+        SubscriptionStartDate = now;
+        SubscriptionEndDate = now.AddMonths(1);
+        AiRequestsRemaining = MonthlyRequestsForPlan(plan);
+    }
+
+    /// <summary>
+    /// Adds a one-time top-up of AI requests to the current quota (any tier).
+    /// </summary>
+    public void TopUpRequests(int count)
+    {
+        if (count <= 0)
+            return;
+
+        AiRequestsRemaining += count;
+    }
+
+    /// <summary>
+    /// Cancels the active subscription and reverts the customer to the free tier.
+    /// </summary>
+    public void CancelSubscription()
+    {
+        SubscriptionPlan = SubscriptionPlan.None;
+        SubscriptionStatus = SubscriptionStatus.Free;
+        SubscriptionStartDate = null;
+        SubscriptionEndDate = null;
+        AiRequestsRemaining = 0;
+    }
+
+    /// <summary>Returns the number of monthly AI requests granted by a plan.</summary>
+    public static int MonthlyRequestsForPlan(SubscriptionPlan plan) => plan switch
+    {
+        SubscriptionPlan.Normal => 30,
+        SubscriptionPlan.Pro    => 100,
+        SubscriptionPlan.Max    => 300,
+        _                       => 0
+    };
 }

@@ -11,12 +11,12 @@ public sealed class GetMyPartnerProfileQueryHandler(
     public async Task<Result<PartnerResponse>> Handle(GetMyPartnerProfileQuery request, CancellationToken ct)
     {
         if (currentUser.Id is not { } userId)
-            return Result<PartnerResponse>.Failure("User is not authenticated.");
+            return AppErrors.Auth.NotAuthenticated;
 
         var partner = await partners.GetByAccountUserIdAsync(userId, ct);
 
         if (partner is null)
-            return Result<PartnerResponse>.Failure("Partner profile not found.");
+            return AppErrors.Partner.ProfileNotFound;
 
         return Result<PartnerResponse>.Success(PartnerResponse.FromPartner(partner));
     }

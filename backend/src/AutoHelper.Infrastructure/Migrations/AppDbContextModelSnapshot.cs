@@ -239,6 +239,19 @@ namespace AutoHelper.Infrastructure.Migrations
                     b.Property<DateTime>("RegistrationDate")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<DateTime?>("SubscriptionEndDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("SubscriptionPlan")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasDefaultValue("None");
+
+                    b.Property<DateTime?>("SubscriptionStartDate")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("SubscriptionStatus")
                         .IsRequired()
                         .HasMaxLength(32)

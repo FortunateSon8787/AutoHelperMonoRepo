@@ -14,7 +14,7 @@ public sealed class RegisterCustomerCommandHandler(
     {
         var emailExists = await customers.ExistsByEmailAsync(request.Email, ct);
         if (emailExists)
-            return Result<Guid>.Failure("A customer with this email address already exists.");
+            return AppErrors.Auth.EmailAlreadyExists;
 
         var passwordHash = passwordHasher.Hash(request.Password);
 

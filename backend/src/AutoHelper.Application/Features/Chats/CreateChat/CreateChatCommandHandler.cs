@@ -17,23 +17,26 @@ public sealed class CreateChatCommandHandler(
     public async Task<Result<CreateChatResponse>> Handle(CreateChatCommand request, CancellationToken ct)
     {
         if (currentUser.Id is null)
-            return Result<CreateChatResponse>.Failure(ChatErrors.NotAuthenticated);
+            return AppErrors.Auth.NotAuthenticated;
 
         var customer = await customers.GetByIdAsync(currentUser.Id.Value, ct);
         if (customer is null)
-            return Result<CreateChatResponse>.Failure(ChatErrors.CustomerNotFound);
+            return AppErrors.Chat.CustomerNotFound;
 
         if (!CanAccessAiChat(customer, request.Mode))
-            return Result<CreateChatResponse>.Failure(ChatErrors.CreateSubscriptionRequired);
+            return AppErrors.Chat.CreateSubscriptionRequired;
+
+        if (RequiresQuota(request.Mode) && customer.AiRequestsRemaining <= 0)
+            return AppErrors.Chat.QuotaExceeded;
 
         if (request.Mode == ChatMode.FaultHelp && request.DiagnosticsInput is null)
-            return Result<CreateChatResponse>.Failure(ChatErrors.DiagnosticsInputRequired);
+            return AppErrors.Chat.DiagnosticsInputRequired;
 
         if (request.Mode == ChatMode.WorkClarification && request.WorkClarificationInput is null)
-            return Result<CreateChatResponse>.Failure(ChatErrors.WorkClarificationInputRequired);
+            return AppErrors.Chat.WorkClarificationInputRequired;
 
         if (request.Mode == ChatMode.PartnerAdvice && request.PartnerAdviceInput is null)
-            return Result<CreateChatResponse>.Failure(ChatErrors.PartnerAdviceInputRequired);
+            return AppErrors.Chat.PartnerAdviceInputRequired;
 
         var chat = Chat.Create(
             customerId: currentUser.Id.Value,
@@ -82,4 +85,7 @@ public sealed class CreateChatCommandHandler(
     private static bool CanAccessAiChat(Customer customer, ChatMode mode) =>
         mode == ChatMode.PartnerAdvice
         || customer.SubscriptionStatus == SubscriptionStatus.Premium;
+
+    private static bool RequiresQuota(ChatMode mode) =>
+        mode is ChatMode.FaultHelp or ChatMode.WorkClarification;
 }

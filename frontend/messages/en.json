@@ -440,6 +440,48 @@
       }
     }
   },
+  "subscription": {
+    "title": "Subscription",
+    "subtitle": "Manage your AutoHelper subscription plan",
+    "currentPlanLabel": "Current plan",
+    "statusLabel": "Status",
+    "requestsRemainingLabel": "AI requests remaining",
+    "validUntilLabel": "Valid until",
+    "noActivePlan": "No active subscription",
+    "upgradeTitle": "Choose a Plan",
+    "upgradeSubtitle": "Unlock AI diagnostics and work analysis",
+    "perMonth": "/mo",
+    "requestsPerMonth": "requests/mo",
+    "activateButton": "Activate",
+    "activatingButton": "Activating...",
+    "currentPlanBadge": "Current plan",
+    "topUpTitle": "Top up requests",
+    "topUpSubtitle": "Add extra AI requests without changing your plan",
+    "topUpCountLabel": "Number of requests",
+    "topUpCountPlaceholder": "10",
+    "topUpButton": "Top up",
+    "toppingUpButton": "Topping up...",
+    "topUpSuccess": "Requests added successfully",
+    "activateSuccess": "Plan activated successfully",
+    "plans": {
+      "None": "Free",
+      "Normal": "Normal",
+      "Pro": "Pro",
+      "Max": "Max"
+    },
+    "validation": {
+      "countRequired": "Enter a number of requests",
+      "countMin": "Minimum 1 request",
+      "countMax": "Maximum 100 requests at once"
+    },
+    "errors": {
+      "unauthorized": "Authorization required",
+      "notFound": "Subscription not found",
+      "badRequest": "Please check your input",
+      "serverError": "Server error. Please try again later",
+      "unknown": "Something went wrong. Please try again"
+    }
+  },
   "profile": {
     "title": "Profile",
     "subscription": "Subscription",

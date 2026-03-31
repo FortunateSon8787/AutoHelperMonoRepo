@@ -13,17 +13,17 @@ public sealed class ChangePasswordCommandHandler(
     public async Task<Result> Handle(ChangePasswordCommand request, CancellationToken ct)
     {
         if (currentUser.Id is null)
-            return Result.Failure("User is not authenticated.");
+            return AppErrors.Auth.NotAuthenticated;
 
         var customer = await customers.GetByIdAsync(currentUser.Id.Value, ct);
         if (customer is null)
-            return Result.Failure("Customer not found.");
+            return AppErrors.Customer.NotFound;
 
         if (customer.PasswordHash is null)
-            return Result.Failure("Password change is not available for OAuth accounts.");
+            return AppErrors.Customer.PasswordChangeNotAvailableForOAuth;
 
         if (!passwordHasher.Verify(request.CurrentPassword, customer.PasswordHash))
-            return Result.Failure("Current password is incorrect.");
+            return AppErrors.Customer.IncorrectCurrentPassword;
 
         var newHash = passwordHasher.Hash(request.NewPassword);
         customer.ChangePassword(newHash);

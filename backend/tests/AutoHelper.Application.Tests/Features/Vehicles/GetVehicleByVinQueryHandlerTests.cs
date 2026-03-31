@@ -52,7 +52,7 @@ public class GetVehicleByVinQueryHandlerTests
 
         // Assert
         result.IsFailure.ShouldBeTrue();
-        result.Error.ShouldNotBeEmpty();
+        result.Error.ShouldNotBeNull();
     }
 
     [Fact]

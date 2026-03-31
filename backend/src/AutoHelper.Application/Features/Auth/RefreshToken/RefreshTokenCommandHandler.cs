@@ -17,11 +17,11 @@ public sealed class RefreshTokenCommandHandler(
         var existingToken = await refreshTokens.GetByTokenAsync(request.Token, ct);
 
         if (existingToken is null || !existingToken.IsActive)
-            return Result<TokenResponse>.Failure("Refresh token is invalid or has expired.");
+            return AppErrors.Auth.RefreshTokenInvalid;
 
         var customer = await customers.GetByIdAsync(existingToken.CustomerId, ct);
         if (customer is null)
-            return Result<TokenResponse>.Failure("Customer not found.");
+            return AppErrors.Customer.NotFound;
 
         // Token rotation: revoke the old token and issue a new pair
         existingToken.Revoke();

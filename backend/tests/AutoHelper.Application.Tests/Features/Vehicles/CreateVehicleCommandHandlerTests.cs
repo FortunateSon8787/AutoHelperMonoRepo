@@ -78,7 +78,7 @@ public class CreateVehicleCommandHandlerTests
 
         // Assert
         result.IsFailure.ShouldBeTrue();
-        result.Error.ShouldNotBeEmpty();
+        result.Error.ShouldNotBeNull();
 
         _vehicles.Verify(r => r.Add(It.IsAny<Vehicle>()), Times.Never);
         _unitOfWork.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);

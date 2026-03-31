@@ -34,6 +34,16 @@ public sealed class CustomerConfiguration : IEntityTypeConfiguration<Customer>
             .HasMaxLength(32)
             .IsRequired();
 
+        builder.Property(c => c.SubscriptionPlan)
+            .HasConversion<string>()
+            .HasMaxLength(32)
+            .IsRequired()
+            .HasDefaultValue(Domain.Customers.SubscriptionPlan.None);
+
+        builder.Property(c => c.SubscriptionStartDate);
+
+        builder.Property(c => c.SubscriptionEndDate);
+
         builder.Property(c => c.RegistrationDate)
             .IsRequired();
 

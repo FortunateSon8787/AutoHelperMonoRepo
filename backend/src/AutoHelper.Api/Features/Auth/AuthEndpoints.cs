@@ -51,7 +51,8 @@ public static class AuthEndpoints
             return Results.Conflict(new ProblemDetails
             {
                 Status = StatusCodes.Status409Conflict,
-                Title = result.Error
+                Title = result.Error!.Code,
+                Detail = result.Error.Description
             });
 
         return Results.Created($"/api/customers/{result.Value}", new RegisterResponse(result.Value));
@@ -109,7 +110,8 @@ public static class AuthEndpoints
             return Results.NotFound(new ProblemDetails
             {
                 Status = StatusCodes.Status404NotFound,
-                Title = result.Error
+                Title = result.Error!.Code,
+                Detail = result.Error.Description
             });
 
         ClearAuthCookies(httpContext);

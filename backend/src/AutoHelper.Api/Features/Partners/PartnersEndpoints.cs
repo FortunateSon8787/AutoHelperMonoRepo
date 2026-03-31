@@ -92,7 +92,8 @@ public static class PartnersEndpoints
             return Results.Conflict(new ProblemDetails
             {
                 Status = StatusCodes.Status409Conflict,
-                Title = result.Error
+                Title = result.Error!.Code,
+                Detail = result.Error.Description
             });
 
         return Results.Created($"/api/partners/me", new RegisterPartnerResponse(result.Value));
@@ -108,7 +109,8 @@ public static class PartnersEndpoints
             return Results.NotFound(new ProblemDetails
             {
                 Status = StatusCodes.Status404NotFound,
-                Title = result.Error
+                Title = result.Error!.Code,
+                Detail = result.Error.Description
             });
 
         return Results.Ok(result.Value);
@@ -125,7 +127,8 @@ public static class PartnersEndpoints
             return Results.NotFound(new ProblemDetails
             {
                 Status = StatusCodes.Status404NotFound,
-                Title = result.Error
+                Title = result.Error!.Code,
+                Detail = result.Error.Description
             });
 
         return Results.NoContent();
@@ -160,7 +163,8 @@ public static class PartnersEndpoints
             return Results.NotFound(new ProblemDetails
             {
                 Status = StatusCodes.Status404NotFound,
-                Title = result.Error
+                Title = result.Error!.Code,
+                Detail = result.Error.Description
             });
 
         return Results.Ok(result.Value);
@@ -187,7 +191,8 @@ public static class PartnersEndpoints
             return Results.NotFound(new ProblemDetails
             {
                 Status = StatusCodes.Status404NotFound,
-                Title = result.Error
+                Title = result.Error!.Code,
+                Detail = result.Error.Description
             });
 
         return Results.NoContent();
@@ -204,7 +209,8 @@ public static class PartnersEndpoints
             return Results.NotFound(new ProblemDetails
             {
                 Status = StatusCodes.Status404NotFound,
-                Title = result.Error
+                Title = result.Error!.Code,
+                Detail = result.Error.Description
             });
 
         return Results.NoContent();
@@ -229,20 +235,22 @@ public static class PartnersEndpoints
 
         if (result.IsFailure)
         {
-            if (result.Error!.Contains("not found", StringComparison.OrdinalIgnoreCase))
+            if (result.Error!.Code == Application.Common.AppErrors.Auth.NotAuthenticated.Code)
+                return Results.Unauthorized();
+
+            if (result.Error.Code == Application.Common.AppErrors.Review.PartnerNotFound.Code)
                 return Results.NotFound(new ProblemDetails
                 {
                     Status = StatusCodes.Status404NotFound,
-                    Title = result.Error
+                    Title = result.Error.Code,
+                    Detail = result.Error.Description
                 });
-
-            if (result.Error.Contains("not authenticated", StringComparison.OrdinalIgnoreCase))
-                return Results.Unauthorized();
 
             return Results.Conflict(new ProblemDetails
             {
                 Status = StatusCodes.Status409Conflict,
-                Title = result.Error
+                Title = result.Error.Code,
+                Detail = result.Error.Description
             });
         }
 

@@ -13,18 +13,18 @@ public sealed class UpdateMyPartnerProfileCommandHandler(
     public async Task<Result> Handle(UpdateMyPartnerProfileCommand request, CancellationToken ct)
     {
         if (currentUser.Id is not { } userId)
-            return Result.Failure("User is not authenticated.");
+            return AppErrors.Auth.NotAuthenticated;
 
         var partner = await partners.GetByAccountUserIdAsync(userId, ct);
 
         if (partner is null)
-            return Result.Failure("Partner profile not found.");
+            return AppErrors.Partner.ProfileNotFound;
 
         if (!TimeOnly.TryParseExact(request.WorkingOpenFrom, "HH:mm", out var openFrom))
-            return Result.Failure("Invalid WorkingOpenFrom format. Expected HH:mm.");
+            return AppErrors.Partner.InvalidWorkingOpenFrom;
 
         if (!TimeOnly.TryParseExact(request.WorkingOpenTo, "HH:mm", out var openTo))
-            return Result.Failure("Invalid WorkingOpenTo format. Expected HH:mm.");
+            return AppErrors.Partner.InvalidWorkingOpenTo;
 
         var location = GeoPoint.Create(request.LocationLat, request.LocationLng);
         var workingHours = WorkingSchedule.Create(openFrom, openTo, request.WorkingDays);

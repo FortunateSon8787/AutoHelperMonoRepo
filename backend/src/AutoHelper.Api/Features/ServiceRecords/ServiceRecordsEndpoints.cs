@@ -86,7 +86,8 @@ public static class ServiceRecordsEndpoints
             return Results.NotFound(new ProblemDetails
             {
                 Status = StatusCodes.Status404NotFound,
-                Title = result.Error
+                Title = result.Error!.Code,
+                Detail = result.Error.Description
             });
 
         return Results.Ok(result.Value);
@@ -103,7 +104,8 @@ public static class ServiceRecordsEndpoints
             return Results.NotFound(new ProblemDetails
             {
                 Status = StatusCodes.Status404NotFound,
-                Title = result.Error
+                Title = result.Error!.Code,
+                Detail = result.Error.Description
             });
 
         return Results.Ok(result.Value);
@@ -120,7 +122,8 @@ public static class ServiceRecordsEndpoints
             return Results.NotFound(new ProblemDetails
             {
                 Status = StatusCodes.Status404NotFound,
-                Title = result.Error
+                Title = result.Error!.Code,
+                Detail = result.Error.Description
             });
 
         return Results.Ok(result.Value);
@@ -147,11 +150,14 @@ public static class ServiceRecordsEndpoints
 
         if (result.IsFailure)
         {
-            var statusCode = result.Error!.Contains("not found", StringComparison.OrdinalIgnoreCase)
+            var statusCode = result.Error!.Code == Application.Common.AppErrors.Vehicle.NotFound.Code
                 ? StatusCodes.Status404NotFound
                 : StatusCodes.Status400BadRequest;
 
-            return Results.Problem(statusCode: statusCode, title: result.Error);
+            return Results.Problem(
+                statusCode: statusCode,
+                title: result.Error.Code,
+                detail: result.Error.Description);
         }
 
         return Results.Created(
@@ -179,11 +185,14 @@ public static class ServiceRecordsEndpoints
 
         if (result.IsFailure)
         {
-            var statusCode = result.Error!.Contains("not found", StringComparison.OrdinalIgnoreCase)
+            var statusCode = result.Error!.Code == Application.Common.AppErrors.ServiceRecord.NotFound.Code
                 ? StatusCodes.Status404NotFound
                 : StatusCodes.Status400BadRequest;
 
-            return Results.Problem(statusCode: statusCode, title: result.Error);
+            return Results.Problem(
+                statusCode: statusCode,
+                title: result.Error.Code,
+                detail: result.Error.Description);
         }
 
         return Results.NoContent();
@@ -198,11 +207,14 @@ public static class ServiceRecordsEndpoints
 
         if (result.IsFailure)
         {
-            var statusCode = result.Error!.Contains("not found", StringComparison.OrdinalIgnoreCase)
+            var statusCode = result.Error!.Code == Application.Common.AppErrors.ServiceRecord.NotFound.Code
                 ? StatusCodes.Status404NotFound
                 : StatusCodes.Status400BadRequest;
 
-            return Results.Problem(statusCode: statusCode, title: result.Error);
+            return Results.Problem(
+                statusCode: statusCode,
+                title: result.Error.Code,
+                detail: result.Error.Description);
         }
 
         return Results.NoContent();
@@ -271,7 +283,8 @@ public static class ServiceRecordsEndpoints
             return Results.NotFound(new ProblemDetails
             {
                 Status = StatusCodes.Status404NotFound,
-                Title = result.Error
+                Title = result.Error!.Code,
+                Detail = result.Error.Description
             });
 
         var fileKey = ExtractFileKey(result.Value.DocumentUrl, storageOptions.Value);

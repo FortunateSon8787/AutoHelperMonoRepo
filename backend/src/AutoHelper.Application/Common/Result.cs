@@ -7,7 +7,7 @@ namespace AutoHelper.Application.Common;
 public interface IFailureResult
 {
     bool IsFailure { get; }
-    string? Error { get; }
+    AppError? Error { get; }
 }
 
 /// <summary>
@@ -17,7 +17,7 @@ public interface IFailureResult
 /// </summary>
 public sealed class Result : IFailureResult
 {
-    private Result(bool isSuccess, string? error)
+    private Result(bool isSuccess, AppError? error)
     {
         IsSuccess = isSuccess;
         Error = error;
@@ -25,12 +25,12 @@ public sealed class Result : IFailureResult
 
     public bool IsSuccess { get; }
     public bool IsFailure => !IsSuccess;
-    public string? Error { get; }
+    public AppError? Error { get; }
 
     public static Result Success() => new(true, null);
-    public static Result Failure(string error) => new(false, error);
+    public static Result Failure(AppError error) => new(false, error);
 
-    public static implicit operator Result(string error) => Failure(error);
+    public static implicit operator Result(AppError error) => Failure(error);
 }
 
 /// <summary>
@@ -47,7 +47,7 @@ public sealed class Result<TValue> : IFailureResult
         Error = null;
     }
 
-    private Result(string error)
+    private Result(AppError error)
     {
         IsSuccess = false;
         _value = default;
@@ -56,15 +56,15 @@ public sealed class Result<TValue> : IFailureResult
 
     public bool IsSuccess { get; }
     public bool IsFailure => !IsSuccess;
-    public string? Error { get; }
+    public AppError? Error { get; }
 
     public TValue Value => IsSuccess
         ? _value!
         : throw new InvalidOperationException("Cannot access Value of a failed Result.");
 
     public static Result<TValue> Success(TValue value) => new(value);
-    public static Result<TValue> Failure(string error) => new(error);
+    public static Result<TValue> Failure(AppError error) => new(error);
 
     public static implicit operator Result<TValue>(TValue value) => Success(value);
-    public static implicit operator Result<TValue>(string error) => Failure(error);
+    public static implicit operator Result<TValue>(AppError error) => Failure(error);
 }

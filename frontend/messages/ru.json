@@ -440,6 +440,48 @@
       }
     }
   },
+  "subscription": {
+    "title": "Подписка",
+    "subtitle": "Управляйте вашим тарифным планом AutoHelper",
+    "currentPlanLabel": "Текущий план",
+    "statusLabel": "Статус",
+    "requestsRemainingLabel": "Осталось AI-запросов",
+    "validUntilLabel": "Действует до",
+    "noActivePlan": "Нет активной подписки",
+    "upgradeTitle": "Выберите тариф",
+    "upgradeSubtitle": "Откройте AI-диагностику и анализ работ",
+    "perMonth": "/мес",
+    "requestsPerMonth": "запросов/мес",
+    "activateButton": "Подключить",
+    "activatingButton": "Подключаем...",
+    "currentPlanBadge": "Текущий план",
+    "topUpTitle": "Пополнить запросы",
+    "topUpSubtitle": "Добавьте запросы без смены тарифа",
+    "topUpCountLabel": "Количество запросов",
+    "topUpCountPlaceholder": "10",
+    "topUpButton": "Пополнить",
+    "toppingUpButton": "Пополняем...",
+    "topUpSuccess": "Запросы успешно добавлены",
+    "activateSuccess": "Тариф успешно активирован",
+    "plans": {
+      "None": "Бесплатный",
+      "Normal": "Обычный",
+      "Pro": "Про",
+      "Max": "Макс"
+    },
+    "validation": {
+      "countRequired": "Укажите количество запросов",
+      "countMin": "Минимум 1 запрос",
+      "countMax": "Максимум 100 запросов за раз"
+    },
+    "errors": {
+      "unauthorized": "Необходима авторизация",
+      "notFound": "Подписка не найдена",
+      "badRequest": "Проверьте правильность введённых данных",
+      "serverError": "Ошибка сервера. Попробуйте позже",
+      "unknown": "Что-то пошло не так. Попробуйте ещё раз"
+    }
+  },
   "profile": {
     "title": "Профиль",
     "subscription": "Подписка",

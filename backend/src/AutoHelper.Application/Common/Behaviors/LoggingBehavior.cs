@@ -58,16 +58,9 @@ public sealed class LoggingBehavior<TRequest, TResponse>(
 
     private static bool IsFailedResult(TResponse response, out string? error)
     {
-        if (response is Result result && result.IsFailure)
-        {
-            error = result.Error;
-            return true;
-        }
-
-        // Result<TValue> has no common interface with Result, check via reflection-free pattern
         if (response is IFailureResult failureResult && failureResult.IsFailure)
         {
-            error = failureResult.Error;
+            error = failureResult.Error?.ToString();
             return true;
         }
 

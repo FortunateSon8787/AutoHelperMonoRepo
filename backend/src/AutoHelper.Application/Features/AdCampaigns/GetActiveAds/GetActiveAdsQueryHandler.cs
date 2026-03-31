@@ -14,8 +14,7 @@ public sealed class GetActiveAdsQueryHandler(
         if (!string.IsNullOrWhiteSpace(request.TargetCategory))
         {
             if (!Enum.TryParse<PartnerType>(request.TargetCategory, ignoreCase: true, out var parsed))
-                return Result<IReadOnlyList<AdCampaignResponse>>.Failure(
-                    $"Invalid target category: {request.TargetCategory}.");
+                return AppErrors.AdCampaign.InvalidTargetCategory;
 
             targetCategory = parsed;
         }

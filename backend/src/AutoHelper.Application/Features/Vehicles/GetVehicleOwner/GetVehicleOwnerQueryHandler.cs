@@ -12,11 +12,11 @@ public sealed class GetVehicleOwnerQueryHandler(
     {
         var vehicle = await vehicles.GetByVinAsync(request.Vin, ct);
         if (vehicle is null)
-            return Result<VehicleOwnerResponse>.Failure("Vehicle not found.");
+            return AppErrors.Vehicle.NotFound;
 
         var owner = await customers.GetByIdAsync(vehicle.OwnerId, ct);
         if (owner is null)
-            return Result<VehicleOwnerResponse>.Failure("Owner not found.");
+            return AppErrors.Vehicle.OwnerNotFound;
 
         return Result<VehicleOwnerResponse>.Success(VehicleOwnerResponse.FromCustomer(owner));
     }

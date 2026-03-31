@@ -13,7 +13,7 @@ public sealed class GetPartnerByIdQueryHandler(
         var partner = await partners.GetByIdAsync(request.PartnerId, ct);
 
         if (partner is null || !partner.IsVerified || !partner.IsActive)
-            return Result<PartnerResponse>.Failure("Partner not found.");
+            return AppErrors.Partner.NotFound;
 
         return Result<PartnerResponse>.Success(PartnerResponse.FromPartner(partner));
     }

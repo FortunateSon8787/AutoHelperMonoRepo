@@ -71,7 +71,7 @@ public class GetPartnerByIdQueryHandlerTests
         var result = await _sut.Handle(new GetPartnerByIdQuery(Guid.NewGuid()), CancellationToken.None);
 
         result.IsFailure.ShouldBeTrue();
-        result.Error.ShouldNotBeEmpty();
+        result.Error.ShouldNotBeNull();
     }
 
     [Fact]
@@ -84,7 +84,7 @@ public class GetPartnerByIdQueryHandlerTests
         var result = await _sut.Handle(new GetPartnerByIdQuery(unverified.Id), CancellationToken.None);
 
         result.IsFailure.ShouldBeTrue();
-        result.Error.ShouldNotBeEmpty();
+        result.Error.ShouldNotBeNull();
     }
 
     [Fact]
@@ -99,7 +99,7 @@ public class GetPartnerByIdQueryHandlerTests
         var result = await _sut.Handle(new GetPartnerByIdQuery(partner.Id), CancellationToken.None);
 
         result.IsFailure.ShouldBeTrue();
-        result.Error.ShouldNotBeEmpty();
+        result.Error.ShouldNotBeNull();
     }
 
     [Fact]

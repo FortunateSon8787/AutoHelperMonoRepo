@@ -60,7 +60,8 @@ public static class AdCampaignEndpoints
             return Results.NotFound(new ProblemDetails
             {
                 Status = StatusCodes.Status404NotFound,
-                Title = result.Error
+                Title = result.Error!.Code,
+                Detail = result.Error.Description
             });
 
         return Results.Ok(result.Value);
@@ -77,7 +78,8 @@ public static class AdCampaignEndpoints
             return Results.BadRequest(new ProblemDetails
             {
                 Status = StatusCodes.Status400BadRequest,
-                Title = result.Error
+                Title = result.Error!.Code,
+                Detail = result.Error.Description
             });
 
         return Results.Created($"/api/ad-campaigns/{result.Value}", new CreateAdCampaignResponse(result.Value));
@@ -104,7 +106,8 @@ public static class AdCampaignEndpoints
             return Results.NotFound(new ProblemDetails
             {
                 Status = StatusCodes.Status404NotFound,
-                Title = result.Error
+                Title = result.Error!.Code,
+                Detail = result.Error.Description
             });
 
         return Results.NoContent();
@@ -121,7 +124,8 @@ public static class AdCampaignEndpoints
             return Results.NotFound(new ProblemDetails
             {
                 Status = StatusCodes.Status404NotFound,
-                Title = result.Error
+                Title = result.Error!.Code,
+                Detail = result.Error.Description
             });
 
         return Results.NoContent();
@@ -143,7 +147,8 @@ public static class AdCampaignEndpoints
             return Results.BadRequest(new ProblemDetails
             {
                 Status = StatusCodes.Status400BadRequest,
-                Title = result.Error
+                Title = result.Error!.Code,
+                Detail = result.Error.Description
             });
 
         return Results.Ok(result.Value);

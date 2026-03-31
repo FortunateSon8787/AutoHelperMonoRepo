@@ -1,29 +1,37 @@
+using AutoHelper.Application.Common;
 using AutoHelper.Application.Common.Interfaces;
+using AutoHelper.Domain.Vehicles;
 using MediatR;
-using AppResult = AutoHelper.Application.Common.Result;
 
 namespace AutoHelper.Application.Features.Vehicles.ChangeVehicleStatus;
 
 public sealed class ChangeVehicleStatusCommandHandler(
     IVehicleRepository vehicles,
     ICurrentUser currentUser,
-    IUnitOfWork unitOfWork) : IRequestHandler<ChangeVehicleStatusCommand, AppResult>
+    IUnitOfWork unitOfWork) : IRequestHandler<ChangeVehicleStatusCommand, Result>
 {
-    public async Task<AppResult> Handle(ChangeVehicleStatusCommand request, CancellationToken ct)
+    public async Task<Result> Handle(ChangeVehicleStatusCommand request, CancellationToken ct)
     {
         if (currentUser.Id is null)
-            return AppResult.Failure("User is not authenticated.");
+            return AppErrors.Auth.NotAuthenticated;
 
         var vehicle = await vehicles.GetByIdAsync(request.Id, ct);
         if (vehicle is null || vehicle.OwnerId != currentUser.Id.Value)
-            return AppResult.Failure("Vehicle not found.");
+            return AppErrors.Vehicle.NotFound;
 
         var domainResult = vehicle.ChangeStatus(request.Status, request.PartnerName, request.DocumentUrl);
         if (domainResult.IsFailure)
-            return AppResult.Failure(domainResult.Error!);
+            return MapDomainVehicleError(domainResult.Error!);
 
         await unitOfWork.SaveChangesAsync(ct);
 
-        return AppResult.Success();
+        return Result.Success();
     }
+
+    private static AppError MapDomainVehicleError(string domainError) => domainError switch
+    {
+        _ when domainError.Contains("Partner name") => AppErrors.Vehicle.PartnerNameRequiredForInRepair,
+        _ when domainError.Contains("Document") => AppErrors.Vehicle.DocumentRequiredForRecycledOrDismantled,
+        _ => new AppError("VEHICLE_DOMAIN", domainError)
+    };
 }

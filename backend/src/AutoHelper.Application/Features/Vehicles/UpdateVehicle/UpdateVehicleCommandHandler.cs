@@ -12,11 +12,11 @@ public sealed class UpdateVehicleCommandHandler(
     public async Task<Result> Handle(UpdateVehicleCommand request, CancellationToken ct)
     {
         if (currentUser.Id is null)
-            return Result.Failure("User is not authenticated.");
+            return AppErrors.Auth.NotAuthenticated;
 
         var vehicle = await vehicles.GetByIdAsync(request.Id, ct);
         if (vehicle is null || vehicle.OwnerId != currentUser.Id.Value)
-            return Result.Failure("Vehicle not found.");
+            return AppErrors.Vehicle.NotFound;
 
         vehicle.UpdateDetails(
             brand: request.Brand,

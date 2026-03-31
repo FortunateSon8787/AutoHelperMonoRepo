@@ -73,7 +73,7 @@ public class RegisterPartnerCommandHandlerTests
         var result = await _sut.Handle(ValidCommand(), CancellationToken.None);
 
         result.IsFailure.ShouldBeTrue();
-        result.Error.ShouldNotBeEmpty();
+        result.Error.ShouldNotBeNull();
 
         _partners.Verify(r => r.Add(It.IsAny<Partner>()), Times.Never);
         _unitOfWork.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);

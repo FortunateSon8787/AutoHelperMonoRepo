@@ -11,11 +11,11 @@ public sealed class GetVehicleByIdQueryHandler(
     public async Task<Result<VehicleResponse>> Handle(GetVehicleByIdQuery request, CancellationToken ct)
     {
         if (currentUser.Id is null)
-            return Result<VehicleResponse>.Failure("User is not authenticated.");
+            return AppErrors.Auth.NotAuthenticated;
 
         var vehicle = await vehicles.GetByIdAsync(request.Id, ct);
         if (vehicle is null || vehicle.OwnerId != currentUser.Id.Value)
-            return Result<VehicleResponse>.Failure("Vehicle not found.");
+            return AppErrors.Vehicle.NotFound;
 
         return Result<VehicleResponse>.Success(VehicleResponse.FromVehicle(vehicle));
     }

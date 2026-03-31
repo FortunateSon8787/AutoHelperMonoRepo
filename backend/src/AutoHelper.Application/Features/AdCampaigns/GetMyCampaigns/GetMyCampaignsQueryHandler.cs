@@ -12,11 +12,11 @@ public sealed class GetMyCampaignsQueryHandler(
     public async Task<Result<IReadOnlyList<AdCampaignResponse>>> Handle(GetMyCampaignsQuery request, CancellationToken ct)
     {
         if (currentUser.Id is not { } userId)
-            return Result<IReadOnlyList<AdCampaignResponse>>.Failure("User is not authenticated.");
+            return AppErrors.Auth.NotAuthenticated;
 
         var partner = await partners.GetByAccountUserIdAsync(userId, ct);
         if (partner is null)
-            return Result<IReadOnlyList<AdCampaignResponse>>.Failure("Partner profile not found for this account.");
+            return AppErrors.Partner.ProfileNotFoundForAccount;
 
         var partnerCampaigns = await campaigns.GetByPartnerIdAsync(partner.Id, ct);
 

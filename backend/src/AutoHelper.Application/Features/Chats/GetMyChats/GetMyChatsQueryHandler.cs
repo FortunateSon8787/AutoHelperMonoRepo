@@ -1,6 +1,5 @@
 using AutoHelper.Application.Common;
 using AutoHelper.Application.Common.Interfaces;
-using AutoHelper.Application.Features.Chats;
 using MediatR;
 
 namespace AutoHelper.Application.Features.Chats.GetMyChats;
@@ -14,7 +13,7 @@ public sealed class GetMyChatsQueryHandler(
         CancellationToken ct)
     {
         if (currentUser.Id is null)
-            return Result<IReadOnlyList<ChatSummaryResponse>>.Failure(ChatErrors.NotAuthenticated);
+            return AppErrors.Auth.NotAuthenticated;
 
         var summaries = await chats.GetSummariesByCustomerIdAsync(currentUser.Id.Value, ct);
 

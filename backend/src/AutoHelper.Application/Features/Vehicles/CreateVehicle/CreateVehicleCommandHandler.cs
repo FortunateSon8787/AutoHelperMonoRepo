@@ -13,10 +13,10 @@ public sealed class CreateVehicleCommandHandler(
     public async Task<Result<Guid>> Handle(CreateVehicleCommand request, CancellationToken ct)
     {
         if (currentUser.Id is null)
-            return Result<Guid>.Failure("User is not authenticated.");
+            return AppErrors.Auth.NotAuthenticated;
 
         if (await vehicles.ExistsByVinAsync(request.Vin, ct))
-            return Result<Guid>.Failure("A vehicle with this VIN already exists.");
+            return AppErrors.Vehicle.VinAlreadyExists;
 
         var vehicle = Vehicle.Create(
             vin: request.Vin,

@@ -76,7 +76,7 @@ public class RegisterCustomerCommandHandlerTests
 
         // Assert
         result.IsFailure.ShouldBeTrue();
-        result.Error.ShouldNotBeEmpty();
+        result.Error.ShouldNotBeNull();
 
         // Assert — no customer should be added or saved
         _customers.Verify(r => r.Add(It.IsAny<Domain.Customers.Customer>()), Times.Never);
