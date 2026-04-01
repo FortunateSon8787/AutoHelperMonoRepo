@@ -1,3 +1,26 @@
+// ─── Admin Ad Campaigns ───────────────────────────────────────────────────────
+
+export interface AdminAdCampaign {
+  id: string;
+  partnerId: string;
+  type: string;
+  targetCategory: string;
+  content: string;
+  startsAt: string;
+  endsAt: string;
+  isActive: boolean;
+  showToAnonymous: boolean;
+  statsImpressions: number;
+  statsClicks: number;
+}
+
+export interface AdminAdCampaignListResponse {
+  items: AdminAdCampaign[];
+  totalCount: number;
+  page: number;
+  pageSize: number;
+}
+
 // ─── Admin Vehicles ───────────────────────────────────────────────────────────
 
 export interface AdminVehicle {

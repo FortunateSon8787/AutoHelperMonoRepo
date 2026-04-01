@@ -539,6 +539,76 @@
         "unknown": "Что-то пошло не так. Попробуйте ещё раз"
       }
     },
+    "adCampaigns": {
+      "title": "Рекламные кампании",
+      "statsLink": "Дашборд статистики",
+      "listLink": "Все кампании",
+      "searchPlaceholder": "Фильтр по ID партнёра...",
+      "emptyState": "Рекламных кампаний не найдено",
+      "totalCount": "Всего {count} кампаний",
+      "columns": {
+        "type": "Тип",
+        "category": "Категория",
+        "content": "Содержание",
+        "partner": "ID партнёра",
+        "schedule": "Расписание",
+        "status": "Статус",
+        "stats": "Статистика"
+      },
+      "status": {
+        "active": "Активна",
+        "inactive": "Неактивна"
+      },
+      "actions": {
+        "activate": "Активировать",
+        "deactivate": "Деактивировать"
+      },
+      "modal": {
+        "activateTitle": "Активировать кампанию",
+        "activateConfirm": "Активировать эту кампанию? Она начнёт показываться пользователям.",
+        "deactivateTitle": "Деактивировать кампанию",
+        "deactivateConfirm": "Деактивировать эту кампанию? Она перестанет показываться пользователям.",
+        "cancel": "Отмена",
+        "confirm": "Подтвердить"
+      },
+      "types": {
+        "OfferBlock": "Блок предложений",
+        "Banner": "Баннер"
+      },
+      "categories": {
+        "AutoService": "Автосервис",
+        "CarWash": "Автомойка",
+        "Towing": "Эвакуатор",
+        "AutoShop": "Автомагазин",
+        "Other": "Другое"
+      },
+      "stats": {
+        "title": "Статистика рекламных кампаний",
+        "backToList": "Все кампании",
+        "totalCampaigns": "Всего кампаний",
+        "activeCampaigns": "Активных кампаний",
+        "totalImpressions": "Всего показов",
+        "totalClicks": "Всего кликов",
+        "overallCtr": "Общий CTR",
+        "topByImpressions": "Топ по показам",
+        "topByClicks": "Топ по кликам",
+        "columns": {
+          "partnerId": "ID партнёра",
+          "campaigns": "Кампаний",
+          "impressions": "Показы",
+          "clicks": "Клики",
+          "ctr": "CTR"
+        },
+        "noData": "Данных пока нет"
+      },
+      "errors": {
+        "loadFailed": "Не удалось загрузить кампании",
+        "activateFailed": "Не удалось активировать кампанию",
+        "deactivateFailed": "Не удалось деактивировать кампанию",
+        "serverError": "Ошибка сервера. Попробуйте позже",
+        "unknown": "Что-то пошло не так. Попробуйте ещё раз"
+      }
+    },
     "customers": {
       "title": "Клиенты",
       "searchPlaceholder": "Поиск по имени или email...",

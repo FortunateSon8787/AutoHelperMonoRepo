@@ -28,4 +28,11 @@ public interface IAdCampaignRepository
 
     /// <summary>Adds a new campaign to the repository (tracked, not yet persisted).</summary>
     void Add(AdCampaign campaign);
+
+    /// <summary>
+    /// Returns a paginated list of all non-deleted campaigns for admin view.
+    /// Optionally filtered by partner identifier.
+    /// </summary>
+    Task<(IReadOnlyList<AdCampaign> Items, int TotalCount)> GetPagedForAdminAsync(
+        int page, int pageSize, Guid? partnerId, CancellationToken ct);
 }

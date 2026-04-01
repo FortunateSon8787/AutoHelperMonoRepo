@@ -70,6 +70,7 @@ try
     app.MapAdminCustomersEndpoints();
     app.MapAdminVehiclesEndpoints();
     app.MapAdminPartnersEndpoints();
+    app.MapAdminAdCampaignsEndpoints();
 
     await app.RunAsync();
 }

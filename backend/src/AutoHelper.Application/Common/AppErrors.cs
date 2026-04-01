@@ -197,6 +197,15 @@ public static class AppErrors
 
         public static readonly AppError ReviewNotFound =
             new("ADMIN_008", "Review not found.");
+
+        public static readonly AppError AdCampaignNotFound =
+            new("ADMIN_009", "Ad campaign not found.");
+
+        public static readonly AppError AdCampaignAlreadyActive =
+            new("ADMIN_010", "Ad campaign is already active.");
+
+        public static readonly AppError AdCampaignAlreadyInactive =
+            new("ADMIN_011", "Ad campaign is already inactive.");
     }
 
     // ─── Subscription ─────────────────────────────────────────────────────────

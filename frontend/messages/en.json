@@ -539,6 +539,76 @@
         "unknown": "Something went wrong. Please try again"
       }
     },
+    "adCampaigns": {
+      "title": "Ad Campaigns",
+      "statsLink": "Stats Dashboard",
+      "listLink": "All Campaigns",
+      "searchPlaceholder": "Filter by Partner ID...",
+      "emptyState": "No ad campaigns found",
+      "totalCount": "{count} campaigns total",
+      "columns": {
+        "type": "Type",
+        "category": "Category",
+        "content": "Content",
+        "partner": "Partner ID",
+        "schedule": "Schedule",
+        "status": "Status",
+        "stats": "Stats"
+      },
+      "status": {
+        "active": "Active",
+        "inactive": "Inactive"
+      },
+      "actions": {
+        "activate": "Activate",
+        "deactivate": "Deactivate"
+      },
+      "modal": {
+        "activateTitle": "Activate campaign",
+        "activateConfirm": "Activate this campaign? It will become visible to users.",
+        "deactivateTitle": "Deactivate campaign",
+        "deactivateConfirm": "Deactivate this campaign? It will stop showing to users.",
+        "cancel": "Cancel",
+        "confirm": "Confirm"
+      },
+      "types": {
+        "OfferBlock": "Offer Block",
+        "Banner": "Banner"
+      },
+      "categories": {
+        "AutoService": "Auto Service",
+        "CarWash": "Car Wash",
+        "Towing": "Towing",
+        "AutoShop": "Auto Shop",
+        "Other": "Other"
+      },
+      "stats": {
+        "title": "Ad Campaigns Stats",
+        "backToList": "All Campaigns",
+        "totalCampaigns": "Total campaigns",
+        "activeCampaigns": "Active campaigns",
+        "totalImpressions": "Total impressions",
+        "totalClicks": "Total clicks",
+        "overallCtr": "Overall CTR",
+        "topByImpressions": "Top by Impressions",
+        "topByClicks": "Top by Clicks",
+        "columns": {
+          "partnerId": "Partner ID",
+          "campaigns": "Campaigns",
+          "impressions": "Impressions",
+          "clicks": "Clicks",
+          "ctr": "CTR"
+        },
+        "noData": "No stats available yet"
+      },
+      "errors": {
+        "loadFailed": "Failed to load campaigns",
+        "activateFailed": "Failed to activate campaign",
+        "deactivateFailed": "Failed to deactivate campaign",
+        "serverError": "Server error. Please try again later",
+        "unknown": "Something went wrong. Please try again"
+      }
+    },
     "customers": {
       "title": "Customers",
       "searchPlaceholder": "Search by name or email...",

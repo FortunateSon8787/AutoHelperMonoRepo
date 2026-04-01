@@ -47,4 +47,23 @@ public sealed class AdCampaignRepository(AppDbContext db) : IAdCampaignRepositor
 
     public void Add(AdCampaign campaign) =>
         db.AdCampaigns.Add(campaign);
+
+    public async Task<(IReadOnlyList<AdCampaign> Items, int TotalCount)> GetPagedForAdminAsync(
+        int page, int pageSize, Guid? partnerId, CancellationToken ct)
+    {
+        var query = db.AdCampaigns.Where(c => !c.IsDeleted);
+
+        if (partnerId.HasValue)
+            query = query.Where(c => c.PartnerId == partnerId.Value);
+
+        var totalCount = await query.CountAsync(ct);
+
+        var items = await query
+            .OrderByDescending(c => c.StartsAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(ct);
+
+        return (items, totalCount);
+    }
 }

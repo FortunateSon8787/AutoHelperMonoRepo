@@ -1,5 +1,7 @@
 import axios, { AxiosError } from "axios";
 import type {
+  AdminAdCampaign,
+  AdminAdCampaignListResponse,
   AdminCustomer,
   AdminCustomerListResponse,
   AdminVehicle,
@@ -110,6 +112,49 @@ export const adminService = {
   async getVehicleById(id: string): Promise<AdminVehicle> {
     try {
       const response = await api.get<AdminVehicle>(`/api/admin/vehicles/${id}`);
+      return response.data;
+    } catch (error) {
+      throw new AdminServiceError(resolveErrorCode(error));
+    }
+  },
+
+  async getAdCampaigns(
+    page: number,
+    pageSize: number,
+    partnerId?: string
+  ): Promise<AdminAdCampaignListResponse> {
+    try {
+      const params: Record<string, string | number> = { page, pageSize };
+      if (partnerId) params.partnerId = partnerId;
+      const response = await api.get<AdminAdCampaignListResponse>(
+        "/api/admin/ad-campaigns",
+        { params }
+      );
+      return response.data;
+    } catch (error) {
+      throw new AdminServiceError(resolveErrorCode(error));
+    }
+  },
+
+  async activateAdCampaign(id: string): Promise<void> {
+    try {
+      await api.post(`/api/admin/ad-campaigns/${id}/activate`);
+    } catch (error) {
+      throw new AdminServiceError(resolveErrorCode(error));
+    }
+  },
+
+  async deactivateAdCampaign(id: string): Promise<void> {
+    try {
+      await api.post(`/api/admin/ad-campaigns/${id}/deactivate`);
+    } catch (error) {
+      throw new AdminServiceError(resolveErrorCode(error));
+    }
+  },
+
+  async getAdCampaignById(id: string): Promise<AdminAdCampaign> {
+    try {
+      const response = await api.get<AdminAdCampaign>(`/api/admin/ad-campaigns/${id}`);
       return response.data;
     } catch (error) {
       throw new AdminServiceError(resolveErrorCode(error));
