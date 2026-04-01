@@ -1289,14 +1289,37 @@ Soft-delete кампании. Только владелец.
 
 ---
 
-## Административная панель — прочее (`/api/admin/...`) — планируется (Epic AUT-7)
+## Admin Auth (`/api/admin/auth`) — **реализовано** (AUT-32)
 
-**Доступ:** только роли `admin` и `superadmin`.
+Аутентификация администраторов. Использует отдельные httpOnly cookie (`adminAccessToken`, `adminRefreshToken`), не конфликтующие с клиентскими cookie.
 
-| Метод | Путь | Описание |
-|-------|------|----------|
-| GET | `/api/admin/ad-campaigns` | Все рекламные кампании |
-| GET | `/api/admin/partners/pending` | Список партнёров, ожидающих верификации (устаревший — используй GET /api/admin/partners) |
+### POST /api/admin/auth/login
+
+**Request:**
+```json
+{ "email": "admin@autohelper.io", "password": "..." }
+```
+
+**Response 200:** Устанавливает httpOnly cookie:
+- `adminAccessToken` — JWT с `role` claim (`"admin"` или `"superadmin"`), TTL 15 мин
+- `adminRefreshToken` — opaque токен, TTL 30 дней
+
+**Errors:**
+- `401 Unauthorized` — неверные credentials
+
+---
+
+### POST /api/admin/auth/logout
+
+Очищает cookie `adminAccessToken` и `adminRefreshToken`.
+
+**Response:** `204 No Content`
+
+---
+
+## Административная панель — прочее (`/api/admin/...`) — реализовано (Epic AUT-7)
+
+**Доступ:** только роли `admin` и `superadmin` (JWT с role claim, устанавливается через `/api/admin/auth/login`).
 
 ---
 

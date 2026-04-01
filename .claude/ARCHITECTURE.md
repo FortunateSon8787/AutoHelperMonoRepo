@@ -52,6 +52,7 @@ Domain/Common/
 | `Customer` | `Customers/Customer.cs` | Клиент. Поддерживает Local (email+password) и Google OAuth |
 | `RefreshToken` | `Customers/RefreshToken.cs` | Refresh-токен, привязан к Customer |
 | `Vehicle` | `Vehicles/Vehicle.cs` | Автомобиль. VIN уникален. Реализован в AUT-12 |
+| `AdminUser` | `Admins/AdminUser.cs` | Администратор с ролью (Admin/SuperAdmin). Реализован в AUT-32 |
 
 ### Enums
 
@@ -60,6 +61,7 @@ Domain/Common/
 | `AuthProvider` | `Local`, `Google` |
 | `SubscriptionStatus` | `Free`, `Premium`, `Suspended` |
 | `VehicleStatus` | `Active`, `ForSale`, `InRepair`, `Recycled`, `Dismantled` |
+| `AdminRole` | `Admin`, `SuperAdmin` |
 
 ### Агрегаты к реализации (по требованиям)
 
@@ -165,9 +167,10 @@ Common/Behaviors/
 Persistence/
   ├── AppDbContext.cs             — DbContext + IUnitOfWork
   │                                 SaveChangesAsync диспатчит DomainEvents через MediatR
-  │                                 DbSets: Customers, RefreshTokens, Vehicles, ServiceRecords,
+  │                                 DbSets: AdminUsers, Customers, RefreshTokens, Vehicles, ServiceRecords,
   │                                         Partners, Reviews, AdCampaigns, Chats, Messages
   ├── DatabaseMigrator.cs         — Автомиграция при старте (если AutoMigrateOnStartup=true)
+  ├── AdminSeeder.cs              — Создаёт SuperAdmin из конфига при старте (если не существует)
   ├── Configurations/
   │   ├── CustomerConfiguration.cs
   │   ├── RefreshTokenConfiguration.cs
