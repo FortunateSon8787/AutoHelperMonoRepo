@@ -891,6 +891,69 @@ Soft-delete отзыва партнёра. Автоматически перес
 
 ---
 
+## Рекламные кампании — Администрирование (`/api/admin/ad-campaigns`) — **реализовано** (AUT-31)
+
+**Доступ:** только роль `admin`.
+
+### GET /api/admin/ad-campaigns
+
+Пагинированный список всех рекламных кампаний (без soft-deleted) с опциональным фильтром по партнёру.
+
+**Query parameters:**
+- `page` (int, default 1)
+- `pageSize` (int, default 20)
+- `partnerId` (guid, optional) — фильтр по конкретному партнёру
+
+**Response 200:**
+```json
+{
+  "items": [
+    {
+      "id": "uuid",
+      "partnerId": "uuid",
+      "type": "Banner",
+      "targetCategory": "AutoService",
+      "content": "Текст рекламы",
+      "startsAt": "2026-04-01T00:00:00Z",
+      "endsAt": "2026-04-30T23:59:59Z",
+      "isActive": true,
+      "showToAnonymous": false,
+      "statsImpressions": 150,
+      "statsClicks": 12
+    }
+  ],
+  "totalCount": 42,
+  "page": 1,
+  "pageSize": 20
+}
+```
+
+---
+
+### POST /api/admin/ad-campaigns/{id}/activate
+
+Активирует рекламную кампанию (устанавливает `IsActive = true`).
+
+**Response:** `204 No Content`
+
+**Errors:**
+- `404` — кампания не найдена (`ADMIN_009`)
+- `400` — кампания уже активна (`ADMIN_010`)
+
+---
+
+### POST /api/admin/ad-campaigns/{id}/deactivate
+
+Деактивирует рекламную кампанию (устанавливает `IsActive = false`).
+
+**Response:** `204 No Content`
+
+**Errors:**
+- `404` — кампания не найдена (`ADMIN_009`)
+- `400` — кампания уже неактивна (`ADMIN_011`)
+
+---
+
 ### POST /api/partners/{partnerId}/reviews — **реализовано** (AUT-25)
 
 Создание отзыва на партнёра. Требует `Authorization: Bearer`. Один отзыв на одно взаимодействие (дубли блокируются).
