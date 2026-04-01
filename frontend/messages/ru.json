@@ -510,6 +510,25 @@
     }
   },
   "admin": {
+    "login": {
+      "title": "Панель администратора",
+      "subtitle": "Войдите в административный аккаунт",
+      "emailLabel": "Email",
+      "emailPlaceholder": "admin@autohelper.io",
+      "passwordLabel": "Пароль",
+      "passwordPlaceholder": "••••••••",
+      "submitButton": "Войти",
+      "submittingButton": "Входим...",
+      "errors": {
+        "emailRequired": "Email обязателен",
+        "emailInvalid": "Введите корректный email",
+        "passwordRequired": "Пароль обязателен",
+        "invalidCredentials": "Неверный email или пароль",
+        "badRequest": "Проверьте правильность введённых данных",
+        "serverError": "Ошибка сервера. Попробуйте позже",
+        "unknown": "Что-то пошло не так. Попробуйте ещё раз"
+      }
+    },
     "vehicles": {
       "title": "Автомобили",
       "searchPlaceholder": "Поиск по VIN, марке или модели...",

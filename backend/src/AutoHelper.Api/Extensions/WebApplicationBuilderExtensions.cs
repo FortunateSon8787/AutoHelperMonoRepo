@@ -67,9 +67,19 @@ public static class WebApplicationBuilderExtensions
                 {
                     OnMessageReceived = context =>
                     {
+                        // Support both customer accessToken and admin adminAccessToken cookies.
+                        // Admin cookie takes precedence when present (admin routes require role claim).
+                        var adminToken = context.Request.Cookies["adminAccessToken"];
+                        if (!string.IsNullOrEmpty(adminToken))
+                        {
+                            context.Token = adminToken;
+                            return Task.CompletedTask;
+                        }
+
                         var token = context.Request.Cookies["accessToken"];
                         if (!string.IsNullOrEmpty(token))
                             context.Token = token;
+
                         return Task.CompletedTask;
                     }
                 };

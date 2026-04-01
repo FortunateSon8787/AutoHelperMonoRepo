@@ -170,6 +170,17 @@ public static class AppErrors
             new("CHAT_009", "AI request quota exceeded. Upgrade your plan or top up requests.");
     }
 
+    // ─── AdminAuth ────────────────────────────────────────────────────────────
+
+    public static class AdminAuth
+    {
+        public static readonly AppError InvalidCredentials =
+            new("ADMIN_AUTH_001", "Invalid admin email or password.");
+
+        public static readonly AppError RefreshTokenInvalid =
+            new("ADMIN_AUTH_002", "Admin refresh token is invalid or has expired.");
+    }
+
     // ─── Admin ────────────────────────────────────────────────────────────────
 
     public static class Admin

@@ -510,6 +510,25 @@
     }
   },
   "admin": {
+    "login": {
+      "title": "Admin Panel",
+      "subtitle": "Sign in to your administrator account",
+      "emailLabel": "Email",
+      "emailPlaceholder": "admin@autohelper.io",
+      "passwordLabel": "Password",
+      "passwordPlaceholder": "••••••••",
+      "submitButton": "Sign in",
+      "submittingButton": "Signing in...",
+      "errors": {
+        "emailRequired": "Email is required",
+        "emailInvalid": "Enter a valid email",
+        "passwordRequired": "Password is required",
+        "invalidCredentials": "Invalid email or password",
+        "badRequest": "Please check your input",
+        "serverError": "Server error. Please try again later",
+        "unknown": "Something went wrong. Please try again"
+      }
+    },
     "vehicles": {
       "title": "Vehicles",
       "searchPlaceholder": "Search by VIN, brand or model...",

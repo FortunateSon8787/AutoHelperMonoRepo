@@ -1,6 +1,7 @@
 using AutoHelper.Api.Extensions;
 using AutoHelper.Api.Features.AdCampaigns;
 using AutoHelper.Api.Features.Admin;
+using AutoHelper.Api.Features.AdminAuth;
 using AutoHelper.Api.Features.Auth;
 using AutoHelper.Api.Features.Chats;
 using AutoHelper.Api.Features.Clients;
@@ -33,6 +34,7 @@ try
     // Controlled by Database:AutoMigrateOnStartup in appsettings.json.
     // Defaults: true in Development, false in Production.
     await DatabaseMigrator.MigrateAsync(app.Services);
+    await AdminSeeder.SeedAsync(app.Services);
 
     // ── Middleware pipeline ───────────────────────────────────────────────────
     app.UseExceptionHandler();
@@ -71,6 +73,7 @@ try
     app.MapAdminVehiclesEndpoints();
     app.MapAdminPartnersEndpoints();
     app.MapAdminAdCampaignsEndpoints();
+    app.MapAdminAuthEndpoints();
 
     await app.RunAsync();
 }

@@ -3,6 +3,7 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using AutoHelper.Application.Common.Interfaces;
+using AutoHelper.Domain.Admins;
 using AutoHelper.Domain.Customers;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -26,6 +27,31 @@ public sealed class JwtTokenService(IOptions<JwtSettings> options) : IJwtTokenSe
             new Claim(JwtRegisteredClaimNames.Email, customer.Email),
             new Claim(JwtRegisteredClaimNames.Name, customer.Name),
             new Claim("subscription", customer.SubscriptionStatus.ToString()),
+            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+        };
+
+        var token = new JwtSecurityToken(
+            issuer: _settings.Issuer,
+            audience: _settings.Audience,
+            claims: claims,
+            expires: DateTime.UtcNow.AddMinutes(_settings.AccessTokenExpiryMinutes),
+            signingCredentials: credentials);
+
+        return new JwtSecurityTokenHandler().WriteToken(token);
+    }
+
+    public string GenerateAdminAccessToken(AdminUser adminUser)
+    {
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_settings.Secret));
+        var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+        var roleName = adminUser.Role == AdminRole.SuperAdmin ? "superadmin" : "admin";
+
+        var claims = new[]
+        {
+            new Claim(JwtRegisteredClaimNames.Sub, adminUser.Id.ToString()),
+            new Claim(JwtRegisteredClaimNames.Email, adminUser.Email),
+            new Claim(ClaimTypes.Role, roleName),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
 

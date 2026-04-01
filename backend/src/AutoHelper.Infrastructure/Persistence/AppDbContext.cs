@@ -1,5 +1,6 @@
 using AutoHelper.Application.Common.Interfaces;
 using AutoHelper.Domain.AdCampaigns;
+using AutoHelper.Domain.Admins;
 using AutoHelper.Domain.Chats;
 using AutoHelper.Domain.Common;
 using AutoHelper.Domain.Customers;
@@ -17,6 +18,7 @@ public sealed class AppDbContext(
     IPublisher publisher)
     : DbContext(options), IUnitOfWork
 {
+    public DbSet<AdminUser> AdminUsers => Set<AdminUser>();
     public DbSet<Customer> Customers => Set<Customer>();
     public DbSet<SubscriptionPlanConfig> SubscriptionPlanConfigs => Set<SubscriptionPlanConfig>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();

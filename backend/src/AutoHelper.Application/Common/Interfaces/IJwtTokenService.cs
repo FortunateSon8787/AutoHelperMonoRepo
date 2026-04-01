@@ -1,9 +1,10 @@
+using AutoHelper.Domain.Admins;
 using AutoHelper.Domain.Customers;
 
 namespace AutoHelper.Application.Common.Interfaces;
 
 /// <summary>
-/// Generates JWT access tokens and opaque refresh tokens for authenticated customers.
+/// Generates JWT access tokens and opaque refresh tokens for authenticated users.
 /// </summary>
 public interface IJwtTokenService
 {
@@ -12,6 +13,12 @@ public interface IJwtTokenService
     /// Token validity is configured via JwtSettings.AccessTokenExpiryMinutes.
     /// </summary>
     string GenerateAccessToken(Customer customer);
+
+    /// <summary>
+    /// Creates a signed JWT access token for an admin user with a role claim.
+    /// Token validity is configured via JwtSettings.AccessTokenExpiryMinutes.
+    /// </summary>
+    string GenerateAdminAccessToken(AdminUser adminUser);
 
     /// <summary>
     /// Creates a cryptographically random opaque refresh token (base64, 64 bytes).

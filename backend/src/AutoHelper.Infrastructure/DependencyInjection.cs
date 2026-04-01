@@ -34,7 +34,11 @@ public static class DependencyInjection
         services.AddHttpContextAccessor();
         services.AddScoped<ICurrentUser, CurrentUser>();
 
+        // Admin seeder
+        services.Configure<AdminSeederSettings>(configuration.GetSection(AdminSeederSettings.SectionName));
+
         // Repositories
+        services.AddScoped<IAdminUserRepository, AdminUserRepository>();
         services.AddScoped<ICustomerRepository, CustomerRepository>();
         services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
         services.AddScoped<IVehicleRepository, VehicleRepository>();
