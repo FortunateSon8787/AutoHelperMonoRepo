@@ -50,9 +50,7 @@ public static class AdminAdCampaignsEndpoints
             : Results.Problem(
                 title: result.Error!.Code,
                 detail: result.Error.Description,
-                statusCode: result.Error.Code == "ADMIN_009"
-                    ? StatusCodes.Status404NotFound
-                    : StatusCodes.Status400BadRequest);
+                statusCode: result.Error.ToHttpStatusCode());
     }
 
     private static async Task<IResult> Deactivate(Guid id, ISender mediator, CancellationToken ct)
@@ -63,8 +61,6 @@ public static class AdminAdCampaignsEndpoints
             : Results.Problem(
                 title: result.Error!.Code,
                 detail: result.Error.Description,
-                statusCode: result.Error.Code == "ADMIN_009"
-                    ? StatusCodes.Status404NotFound
-                    : StatusCodes.Status400BadRequest);
+                statusCode: result.Error.ToHttpStatusCode());
     }
 }

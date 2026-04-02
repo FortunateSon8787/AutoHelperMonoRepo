@@ -53,6 +53,7 @@ Domain/Common/
 | `RefreshToken` | `Customers/RefreshToken.cs` | Refresh-токен, привязан к Customer |
 | `Vehicle` | `Vehicles/Vehicle.cs` | Автомобиль. VIN уникален. Реализован в AUT-12 |
 | `AdminUser` | `Admins/AdminUser.cs` | Администратор с ролью (Admin/SuperAdmin). Реализован в AUT-32 |
+| `AdminRefreshToken` | `Admins/AdminRefreshToken.cs` | Refresh-токен администратора, персистируется в БД для revocation |
 
 ### Enums
 
@@ -132,12 +133,15 @@ Features/Vehicles/
 
 ```
 Common/Interfaces/
-  ├── IUnitOfWork              — SaveChangesAsync
-  ├── ICustomerRepository      — GetByEmailAsync, GetByIdAsync, ExistsByEmailAsync, Add
-  ├── IVehicleRepository       — GetByVinAsync, ExistsByVinAsync, Add
-  ├── IRefreshTokenRepository  — Add, GetByTokenAsync, MarkAsRevokedAsync
-  ├── IJwtTokenService         — GenerateAccessToken, GenerateRefreshToken, ValidateToken
-  ├── IPasswordHasher          — Hash, Verify
+  ├── IUnitOfWork                   — SaveChangesAsync
+  ├── ICustomerRepository           — GetByEmailAsync, GetByIdAsync, ExistsByEmailAsync, Add
+  ├── IVehicleRepository            — GetByVinAsync, ExistsByVinAsync, Add
+  ├── IRefreshTokenRepository       — Add, GetByTokenAsync
+  ├── IAdminUserRepository          — GetByEmailAsync, GetByIdAsync, ExistsByEmailAsync, Add
+  ├── IAdminRefreshTokenRepository  — Add, GetByTokenAsync
+  ├── IJwtTokenService              — GenerateAccessToken, GenerateAdminAccessToken, GenerateRefreshToken,
+  │                                   RefreshTokenExpiryDays, AdminRefreshTokenExpiryDays
+  ├── IPasswordHasher               — Hash, Verify
   ├── IStorageService          — UploadAsync, CompressAsync
   ├── ILlmProvider             — GenerateStructuredAsync, GenerateTextAsync, SummarizeConversationAsync — абстракция LLM (начальная реализация: OpenAI Responses API, модели gpt-5.4-nano / gpt-5.4-mini / gpt-5.4)
   ├── IBillingService          — абстракция биллинга (начальная реализация: Lemon Squeezy)
@@ -155,7 +159,9 @@ Common/Behaviors/
 
 ### Result паттерн
 
-Все Handler-ы возвращают `Result<T>` (или `Result`). Никаких исключений для бизнес-логики — только `Result.Failure("error message")`.
+Все Handler-ы возвращают `Result<T>` (или `Result`). Никаких исключений для бизнес-логики — только `Result.Failure(AppError)`.
+
+`AppError` имеет `ErrorType` enum (`Validation`, `NotFound`, `Forbidden`, `Unauthorized`, `Conflict`) и метод `ToHttpStatusCode()` для централизованного маппинга в HTTP-статусы. Все ошибки определены в `AppErrors` (centralized registry).
 
 ---
 
@@ -167,8 +173,9 @@ Common/Behaviors/
 Persistence/
   ├── AppDbContext.cs             — DbContext + IUnitOfWork
   │                                 SaveChangesAsync диспатчит DomainEvents через MediatR
-  │                                 DbSets: AdminUsers, Customers, RefreshTokens, Vehicles, ServiceRecords,
-  │                                         Partners, Reviews, AdCampaigns, Chats, Messages
+  │                                 DbSets: AdminUsers, AdminRefreshTokens, Customers, RefreshTokens,
+  │                                         Vehicles, ServiceRecords, Partners, Reviews,
+  │                                         AdCampaigns, Chats, Messages
   ├── DatabaseMigrator.cs         — Автомиграция при старте (если AutoMigrateOnStartup=true)
   ├── AdminSeeder.cs              — Создаёт SuperAdmin из конфига при старте (если не существует)
   ├── Configurations/
@@ -189,10 +196,16 @@ Persistence/
 
 ```
 Security/
-  ├── JwtTokenService.cs   — Генерация/валидация JWT (HS256)
-  ├── JwtSettings.cs       — Конфигурация (секрет, issuer, audience, TTL)
-  └── PasswordHasher.cs    — PBKDF2 хэширование паролей
+  ├── JwtTokenService.cs   — Генерация JWT (HS256). Клиентские токены подписаны Secret,
+  │                          admin токены — AdminSecret (изолированные ключи).
+  │                          Два отдельных JWT-scheme: ClientJwt / AdminJwt.
+  ├── JwtSettings.cs       — Конфигурация: Secret, AdminSecret, Issuer, Audience,
+  │                          AccessTokenExpiryMinutes, RefreshTokenExpiryDays,
+  │                          AdminAccessTokenExpiryMinutes, AdminRefreshTokenExpiryDays
+  └── PasswordHasher.cs    — PBKDF2/SHA-256, 100k итераций, FixedTimeEquals (timing-safe)
 ```
+
+**Rate limiting:** `FixedWindowRateLimiter` на `/api/auth/login`, `/api/auth/register` и `/api/admin/auth/login` — 10 req/min по IP. Подключён через `services.AddRateLimiter` / `app.UseRateLimiter()`.
 
 ### Storage
 

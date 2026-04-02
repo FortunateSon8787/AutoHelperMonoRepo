@@ -10,6 +10,8 @@ Health Check: `GET /health`
 
 ### POST /api/auth/register
 
+Rate limited: 10 запросов / 1 минута по IP.
+
 Регистрация нового клиента с email и паролем.
 
 **Request:**
@@ -33,6 +35,8 @@ Health Check: `GET /health`
 ---
 
 ### POST /api/auth/login
+
+Rate limited: 10 запросов / 1 минута по IP.
 
 Аутентификация по email + пароль. Возвращает JWT access token и refresh token.
 
@@ -1291,9 +1295,11 @@ Soft-delete кампании. Только владелец.
 
 ## Admin Auth (`/api/admin/auth`) — **реализовано** (AUT-32)
 
-Аутентификация администраторов. Использует отдельные httpOnly cookie (`adminAccessToken`, `adminRefreshToken`), не конфликтующие с клиентскими cookie.
+Аутентификация администраторов. Использует отдельные httpOnly cookie (`adminAccessToken`, `adminRefreshToken`), не конфликтующие с клиентскими cookie. Admin токены подписываются **отдельным секретом** (`Jwt:AdminSecret`), изолированным от клиентских.
 
 ### POST /api/admin/auth/login
+
+Rate limited: 10 запросов / 1 минута по IP.
 
 **Request:**
 ```json
@@ -1301,19 +1307,36 @@ Soft-delete кампании. Только владелец.
 ```
 
 **Response 200:** Устанавливает httpOnly cookie:
-- `adminAccessToken` — JWT с `role` claim (`"admin"` или `"superadmin"`), TTL 15 мин
-- `adminRefreshToken` — opaque токен, TTL 30 дней
+- `adminAccessToken` — JWT с `role` claim (`"admin"` или `"superadmin"`), подписан `AdminSecret`, TTL 15 мин
+- `adminRefreshToken` — opaque токен, персистируется в `admin_refresh_tokens`, TTL 7 дней
 
 **Errors:**
 - `401 Unauthorized` — неверные credentials
+- `429 Too Many Requests` — превышен rate limit
+
+---
+
+### POST /api/admin/auth/refresh
+
+Обмен refresh token на новую пару токенов (token rotation). Старый refresh token инвалидируется. Читает `adminRefreshToken` из cookie.
+
+**Response 200:** Устанавливает новые httpOnly cookies (аналогично `/login`).
+
+**Errors:**
+- `401 Unauthorized` — токен истёк, отозван или не существует
 
 ---
 
 ### POST /api/admin/auth/logout
 
-Очищает cookie `adminAccessToken` и `adminRefreshToken`.
+**Требует аутентификации** (роль `admin` или `superadmin`).  
+Отзывает refresh token в БД и удаляет cookie `adminAccessToken` и `adminRefreshToken`.
 
 **Response:** `204 No Content`
+
+**Errors:**
+- `401 Unauthorized` — не аутентифицирован
+- `404 Not Found` — refresh токен не найден
 
 ---
 

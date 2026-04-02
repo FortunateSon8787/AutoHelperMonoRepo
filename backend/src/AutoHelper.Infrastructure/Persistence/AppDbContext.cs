@@ -19,6 +19,7 @@ public sealed class AppDbContext(
     : DbContext(options), IUnitOfWork
 {
     public DbSet<AdminUser> AdminUsers => Set<AdminUser>();
+    public DbSet<AdminRefreshToken> AdminRefreshTokens => Set<AdminRefreshToken>();
     public DbSet<Customer> Customers => Set<Customer>();
     public DbSet<SubscriptionPlanConfig> SubscriptionPlanConfigs => Set<SubscriptionPlanConfig>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();

@@ -1,3 +1,4 @@
+using AutoHelper.Api.Extensions;
 using AutoHelper.Application.Features.Auth.Login;
 using AutoHelper.Application.Features.Auth.Logout;
 using AutoHelper.Application.Features.Auth.Register;
@@ -17,12 +18,14 @@ public static class AuthEndpoints
 
         group.MapPost("/register", Register)
             .WithSummary("Register a new customer with email and password")
+            .RequireRateLimiting(WebApplicationBuilderExtensions.LoginRateLimitPolicy)
             .Produces<RegisterResponse>(StatusCodes.Status201Created)
             .ProducesValidationProblem()
             .ProducesProblem(StatusCodes.Status409Conflict);
 
         group.MapPost("/login", Login)
             .WithSummary("Authenticate with email and password, set httpOnly auth cookies")
+            .RequireRateLimiting(WebApplicationBuilderExtensions.LoginRateLimitPolicy)
             .Produces(StatusCodes.Status200OK)
             .ProducesValidationProblem()
             .ProducesProblem(StatusCodes.Status401Unauthorized);
@@ -141,8 +144,15 @@ public static class AuthEndpoints
 
     private static void ClearAuthCookies(HttpContext httpContext)
     {
-        httpContext.Response.Cookies.Delete("accessToken");
-        httpContext.Response.Cookies.Delete("refreshToken");
+        var cookieOptions = new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.Strict
+        };
+
+        httpContext.Response.Cookies.Delete("accessToken", cookieOptions);
+        httpContext.Response.Cookies.Delete("refreshToken", cookieOptions);
     }
 
     // ─── Response DTOs ────────────────────────────────────────────────────────

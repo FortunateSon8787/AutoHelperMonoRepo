@@ -90,9 +90,7 @@ public static class AdminPartnersEndpoints
         return result.IsSuccess
             ? Results.NoContent()
             : Results.Problem(title: result.Error!.Code, detail: result.Error.Description,
-                statusCode: result.Error.Code == "ADMIN_005"
-                    ? StatusCodes.Status404NotFound
-                    : StatusCodes.Status400BadRequest);
+                statusCode: result.Error.ToHttpStatusCode());
     }
 
     private static async Task<IResult> Deactivate(Guid id, ISender mediator, CancellationToken ct)
@@ -101,9 +99,7 @@ public static class AdminPartnersEndpoints
         return result.IsSuccess
             ? Results.NoContent()
             : Results.Problem(title: result.Error!.Code, detail: result.Error.Description,
-                statusCode: result.Error.Code == "ADMIN_005"
-                    ? StatusCodes.Status404NotFound
-                    : StatusCodes.Status400BadRequest);
+                statusCode: result.Error.ToHttpStatusCode());
     }
 
     private static async Task<IResult> Delete(Guid id, ISender mediator, CancellationToken ct)

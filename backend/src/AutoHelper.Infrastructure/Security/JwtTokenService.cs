@@ -15,6 +15,7 @@ public sealed class JwtTokenService(IOptions<JwtSettings> options) : IJwtTokenSe
     private readonly JwtSettings _settings = options.Value;
 
     public int RefreshTokenExpiryDays => _settings.RefreshTokenExpiryDays;
+    public int AdminRefreshTokenExpiryDays => _settings.AdminRefreshTokenExpiryDays;
 
     public string GenerateAccessToken(Customer customer)
     {
@@ -42,10 +43,15 @@ public sealed class JwtTokenService(IOptions<JwtSettings> options) : IJwtTokenSe
 
     public string GenerateAdminAccessToken(AdminUser adminUser)
     {
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_settings.Secret));
+        // Admin tokens are signed with a separate secret to isolate admin sessions
+        var adminSecret = string.IsNullOrEmpty(_settings.AdminSecret)
+            ? _settings.Secret
+            : _settings.AdminSecret;
+
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(adminSecret));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-        var roleName = adminUser.Role == AdminRole.SuperAdmin ? "superadmin" : "admin";
+        var roleName = adminUser.Role.ToString().ToLowerInvariant();
 
         var claims = new[]
         {
@@ -59,7 +65,7 @@ public sealed class JwtTokenService(IOptions<JwtSettings> options) : IJwtTokenSe
             issuer: _settings.Issuer,
             audience: _settings.Audience,
             claims: claims,
-            expires: DateTime.UtcNow.AddMinutes(_settings.AccessTokenExpiryMinutes),
+            expires: DateTime.UtcNow.AddMinutes(_settings.AdminAccessTokenExpiryMinutes),
             signingCredentials: credentials);
 
         return new JwtSecurityTokenHandler().WriteToken(token);

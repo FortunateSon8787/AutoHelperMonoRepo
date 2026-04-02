@@ -63,9 +63,7 @@ public static class AdminCustomersEndpoints
         return result.IsSuccess
             ? Results.NoContent()
             : Results.Problem(title: result.Error!.Code, detail: result.Error.Description,
-                statusCode: result.Error.Code == "ADMIN_001"
-                    ? StatusCodes.Status404NotFound
-                    : StatusCodes.Status400BadRequest);
+                statusCode: result.Error.ToHttpStatusCode());
     }
 
     private static async Task<IResult> Unblock(Guid id, ISender mediator, CancellationToken ct)
@@ -74,8 +72,6 @@ public static class AdminCustomersEndpoints
         return result.IsSuccess
             ? Results.NoContent()
             : Results.Problem(title: result.Error!.Code, detail: result.Error.Description,
-                statusCode: result.Error.Code == "ADMIN_001"
-                    ? StatusCodes.Status404NotFound
-                    : StatusCodes.Status400BadRequest);
+                statusCode: result.Error.ToHttpStatusCode());
     }
 }

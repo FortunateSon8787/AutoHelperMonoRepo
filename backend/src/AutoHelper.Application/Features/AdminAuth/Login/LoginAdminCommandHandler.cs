@@ -1,14 +1,17 @@
 using AutoHelper.Application.Common;
 using AutoHelper.Application.Common.Interfaces;
 using AutoHelper.Application.Features.Auth.Login;
+using AutoHelper.Domain.Admins;
 using MediatR;
 
 namespace AutoHelper.Application.Features.AdminAuth.Login;
 
 public sealed class LoginAdminCommandHandler(
     IAdminUserRepository adminUsers,
+    IAdminRefreshTokenRepository adminRefreshTokens,
     IPasswordHasher passwordHasher,
-    IJwtTokenService jwtTokenService) : IRequestHandler<LoginAdminCommand, Result<TokenResponse>>
+    IJwtTokenService jwtTokenService,
+    IUnitOfWork unitOfWork) : IRequestHandler<LoginAdminCommand, Result<TokenResponse>>
 {
     public async Task<Result<TokenResponse>> Handle(LoginAdminCommand request, CancellationToken ct)
     {
@@ -24,11 +27,17 @@ public sealed class LoginAdminCommandHandler(
         var accessToken = jwtTokenService.GenerateAdminAccessToken(adminUser);
         var rawRefreshToken = jwtTokenService.GenerateRefreshToken();
 
-        var expiresAt = DateTime.UtcNow.AddDays(jwtTokenService.RefreshTokenExpiryDays);
+        var refreshToken = AdminRefreshToken.Create(
+            adminUser.Id,
+            rawRefreshToken,
+            jwtTokenService.AdminRefreshTokenExpiryDays);
+
+        adminRefreshTokens.Add(refreshToken);
+        await unitOfWork.SaveChangesAsync(ct);
 
         return Result<TokenResponse>.Success(new TokenResponse(
             AccessToken: accessToken,
             RefreshToken: rawRefreshToken,
-            ExpiresAt: expiresAt));
+            ExpiresAt: refreshToken.ExpiresAt));
     }
 }

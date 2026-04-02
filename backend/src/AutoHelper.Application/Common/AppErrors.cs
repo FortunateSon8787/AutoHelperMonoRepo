@@ -21,7 +21,7 @@ public static class AppErrors
             new("AUTH_003", "Refresh token is invalid or has expired.");
 
         public static readonly AppError RefreshTokenNotFound =
-            new("AUTH_004", "Refresh token not found.");
+            new("AUTH_004", "Refresh token not found.", ErrorType.NotFound);
 
         public static readonly AppError EmailAlreadyExists =
             new("AUTH_005", "A customer with this email address already exists.");
@@ -32,7 +32,7 @@ public static class AppErrors
     public static class Customer
     {
         public static readonly AppError NotFound =
-            new("CUSTOMER_001", "Customer not found.");
+            new("CUSTOMER_001", "Customer not found.", ErrorType.NotFound);
 
         public static readonly AppError PasswordChangeNotAvailableForOAuth =
             new("CUSTOMER_002", "Password change is not available for OAuth accounts.");
@@ -52,7 +52,7 @@ public static class AppErrors
     public static class Vehicle
     {
         public static readonly AppError NotFound =
-            new("VEHICLE_001", "Vehicle not found.");
+            new("VEHICLE_001", "Vehicle not found.", ErrorType.NotFound);
 
         public static readonly AppError VinAlreadyExists =
             new("VEHICLE_002", "A vehicle with this VIN already exists.");
@@ -72,10 +72,10 @@ public static class AppErrors
     public static class ServiceRecord
     {
         public static readonly AppError NotFound =
-            new("SERVICE_RECORD_001", "Service record not found.");
+            new("SERVICE_RECORD_001", "Service record not found.", ErrorType.NotFound);
 
         public static readonly AppError AccessDenied =
-            new("SERVICE_RECORD_002", "Access denied. You do not own this vehicle.");
+            new("SERVICE_RECORD_002", "Access denied. You do not own this vehicle.", ErrorType.Forbidden);
     }
 
     // ─── Partner ──────────────────────────────────────────────────────────────
@@ -83,13 +83,13 @@ public static class AppErrors
     public static class Partner
     {
         public static readonly AppError NotFound =
-            new("PARTNER_001", "Partner not found.");
+            new("PARTNER_001", "Partner not found.", ErrorType.NotFound);
 
         public static readonly AppError ProfileNotFound =
-            new("PARTNER_002", "Partner profile not found.");
+            new("PARTNER_002", "Partner profile not found.", ErrorType.NotFound);
 
         public static readonly AppError ProfileNotFoundForAccount =
-            new("PARTNER_003", "Partner profile not found for this account.");
+            new("PARTNER_003", "Partner profile not found for this account.", ErrorType.NotFound);
 
         public static readonly AppError AlreadyExistsForAccount =
             new("PARTNER_004", "A partner profile already exists for this account.");
@@ -112,10 +112,10 @@ public static class AppErrors
     public static class AdCampaign
     {
         public static readonly AppError NotFound =
-            new("AD_CAMPAIGN_001", "Ad campaign not found.");
+            new("AD_CAMPAIGN_001", "Ad campaign not found.", ErrorType.NotFound);
 
         public static readonly AppError AccessDenied =
-            new("AD_CAMPAIGN_002", "Access denied. This campaign belongs to a different partner.");
+            new("AD_CAMPAIGN_002", "Access denied. This campaign belongs to a different partner.", ErrorType.Forbidden);
 
         public static readonly AppError InvalidAdType =
             new("AD_CAMPAIGN_003", "Invalid ad type.");
@@ -129,7 +129,7 @@ public static class AppErrors
     public static class Review
     {
         public static readonly AppError PartnerNotFound =
-            new("REVIEW_001", "Partner not found.");
+            new("REVIEW_001", "Partner not found.", ErrorType.NotFound);
 
         public static readonly AppError InvalidBasis =
             new("REVIEW_002", "Invalid review basis.");
@@ -143,10 +143,10 @@ public static class AppErrors
     public static class Chat
     {
         public static readonly AppError CustomerNotFound =
-            new("CHAT_001", "Customer not found.");
+            new("CHAT_001", "Customer not found.", ErrorType.NotFound);
 
         public static readonly AppError NotFound =
-            new("CHAT_002", "Chat not found.");
+            new("CHAT_002", "Chat not found.", ErrorType.NotFound);
 
         public static readonly AppError SubscriptionRequired =
             new("CHAT_003", "Active subscription is required to use this chat mode.");
@@ -179,6 +179,9 @@ public static class AppErrors
 
         public static readonly AppError RefreshTokenInvalid =
             new("ADMIN_AUTH_002", "Admin refresh token is invalid or has expired.");
+
+        public static readonly AppError RefreshTokenNotFound =
+            new("ADMIN_AUTH_003", "Admin refresh token not found.", ErrorType.NotFound);
     }
 
     // ─── Admin ────────────────────────────────────────────────────────────────
@@ -186,7 +189,7 @@ public static class AppErrors
     public static class Admin
     {
         public static readonly AppError CustomerNotFound =
-            new("ADMIN_001", "Customer not found.");
+            new("ADMIN_001", "Customer not found.", ErrorType.NotFound);
 
         public static readonly AppError CustomerAlreadyBlocked =
             new("ADMIN_002", "Customer account is already blocked.");
@@ -195,10 +198,10 @@ public static class AppErrors
             new("ADMIN_003", "Customer account is not blocked.");
 
         public static readonly AppError VehicleNotFound =
-            new("ADMIN_004", "Vehicle not found.");
+            new("ADMIN_004", "Vehicle not found.", ErrorType.NotFound);
 
         public static readonly AppError PartnerNotFound =
-            new("ADMIN_005", "Partner not found.");
+            new("ADMIN_005", "Partner not found.", ErrorType.NotFound);
 
         public static readonly AppError PartnerAlreadyVerified =
             new("ADMIN_006", "Partner is already verified.");
@@ -207,10 +210,10 @@ public static class AppErrors
             new("ADMIN_007", "Partner is already deactivated.");
 
         public static readonly AppError ReviewNotFound =
-            new("ADMIN_008", "Review not found.");
+            new("ADMIN_008", "Review not found.", ErrorType.NotFound);
 
         public static readonly AppError AdCampaignNotFound =
-            new("ADMIN_009", "Ad campaign not found.");
+            new("ADMIN_009", "Ad campaign not found.", ErrorType.NotFound);
 
         public static readonly AppError AdCampaignAlreadyActive =
             new("ADMIN_010", "Ad campaign is already active.");

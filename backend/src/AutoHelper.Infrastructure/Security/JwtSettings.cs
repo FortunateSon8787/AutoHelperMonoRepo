@@ -4,9 +4,21 @@ public sealed class JwtSettings
 {
     public const string SectionName = "Jwt";
 
+    // ─── Client tokens ────────────────────────────────────────────────────────
+
     public string Secret { get; init; } = string.Empty;
     public string Issuer { get; init; } = string.Empty;
     public string Audience { get; init; } = string.Empty;
     public int AccessTokenExpiryMinutes { get; init; } = 15;
     public int RefreshTokenExpiryDays { get; init; } = 30;
+
+    // ─── Admin tokens ─────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Separate signing secret for admin JWT tokens.
+    /// Must be different from <see cref="Secret"/> to isolate admin sessions.
+    /// </summary>
+    public string AdminSecret { get; init; } = string.Empty;
+    public int AdminAccessTokenExpiryMinutes { get; init; } = 15;
+    public int AdminRefreshTokenExpiryDays { get; init; } = 7;
 }
