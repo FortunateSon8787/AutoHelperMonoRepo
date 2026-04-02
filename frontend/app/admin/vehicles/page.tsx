@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useTranslations } from "next-intl";
 import { Loader2, Car, Search } from "lucide-react";
+import axios from "axios";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -44,6 +45,8 @@ export default function AdminVehiclesPage() {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [page, setPage] = useState(1);
 
+  const abortRef = useRef<AbortController | null>(null);
+
   // ─── Debounce search ──────────────────────────────────────────────────────
 
   useEffect(() => {
@@ -57,16 +60,23 @@ export default function AdminVehiclesPage() {
   // ─── Load data ────────────────────────────────────────────────────────────
 
   const load = useCallback(async () => {
+    // Отменяем предыдущий запрос, если он ещё выполняется
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+
     setIsLoading(true);
     setLoadError(null);
     try {
       const result = await adminService.getVehicles(
         page,
         PAGE_SIZE,
-        debouncedSearch || undefined
+        debouncedSearch || undefined,
+        controller.signal
       );
       setData(result);
     } catch (err) {
+      if (axios.isCancel(err)) return;
       setLoadError(
         err instanceof AdminServiceError
           ? t(`errors.${err.code}` as Parameters<typeof t>[0])
@@ -79,6 +89,7 @@ export default function AdminVehiclesPage() {
 
   useEffect(() => {
     load();
+    return () => abortRef.current?.abort();
   }, [load]);
 
   // ─── Pagination ───────────────────────────────────────────────────────────

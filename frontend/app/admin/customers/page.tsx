@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useTranslations } from "next-intl";
 import { Loader2, Users, Search, ShieldBan, ShieldCheck } from "lucide-react";
+import axios from "axios";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -69,6 +70,8 @@ export default function AdminCustomersPage() {
   } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const abortRef = useRef<AbortController | null>(null);
+
   // ─── Debounce search ──────────────────────────────────────────────────────
 
   useEffect(() => {
@@ -82,16 +85,23 @@ export default function AdminCustomersPage() {
   // ─── Load data ────────────────────────────────────────────────────────────
 
   const load = useCallback(async () => {
+    // Отменяем предыдущий запрос, если он ещё выполняется
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+
     setIsLoading(true);
     setLoadError(null);
     try {
       const result = await adminService.getCustomers(
         page,
         PAGE_SIZE,
-        debouncedSearch || undefined
+        debouncedSearch || undefined,
+        controller.signal
       );
       setData(result);
     } catch (err) {
+      if (axios.isCancel(err)) return;
       setLoadError(
         err instanceof AdminServiceError
           ? t(`errors.${err.code}` as Parameters<typeof t>[0])
@@ -104,6 +114,7 @@ export default function AdminCustomersPage() {
 
   useEffect(() => {
     load();
+    return () => abortRef.current?.abort();
   }, [load]);
 
   // ─── Block/Unblock ────────────────────────────────────────────────────────

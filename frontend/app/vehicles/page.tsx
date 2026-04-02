@@ -1,6 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
 import { Search } from "lucide-react";
+import { AppLogo } from "@/components/AppLogo";
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
@@ -21,11 +22,8 @@ export default async function VehiclesSearchPage({ searchParams }: Props) {
     <div className="min-h-screen bg-gray-50 px-4 py-10">
       <div className="max-w-lg mx-auto">
         {/* Header */}
-        <div className="flex items-center gap-3 mb-10">
-          <div className="w-9 h-9 rounded-lg bg-gray-900 flex items-center justify-center text-white font-bold text-lg">
-            A
-          </div>
-          <span className="text-xl font-bold text-gray-900">AutoHelper</span>
+        <div className="mb-10">
+          <AppLogo />
         </div>
 
         {/* Search Card */}

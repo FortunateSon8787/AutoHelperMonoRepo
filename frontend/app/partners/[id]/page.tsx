@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Building2, MapPin, Clock, Phone, Globe, CheckCircle, ArrowLeft } from "lucide-react";
 import type { PartnerProfile } from "@/types/partner";
+import { AppLogo } from "@/components/AppLogo";
 
 // ─── SSR data fetcher ─────────────────────────────────────────────────────────
 
@@ -55,11 +56,8 @@ export default async function PartnerProfilePage({ params }: Props) {
     <div className="min-h-screen bg-gray-50 px-4 py-10">
       <div className="max-w-2xl mx-auto">
         {/* Header */}
-        <div className="flex items-center gap-3 mb-8">
-          <div className="w-9 h-9 rounded-lg bg-gray-900 flex items-center justify-center text-white font-bold text-lg">
-            A
-          </div>
-          <span className="text-xl font-bold text-gray-900">AutoHelper</span>
+        <div className="mb-8">
+          <AppLogo />
         </div>
 
         <Link href="/partners" className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 mb-6 transition-colors">

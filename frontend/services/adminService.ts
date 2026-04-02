@@ -10,6 +10,8 @@ import type {
 
 // ─── Axios Instance ───────────────────────────────────────────────────────────
 
+// withCredentials=true обязателен, чтобы браузер отправлял httpOnly auth-куки
+// (adminAccessToken / adminRefreshToken), выставленные бэкендом с SameSite=Strict.
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
   headers: { "Content-Type": "application/json" },
@@ -51,14 +53,15 @@ export const adminService = {
   async getCustomers(
     page: number,
     pageSize: number,
-    search?: string
+    search?: string,
+    signal?: AbortSignal
   ): Promise<AdminCustomerListResponse> {
     try {
       const params: Record<string, string | number> = { page, pageSize };
       if (search) params.search = search;
       const response = await api.get<AdminCustomerListResponse>(
         "/api/admin/customers",
-        { params }
+        { params, signal }
       );
       return response.data;
     } catch (error) {
@@ -94,14 +97,15 @@ export const adminService = {
   async getVehicles(
     page: number,
     pageSize: number,
-    search?: string
+    search?: string,
+    signal?: AbortSignal
   ): Promise<AdminVehicleListResponse> {
     try {
       const params: Record<string, string | number> = { page, pageSize };
       if (search) params.search = search;
       const response = await api.get<AdminVehicleListResponse>(
         "/api/admin/vehicles",
-        { params }
+        { params, signal }
       );
       return response.data;
     } catch (error) {
@@ -121,14 +125,15 @@ export const adminService = {
   async getAdCampaigns(
     page: number,
     pageSize: number,
-    partnerId?: string
+    partnerId?: string,
+    signal?: AbortSignal
   ): Promise<AdminAdCampaignListResponse> {
     try {
       const params: Record<string, string | number> = { page, pageSize };
       if (partnerId) params.partnerId = partnerId;
       const response = await api.get<AdminAdCampaignListResponse>(
         "/api/admin/ad-campaigns",
-        { params }
+        { params, signal }
       );
       return response.data;
     } catch (error) {

@@ -12,6 +12,7 @@ export async function setLocaleCookie(locale: string) {
     path: "/",
     maxAge: 60 * 60 * 24 * 365, // 1 год
     sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
   });
 
   revalidatePath("/");

@@ -76,6 +76,7 @@ const LOAD_PAGE_SIZE = 100;
 
 export default function AdminAdCampaignsStatsPage() {
   const t = useTranslations("admin.adCampaigns.stats");
+  const tErrors = useTranslations("admin.adCampaigns");
 
   const [campaigns, setCampaigns] = useState<AdminAdCampaign[]>([]);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -105,7 +106,9 @@ export default function AdminAdCampaignsStatsPage() {
         }
       } catch (err) {
         setLoadError(
-          err instanceof AdminServiceError ? err.code : "unknown"
+          err instanceof AdminServiceError
+            ? tErrors(`errors.${err.code}` as Parameters<typeof tErrors>[0])
+            : tErrors("errors.unknown")
         );
       } finally {
         setIsLoading(false);

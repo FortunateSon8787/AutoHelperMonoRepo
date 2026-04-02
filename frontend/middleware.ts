@@ -18,7 +18,11 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Все остальные /admin/* маршруты требуют adminRefreshToken
+  // Все остальные /admin/* маршруты требуют adminRefreshToken.
+  // ВАЖНО: middleware проверяет только наличие cookie (presence check),
+  // но НЕ валидирует токен — это намеренно, т.к. Edge Runtime не имеет
+  // доступа к секретам подписи JWT. Реальная валидация происходит на бэкенде
+  // при каждом API-запросе: 401 → adminAuthService перехватывает и редиректит.
   if (pathname.startsWith(ADMIN_PREFIX)) {
     const adminRefreshToken = request.cookies.get("adminRefreshToken");
     if (!adminRefreshToken) {
@@ -35,7 +39,8 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Проверяем наличие refresh token в cookie
+  // Проверяем наличие refresh token в cookie (presence check).
+  // Подлинность токена верифицируется бэкендом на каждом запросе.
   const refreshToken = request.cookies.get("refreshToken");
 
   if (!refreshToken) {

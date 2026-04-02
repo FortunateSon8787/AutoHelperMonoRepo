@@ -55,20 +55,30 @@ export default function ProfilePage() {
   });
 
   useEffect(() => {
+    let cancelled = false;
+
     profileService
       .getMyProfile()
       .then((data) => {
+        if (cancelled) return;
         setProfile(data);
         reset({ name: data.name, contacts: data.contacts ?? "" });
       })
       .catch((err: unknown) => {
+        if (cancelled) return;
         if (err instanceof ProfileServiceError) {
           setLoadError(tErrors(err.code));
         } else {
           setLoadError(tErrors("unknown"));
         }
       })
-      .finally(() => setIsLoading(false));
+      .finally(() => {
+        if (!cancelled) setIsLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, [reset]);
 
   const handleLogout = async () => {

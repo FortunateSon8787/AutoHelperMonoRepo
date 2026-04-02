@@ -6,6 +6,7 @@ import { Loader2, MapPin, Search, Filter, Phone, Globe, Clock } from "lucide-rea
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { partnerService, PartnerServiceError } from "@/services/partnerService";
+import { AppLogo } from "@/components/AppLogo";
 import type { PartnerNearbyResult } from "@/types/partner";
 import { PARTNER_TYPES } from "@/types/partner";
 import "leaflet/dist/leaflet.css";
@@ -105,10 +106,7 @@ export default function PartnersSearchPage() {
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Header */}
       <header className="bg-white border-b border-gray-200 px-4 py-3 flex items-center gap-3">
-        <div className="w-8 h-8 rounded-lg bg-gray-900 flex items-center justify-center text-white font-bold">
-          A
-        </div>
-        <span className="text-lg font-bold text-gray-900">AutoHelper</span>
+        <AppLogo />
         <span className="text-gray-400 mx-2">/</span>
         <span className="text-gray-700 text-sm font-medium">{t("title")}</span>
       </header>
@@ -120,7 +118,7 @@ export default function PartnersSearchPage() {
           <div className="p-4 border-b border-gray-100 space-y-3">
             <div className="flex gap-2">
               <div className="flex-1 space-y-1">
-                <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Lat</label>
+                <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">{t("latLabel")}</label>
                 <input
                   type="number"
                   step="any"
@@ -130,7 +128,7 @@ export default function PartnersSearchPage() {
                 />
               </div>
               <div className="flex-1 space-y-1">
-                <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Lng</label>
+                <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">{t("lngLabel")}</label>
                 <input
                   type="number"
                   step="any"

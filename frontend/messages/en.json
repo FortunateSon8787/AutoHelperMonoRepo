@@ -400,6 +400,8 @@
   "partners": {
     "search": {
       "title": "Find Partners",
+      "latLabel": "Lat",
+      "lngLabel": "Lng",
       "radiusLabel": "Radius (km)",
       "typeLabel": "Type",
       "allTypes": "All types",

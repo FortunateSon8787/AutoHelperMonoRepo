@@ -336,6 +336,46 @@ return <Link href="/partner/cabinet">← Партнёрский кабинет</
 - **`'use client'`** — только если нужны: хуки состояния, события браузера, useTranslations (если нет server-side версии).
 - **Server Actions** (`'use server'`) — в `app/actions/` или `actions.ts` рядом с фичей.
 
+### AbortController в async useEffect — ОБЯЗАТЕЛЬНО
+
+Любой `useEffect` с асинхронным запросом должен:
+1. Отменять предыдущий запрос при повторном вызове (дебаунс, пагинация).
+2. Иметь cleanup-функцию чтобы избежать setState на размонтированном компоненте.
+
+```typescript
+// Для списков с дебаунсом/фильтрами — AbortController:
+const abortRef = useRef<AbortController | null>(null);
+
+const load = useCallback(async () => {
+  abortRef.current?.abort();
+  const controller = new AbortController();
+  abortRef.current = controller;
+  try {
+    const result = await service.getItems(page, search, controller.signal);
+    setData(result);
+  } catch (err) {
+    if (axios.isCancel(err)) return; // игнорировать отменённые запросы
+    setError(...);
+  }
+}, [page, search]);
+
+useEffect(() => {
+  load();
+  return () => abortRef.current?.abort();
+}, [load]);
+
+// Для одиночных загрузок (без повторов) — флаг cancelled:
+useEffect(() => {
+  let cancelled = false;
+  service.getItem().then(data => {
+    if (!cancelled) setData(data);
+  });
+  return () => { cancelled = true; };
+}, []);
+```
+
+Методы в `adminService.ts` принимают опциональный `signal?: AbortSignal` и передают его в axios config.
+
 ### Middleware (auth guard)
 
 `frontend/middleware.ts` — проверяет наличие `refreshToken` cookie. Публичные маршруты добавляются в массив `PUBLIC_ROUTES`.

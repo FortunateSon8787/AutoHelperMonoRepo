@@ -121,7 +121,9 @@ frontend/
 │   └── form-styles.ts        # nativeSelectCn, nativeTextareaCn — классы для <select> и <textarea>
 │
 ├── services/
-│   ├── authService.ts        # POST /api/auth/* (withCredentials)
+│   ├── authService.ts        # POST /api/auth/* (withCredentials, httpOnly cookies)
+│   ├── adminAuthService.ts   # POST /api/admin/auth/* (withCredentials)
+│   ├── adminService.ts       # GET/POST /api/admin/* (withCredentials, signal support)
 │   ├── profileService.ts     # GET/PATCH /api/clients/me (Bearer token)
 │   ├── vehicleService.ts     # /api/vehicles (auth CRUD + public SSR)
 │   ├── serviceRecordService.ts # /api/service-records
@@ -312,13 +314,36 @@ const api = axios.create({ baseURL: ..., withCredentials: true });
 
 ```
 1. Пользователь → защищённый маршрут
-2. middleware.ts проверяет cookie 'refreshToken'
+2. middleware.ts проверяет наличие cookie 'refreshToken' (presence check, не валидация)
 3. Если нет → redirect /auth/login
 4. Login → authService.login() → POST /api/auth/login
-5. accessToken → localStorage/memory, refreshToken → httpOnly cookie
+5. Бэкенд устанавливает accessToken + refreshToken как httpOnly, Secure, SameSite=Strict cookies
 6. При 401 → authService.refreshToken() → POST /api/auth/refresh
 7. Logout → authService.logout() → POST /api/auth/logout → clear cookies
 ```
+
+**Безопасность cookies:**
+- `HttpOnly=true` — JS не может читать токены (защита от XSS)
+- `Secure=true` — только HTTPS
+- `SameSite=Strict` — CSRF-защита (cross-site запросы не отправляют куки)
+
+**Admin Auth Flow:** аналогичен, но использует `/api/admin/auth/*` и куки `adminAccessToken` / `adminRefreshToken`.
+
+---
+
+## Security Headers (next.config.ts)
+
+В продакшене добавляются следующие HTTP-заголовки для всех страниц:
+
+| Заголовок | Значение | Цель |
+|-----------|----------|------|
+| `X-Frame-Options` | `SAMEORIGIN` | Защита от clickjacking |
+| `X-Content-Type-Options` | `nosniff` | Отключение MIME-sniffing |
+| `Referrer-Policy` | `strict-origin-when-cross-origin` | Контроль реферера |
+| `Permissions-Policy` | `geolocation=(self)` | Геолокация только self |
+| `Content-Security-Policy` | `default-src 'self'` + разрешения | Базовый CSP |
+
+CSP разрешает `*.tile.openstreetmap.org` для Leaflet-карты на странице `/partners`.
 
 ---
 

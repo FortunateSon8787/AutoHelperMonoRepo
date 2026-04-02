@@ -400,6 +400,8 @@
   "partners": {
     "search": {
       "title": "Поиск партнёров",
+      "latLabel": "Широта",
+      "lngLabel": "Долгота",
       "radiusLabel": "Радиус (км)",
       "typeLabel": "Тип",
       "allTypes": "Все типы",
