@@ -1340,6 +1340,44 @@ Rate limited: 10 запросов / 1 минута по IP.
 
 ---
 
+## Конфигурация АвтоПомощника (`/api/admin/chatbot-config`) — **реализовано** (AUT-162)
+
+**Доступ:** только роль `admin`.
+
+### GET /api/admin/chatbot-config
+
+Получение текущей конфигурации чатбота.
+
+**Response 200:**
+```json
+{
+  "isEnabled": true,
+  "maxCharsPerField": 2000,
+  "dailyLimitByPlan": {
+    "None": 0,
+    "Normal": 10,
+    "Pro": 20,
+    "Max": 40
+  },
+  "topUpPriceUsd": 3.00,
+  "topUpRequestCount": 10,
+  "disablePartnerSuggestionsInMode1": false
+}
+```
+
+---
+
+### PUT /api/admin/chatbot-config
+
+Обновление конфигурации чатбота. Принимает тот же формат, что GET. Все поля обязательны.
+
+**Response 204:** No Content
+
+**Errors:**
+- `400 Bad Request` — невалидный ключ плана в `dailyLimitByPlan`, нулевые значения лимитов/цен
+
+---
+
 ## Административная панель — прочее (`/api/admin/...`) — реализовано (Epic AUT-7)
 
 **Доступ:** только роли `admin` и `superadmin` (JWT с role claim, устанавливается через `/api/admin/auth/login`).

@@ -79,6 +79,7 @@ Domain/Common/
 |---------|------|----------|
 | `Chat` | `Chats/Chat.cs` | Чат-сессия AI-помощника. Реализован в AUT-17 |
 | `Message` | `Chats/Message.cs` | Сообщение чата (User/Assistant). Реализован в AUT-17 |
+| `ChatbotConfig` | `Chatbot/ChatbotConfig.cs` | Singleton-конфигурация АвтоПомощника (вкл/выкл, лимиты, цены). Реализован в AUT-162 |
 
 ---
 
@@ -142,6 +143,7 @@ Common/Interfaces/
   ├── IJwtTokenService              — GenerateAccessToken, GenerateAdminAccessToken, GenerateRefreshToken,
   │                                   RefreshTokenExpiryDays, AdminRefreshTokenExpiryDays
   ├── IPasswordHasher               — Hash, Verify
+  ├── IChatbotConfigRepository — GetAsync, Add (singleton chatbot config)
   ├── IStorageService          — UploadAsync, CompressAsync
   ├── ILlmProvider             — GenerateStructuredAsync, GenerateTextAsync, SummarizeConversationAsync — абстракция LLM (начальная реализация: OpenAI Responses API, модели gpt-5.4-nano / gpt-5.4-mini / gpt-5.4)
   ├── IBillingService          — абстракция биллинга (начальная реализация: Lemon Squeezy)
@@ -175,7 +177,7 @@ Persistence/
   │                                 SaveChangesAsync диспатчит DomainEvents через MediatR
   │                                 DbSets: AdminUsers, AdminRefreshTokens, Customers, RefreshTokens,
   │                                         Vehicles, ServiceRecords, Partners, Reviews,
-  │                                         AdCampaigns, Chats, Messages
+  │                                         AdCampaigns, Chats, Messages, ChatbotConfigs
   ├── DatabaseMigrator.cs         — Автомиграция при старте (если AutoMigrateOnStartup=true)
   ├── AdminSeeder.cs              — Создаёт SuperAdmin из конфига при старте (если не существует)
   ├── Configurations/
