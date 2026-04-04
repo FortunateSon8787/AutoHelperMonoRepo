@@ -222,6 +222,14 @@ public static class AppErrors
             new("ADMIN_011", "Ad campaign is already inactive.");
     }
 
+    // ─── ChatbotConfig ────────────────────────────────────────────────────────
+
+    public static class ChatbotConfig
+    {
+        public static readonly AppError InvalidDailyLimitKey =
+            new("CHATBOT_CONFIG_001", "DailyLimitByPlan contains an unrecognised subscription plan key.");
+    }
+
     // ─── Subscription ─────────────────────────────────────────────────────────
 
     public static class Subscription

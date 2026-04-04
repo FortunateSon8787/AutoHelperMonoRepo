@@ -2,6 +2,7 @@ import axios, { AxiosError } from "axios";
 import type {
   AdminAdCampaign,
   AdminAdCampaignListResponse,
+  AdminChatbotConfig,
   AdminCustomer,
   AdminCustomerListResponse,
   AdminVehicle,
@@ -152,6 +153,23 @@ export const adminService = {
   async deactivateAdCampaign(id: string): Promise<void> {
     try {
       await api.post(`/api/admin/ad-campaigns/${id}/deactivate`);
+    } catch (error) {
+      throw new AdminServiceError(resolveErrorCode(error));
+    }
+  },
+
+  async getChatbotConfig(): Promise<AdminChatbotConfig> {
+    try {
+      const response = await api.get<AdminChatbotConfig>("/api/admin/chatbot-config");
+      return response.data;
+    } catch (error) {
+      throw new AdminServiceError(resolveErrorCode(error));
+    }
+  },
+
+  async updateChatbotConfig(config: AdminChatbotConfig): Promise<void> {
+    try {
+      await api.put("/api/admin/chatbot-config", config);
     } catch (error) {
       throw new AdminServiceError(resolveErrorCode(error));
     }

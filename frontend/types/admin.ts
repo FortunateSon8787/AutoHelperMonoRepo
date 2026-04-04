@@ -1,3 +1,14 @@
+// ─── Admin Chatbot Config ─────────────────────────────────────────────────────
+
+export interface AdminChatbotConfig {
+  isEnabled: boolean;
+  maxCharsPerField: number;
+  dailyLimitByPlan: Record<string, number>;
+  topUpPriceUsd: number;
+  topUpRequestCount: number;
+  disablePartnerSuggestionsInMode1: boolean;
+}
+
 // ─── Admin Ad Campaigns ───────────────────────────────────────────────────────
 
 export interface AdminAdCampaign {

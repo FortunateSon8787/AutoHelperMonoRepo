@@ -50,6 +50,7 @@ public static class DependencyInjection
         services.AddScoped<IChatRepository, ChatRepository>();
         services.AddScoped<IInvalidChatRequestRepository, InvalidChatRequestRepository>();
         services.AddScoped<ISubscriptionPlanConfigRepository, SubscriptionPlanConfigRepository>();
+        services.AddScoped<IChatbotConfigRepository, ChatbotConfigRepository>();
 
         // Security
         services.AddSingleton<IPasswordHasher, PasswordHasher>();

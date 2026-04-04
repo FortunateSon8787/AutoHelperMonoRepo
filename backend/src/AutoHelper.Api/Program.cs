@@ -35,6 +35,7 @@ try
     // Defaults: true in Development, false in Production.
     await DatabaseMigrator.MigrateAsync(app.Services);
     await AdminSeeder.SeedAsync(app.Services);
+    await ChatbotConfigSeeder.SeedAsync(app.Services);
 
     // ── Middleware pipeline ───────────────────────────────────────────────────
     app.UseExceptionHandler();
@@ -75,6 +76,7 @@ try
     app.MapAdminPartnersEndpoints();
     app.MapAdminAdCampaignsEndpoints();
     app.MapAdminAuthEndpoints();
+    app.MapAdminChatbotConfigEndpoints();
 
     await app.RunAsync();
 }

@@ -630,6 +630,42 @@
         "unknown": "Something went wrong. Please try again"
       }
     },
+    "chatbotConfig": {
+      "title": "AutoAssistant Configuration",
+      "subtitle": "Manage chatbot settings, subscription limits and top-up pricing",
+      "saveButton": "Save Changes",
+      "savingButton": "Saving...",
+      "saveSuccess": "Configuration saved successfully",
+      "sections": {
+        "general": "General Settings",
+        "limits": "Daily Request Limits",
+        "topUp": "Top-Up Settings",
+        "mode1": "Mode 1 (Diagnostics)"
+      },
+      "fields": {
+        "isEnabled": "Chatbot enabled",
+        "isEnabledHint": "When disabled, users see a maintenance message on the chat page",
+        "maxCharsPerField": "Max characters per field",
+        "maxCharsPerFieldHint": "Maximum number of characters allowed in any single user-input field",
+        "disablePartnerSuggestions": "Disable partner suggestions in Mode 1",
+        "disablePartnerSuggestionsHint": "When enabled, partner cards will not appear in diagnostics responses",
+        "topUpPrice": "Top-up price (USD)",
+        "topUpPriceHint": "Price per single top-up purchase",
+        "topUpRequests": "Requests per top-up",
+        "topUpRequestsHint": "Number of AI requests granted per top-up purchase",
+        "planNone": "Free tier (None)",
+        "planNormal": "Normal plan",
+        "planPro": "Pro plan",
+        "planMax": "Max plan",
+        "dailyLimitHint": "requests per day"
+      },
+      "errors": {
+        "loadFailed": "Failed to load configuration",
+        "saveFailed": "Failed to save configuration",
+        "serverError": "Server error. Please try again later",
+        "unknown": "Something went wrong. Please try again"
+      }
+    },
     "customers": {
       "title": "Customers",
       "searchPlaceholder": "Search by name or email...",
