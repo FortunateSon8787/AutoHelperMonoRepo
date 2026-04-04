@@ -62,3 +62,5 @@ docker-compose.override.yml
 # ─── Internal / migrated artefacts (not for VCS) ─────────────────────────────
 .git_old/
 *.gone
+chat-reference/
+figma-make-reference/

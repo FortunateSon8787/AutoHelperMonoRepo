@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import Link from "next/link";
-import { Loader2, Car, Plus, X } from "lucide-react";
+import { Loader2, Car, Plus, X, MessageCircle } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/ui/button";
@@ -126,7 +126,14 @@ export default function MyVehiclesPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <AppHeader />
+      <AppHeader>
+        <Link href="/dashboard/chat">
+          <Button size="sm" variant="outline" className="gap-1.5">
+            <MessageCircle className="h-4 w-4" />
+            AI
+          </Button>
+        </Link>
+      </AppHeader>
 
       <div className="max-w-2xl mx-auto px-4 py-10">
         {/* Title + Add button */}

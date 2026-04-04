@@ -511,6 +511,116 @@
       "unknown": "Something went wrong. Please try again"
     }
   },
+  "chat": {
+    "pageTitle": "AI Auto Assistant",
+    "sidebar": {
+      "selectedVehicle": "Selected Vehicle",
+      "noVehicle": "No vehicle selected",
+      "selectVehicle": "Select Vehicle",
+      "vehicleStatus": "Good Condition",
+      "mileageLabel": "Mileage",
+      "vinLabel": "VIN",
+      "modesTitle": "Assistant Modes",
+      "diagnostics": "Diagnostics",
+      "diagnosticsDesc": "Understand issues and symptoms",
+      "review": "Work Review",
+      "reviewDesc": "Analyze repair quotes",
+      "partners": "Find Service",
+      "partnersDesc": "Locate trusted partners",
+      "recentChats": "Recent Conversations",
+      "newChat": "New Chat",
+      "noChats": "No recent chats",
+      "subscription": "Subscription Usage",
+      "requestsRemaining": "requests remaining",
+      "renewsOn": "Renews on",
+      "noSubscription": "No active subscription",
+      "upgradeLink": "Upgrade plan"
+    },
+    "window": {
+      "welcomeTitle": "How can I help you today?",
+      "welcomeSubtitle": "Select a mode and describe your issue to get started.",
+      "aiLabel": "AI Analysis",
+      "userLabel": "You",
+      "sending": "Sending...",
+      "inputPlaceholder": "Type your message...",
+      "send": "Send",
+      "newChatButton": "New chat",
+      "completedBadge": "Completed",
+      "awaitingBadge": "Awaiting your answers"
+    },
+    "modes": {
+      "FaultHelp": "Diagnostics",
+      "WorkClarification": "Work Review",
+      "PartnerAdvice": "Find Service"
+    },
+    "modeSubtitles": {
+      "FaultHelp": "Describe the issue, and AutoHelper will help you understand the risks, likely causes, and next steps.",
+      "WorkClarification": "Share the repair quote or work description, and get expert analysis of costs and necessity.",
+      "PartnerAdvice": "Tell us what service you need and your location to find trusted automotive partners."
+    },
+    "diagnosticsForm": {
+      "title": "Describe your vehicle issue",
+      "symptomsLabel": "Symptoms",
+      "symptomsPlaceholder": "Describe what's happening: grinding noise when braking, engine warning light, etc.",
+      "recentEventsLabel": "Recent events (optional)",
+      "recentEventsPlaceholder": "Any recent repairs, accidents, or changes?",
+      "previousIssuesLabel": "Previous issues (optional)",
+      "previousIssuesPlaceholder": "Any known recurring problems?",
+      "submitButton": "Start Diagnostics",
+      "submittingButton": "Starting...",
+      "validation": {
+        "symptomsRequired": "Please describe the symptoms"
+      }
+    },
+    "workClarificationForm": {
+      "title": "Describe the repair work",
+      "worksPerformedLabel": "Works performed",
+      "worksPerformedPlaceholder": "List the work done (e.g., brake pad replacement, oil change, etc.)",
+      "workReasonLabel": "Reason for work",
+      "workReasonPlaceholder": "Why was this work done?",
+      "laborCostLabel": "Labor cost ($)",
+      "laborCostPlaceholder": "0",
+      "partsCostLabel": "Parts cost ($)",
+      "partsCostPlaceholder": "0",
+      "guaranteesLabel": "Guarantees (optional)",
+      "guaranteesPlaceholder": "Any warranty or guarantees provided?",
+      "submitButton": "Analyze Work",
+      "submittingButton": "Analyzing...",
+      "validation": {
+        "worksRequired": "Please describe the works performed",
+        "workReasonRequired": "Please provide the reason for work",
+        "costInvalid": "Cost cannot be negative"
+      }
+    },
+    "partnerAdviceForm": {
+      "title": "Find service partners",
+      "requestLabel": "What service do you need?",
+      "requestPlaceholder": "e.g., brake repair, oil change, tire replacement...",
+      "urgencyLabel": "Urgency (optional)",
+      "urgencyPlaceholder": "e.g., urgent, within a week...",
+      "locationTitle": "Your location",
+      "latLabel": "Latitude",
+      "lngLabel": "Longitude",
+      "useMyLocation": "Use my location",
+      "locating": "Detecting...",
+      "submitButton": "Find Partners",
+      "submittingButton": "Searching...",
+      "validation": {
+        "requestRequired": "Please describe what service you need",
+        "latInvalid": "Latitude: from -90 to 90",
+        "lngInvalid": "Longitude: from -180 to 180"
+      }
+    },
+    "errors": {
+      "loadFailed": "Failed to load chats",
+      "createFailed": "Failed to start chat",
+      "sendFailed": "Failed to send message",
+      "forbidden": "Request limit reached or access denied",
+      "conflict": "This chat is already completed",
+      "serverError": "Server error. Please try again later",
+      "unknown": "Something went wrong. Please try again"
+    }
+  },
   "admin": {
     "login": {
       "title": "Admin Panel",

@@ -511,6 +511,116 @@
       "unknown": "Что-то пошло не так. Попробуйте ещё раз"
     }
   },
+  "chat": {
+    "pageTitle": "AI Авто Ассистент",
+    "sidebar": {
+      "selectedVehicle": "Выбранный автомобиль",
+      "noVehicle": "Автомобиль не выбран",
+      "selectVehicle": "Выбрать автомобиль",
+      "vehicleStatus": "Хорошее состояние",
+      "mileageLabel": "Пробег",
+      "vinLabel": "VIN",
+      "modesTitle": "Режимы ассистента",
+      "diagnostics": "Диагностика",
+      "diagnosticsDesc": "Понять проблемы и симптомы",
+      "review": "Обзор работ",
+      "reviewDesc": "Анализ предложений по ремонту",
+      "partners": "Найти сервис",
+      "partnersDesc": "Найти надёжных партнёров",
+      "recentChats": "Недавние беседы",
+      "newChat": "Новый чат",
+      "noChats": "Нет недавних чатов",
+      "subscription": "Использование подписки",
+      "requestsRemaining": "запросов осталось",
+      "renewsOn": "Обновление",
+      "noSubscription": "Нет активной подписки",
+      "upgradeLink": "Улучшить план"
+    },
+    "window": {
+      "welcomeTitle": "Чем могу помочь?",
+      "welcomeSubtitle": "Выберите режим и опишите вашу проблему, чтобы начать.",
+      "aiLabel": "AI Анализ",
+      "userLabel": "Вы",
+      "sending": "Отправка...",
+      "inputPlaceholder": "Введите сообщение...",
+      "send": "Отправить",
+      "newChatButton": "Новый чат",
+      "completedBadge": "Завершён",
+      "awaitingBadge": "Ожидает ваших ответов"
+    },
+    "modes": {
+      "FaultHelp": "Диагностика",
+      "WorkClarification": "Обзор работ",
+      "PartnerAdvice": "Найти сервис"
+    },
+    "modeSubtitles": {
+      "FaultHelp": "Опишите проблему, и AutoHelper поможет понять риски, вероятные причины и следующие шаги.",
+      "WorkClarification": "Поделитесь предложением по ремонту или описанием работ для экспертного анализа стоимости и необходимости.",
+      "PartnerAdvice": "Сообщите, какой сервис вам нужен и ваше местоположение, чтобы найти надёжных автомобильных партнёров."
+    },
+    "diagnosticsForm": {
+      "title": "Опишите проблему с автомобилем",
+      "symptomsLabel": "Симптомы",
+      "symptomsPlaceholder": "Опишите, что происходит: скрежет при торможении, горит лампа двигателя и т.д.",
+      "recentEventsLabel": "Недавние события (необязательно)",
+      "recentEventsPlaceholder": "Недавний ремонт, аварии или изменения?",
+      "previousIssuesLabel": "Предыдущие проблемы (необязательно)",
+      "previousIssuesPlaceholder": "Известные повторяющиеся проблемы?",
+      "submitButton": "Начать диагностику",
+      "submittingButton": "Запуск...",
+      "validation": {
+        "symptomsRequired": "Пожалуйста, опишите симптомы"
+      }
+    },
+    "workClarificationForm": {
+      "title": "Опишите выполненные работы",
+      "worksPerformedLabel": "Выполненные работы",
+      "worksPerformedPlaceholder": "Перечислите работы (замена тормозных колодок, замена масла и т.д.)",
+      "workReasonLabel": "Причина работ",
+      "workReasonPlaceholder": "Почему были выполнены эти работы?",
+      "laborCostLabel": "Стоимость работ ($)",
+      "laborCostPlaceholder": "0",
+      "partsCostLabel": "Стоимость запчастей ($)",
+      "partsCostPlaceholder": "0",
+      "guaranteesLabel": "Гарантии (необязательно)",
+      "guaranteesPlaceholder": "Предоставленные гарантии?",
+      "submitButton": "Анализировать работы",
+      "submittingButton": "Анализ...",
+      "validation": {
+        "worksRequired": "Пожалуйста, опишите выполненные работы",
+        "workReasonRequired": "Пожалуйста, укажите причину работ",
+        "costInvalid": "Стоимость не может быть отрицательной"
+      }
+    },
+    "partnerAdviceForm": {
+      "title": "Найти сервисных партнёров",
+      "requestLabel": "Какой сервис вам нужен?",
+      "requestPlaceholder": "Например: ремонт тормозов, замена масла, замена шин...",
+      "urgencyLabel": "Срочность (необязательно)",
+      "urgencyPlaceholder": "Например: срочно, в течение недели...",
+      "locationTitle": "Ваше местоположение",
+      "latLabel": "Широта",
+      "lngLabel": "Долгота",
+      "useMyLocation": "Определить моё местоположение",
+      "locating": "Определяю...",
+      "submitButton": "Найти партнёров",
+      "submittingButton": "Поиск...",
+      "validation": {
+        "requestRequired": "Пожалуйста, опишите нужный сервис",
+        "latInvalid": "Широта: от -90 до 90",
+        "lngInvalid": "Долгота: от -180 до 180"
+      }
+    },
+    "errors": {
+      "loadFailed": "Не удалось загрузить чаты",
+      "createFailed": "Не удалось начать чат",
+      "sendFailed": "Не удалось отправить сообщение",
+      "forbidden": "Лимит запросов исчерпан или доступ запрещён",
+      "conflict": "Этот чат уже завершён",
+      "serverError": "Ошибка сервера. Попробуйте позже",
+      "unknown": "Что-то пошло не так. Попробуйте ещё раз"
+    }
+  },
   "admin": {
     "login": {
       "title": "Панель администратора",
