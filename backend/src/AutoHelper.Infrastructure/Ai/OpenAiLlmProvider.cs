@@ -52,9 +52,13 @@ public sealed class OpenAiLlmProvider(
 
         try
         {
+            logger.LogInformation("LLM Request: {Request}", JsonSerializer.Serialize(messages));
+            
             var client = _openAiClient.GetChatClient(model);
             var completion = await client.CompleteChatAsync(messages, options, ct);
             var json = completion.Value.Content[0].Text;
+
+            logger.LogInformation("LLM Response: {Response}", json);
 
             return JsonSerializer.Deserialize<T>(json, JsonOptions)
                 ?? throw new InvalidOperationException($"LLM returned null when deserializing {typeof(T).Name}");
@@ -175,24 +179,42 @@ public sealed class OpenAiLlmProvider(
                 .FirstOrDefault();
 
             var jsonName = jsonAttr?.Name ?? prop.Name;
-            var propType = Nullable.GetUnderlyingType(prop.PropertyType) ?? prop.PropertyType;
+            var underlyingType = Nullable.GetUnderlyingType(prop.PropertyType);
+            var isNullable = underlyingType is not null
+                || !prop.PropertyType.IsValueType; // reference types (string, arrays) are nullable
 
-            var jsonType = propType switch
-            {
-                var t when t == typeof(bool) => "boolean",
-                var t when t == typeof(int) || t == typeof(long) => "integer",
-                var t when t == typeof(decimal) || t == typeof(double) || t == typeof(float) => "number",
-                _ => "string"
-            };
+            var propType = underlyingType ?? prop.PropertyType;
 
-            if (Nullable.GetUnderlyingType(prop.PropertyType) is not null || propType == typeof(string))
+            // OpenAI Structured Outputs requires ALL properties in required.
+            // Optionality is expressed via ["type", "null"] union, not by omitting from required.
+            required.Add(jsonName);
+
+            if (propType.IsArray)
             {
-                properties[jsonName] = new Dictionary<string, object> { ["type"] = new[] { jsonType, "null" } };
+                var elementType = propType.GetElementType()!;
+                var itemSchema = BuildObjectSchema(elementType);
+                var arraySchema = new Dictionary<string, object>
+                {
+                    ["type"] = "array",
+                    ["items"] = itemSchema
+                };
+                properties[jsonName] = isNullable
+                    ? (object)new Dictionary<string, object> { ["anyOf"] = new object[] { arraySchema, new Dictionary<string, object> { ["type"] = "null" } } }
+                    : arraySchema;
             }
             else
             {
-                properties[jsonName] = new Dictionary<string, object> { ["type"] = jsonType };
-                required.Add(jsonName);
+                var jsonType = propType switch
+                {
+                    var t when t == typeof(bool) => "boolean",
+                    var t when t == typeof(int) || t == typeof(long) => "integer",
+                    var t when t == typeof(decimal) || t == typeof(double) || t == typeof(float) => "number",
+                    _ => "string"
+                };
+
+                properties[jsonName] = isNullable
+                    ? (object)new Dictionary<string, object> { ["type"] = new[] { jsonType, "null" } }
+                    : new Dictionary<string, object> { ["type"] = jsonType };
             }
         }
 
@@ -205,5 +227,45 @@ public sealed class OpenAiLlmProvider(
         };
 
         return JsonSerializer.Serialize(schema);
+    }
+
+    private static Dictionary<string, object> BuildObjectSchema(Type type)
+    {
+        var properties = new Dictionary<string, object>();
+        var required = new List<string>();
+
+        foreach (var prop in type.GetProperties())
+        {
+            var jsonAttr = prop.GetCustomAttributes(typeof(System.Text.Json.Serialization.JsonPropertyNameAttribute), false)
+                .OfType<System.Text.Json.Serialization.JsonPropertyNameAttribute>()
+                .FirstOrDefault();
+
+            var jsonName = jsonAttr?.Name ?? prop.Name;
+            var underlyingType = Nullable.GetUnderlyingType(prop.PropertyType);
+            var isNullable = underlyingType is not null || !prop.PropertyType.IsValueType;
+            var propType = underlyingType ?? prop.PropertyType;
+
+            required.Add(jsonName);
+
+            var jsonType = propType switch
+            {
+                var t when t == typeof(bool) => "boolean",
+                var t when t == typeof(int) || t == typeof(long) => "integer",
+                var t when t == typeof(decimal) || t == typeof(double) || t == typeof(float) => "number",
+                _ => "string"
+            };
+
+            properties[jsonName] = isNullable
+                ? (object)new Dictionary<string, object> { ["type"] = new[] { jsonType, "null" } }
+                : new Dictionary<string, object> { ["type"] = jsonType };
+        }
+
+        return new Dictionary<string, object>
+        {
+            ["type"] = "object",
+            ["properties"] = properties,
+            ["required"] = required,
+            ["additionalProperties"] = false
+        };
     }
 }

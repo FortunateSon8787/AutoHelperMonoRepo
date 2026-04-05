@@ -45,11 +45,11 @@ public sealed class CreateChatCommandHandler(
             vehicleId: request.VehicleId);
 
         chats.Add(chat);
-        await unitOfWork.SaveChangesAsync(ct);
 
         var locale = request.Locale;
 
-        // For FaultHelp, immediately process the initial diagnostics form
+        // For FaultHelp, immediately process the initial diagnostics form.
+        // Chat is saved inside the orchestrator together with the first messages.
         if (request.Mode == ChatMode.FaultHelp)
         {
             var orchResult = await orchestrator.ProcessDiagnosticsInitialAsync(
@@ -59,7 +59,7 @@ public sealed class CreateChatCommandHandler(
                 new CreateChatResponse(chat.Id, orchResult.AssistantReply));
         }
 
-        // For WorkClarification, immediately process the work analysis form
+        // For WorkClarification, immediately process the work analysis form.
         if (request.Mode == ChatMode.WorkClarification)
         {
             var orchResult = await orchestrator.ProcessWorkClarificationInitialAsync(
@@ -69,7 +69,7 @@ public sealed class CreateChatCommandHandler(
                 new CreateChatResponse(chat.Id, orchResult.AssistantReply));
         }
 
-        // For PartnerAdvice, immediately process partner search + LLM formatting
+        // For PartnerAdvice, immediately process partner search + LLM formatting.
         if (request.Mode == ChatMode.PartnerAdvice)
         {
             var orchResult = await orchestrator.ProcessPartnerAdviceInitialAsync(
@@ -78,6 +78,8 @@ public sealed class CreateChatCommandHandler(
             return Result<CreateChatResponse>.Success(
                 new CreateChatResponse(chat.Id, orchResult.AssistantReply));
         }
+
+        await unitOfWork.SaveChangesAsync(ct);
 
         return Result<CreateChatResponse>.Success(new CreateChatResponse(chat.Id, null));
     }

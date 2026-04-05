@@ -1,4 +1,5 @@
 using System.Text;
+using System.Text.Json.Serialization;
 using AutoHelper.Api.Common;
 using AutoHelper.Application;
 using AutoHelper.Infrastructure;
@@ -20,6 +21,12 @@ public static class WebApplicationBuilderExtensions
     {
         var services = builder.Services;
         var configuration = builder.Configuration;
+
+        // JSON: accept enum names as strings (e.g. "FaultHelp" instead of 0)
+        services.ConfigureHttpJsonOptions(options =>
+        {
+            options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
+        });
 
         // Application and Infrastructure layers
         services.AddApplicationServices(configuration);

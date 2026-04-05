@@ -86,8 +86,8 @@ services:
       Jwt__Audience: autohelper-api
       Stripe__SecretKey: ${STRIPE_SECRET_KEY}
       Stripe__WebhookSecret: ${STRIPE_WEBHOOK_SECRET}
-      OpenAI__ApiKey: ${OPENAI_API_KEY}
-      OpenAI__Model: ${OPENAI_MODEL:-gpt-4o}
+      LLM__ApiKey: ${OPENAI_API_KEY}
+      LLM__DefaultModel: ${OPENAI_MODEL:-gpt-4o}
       # Auto-migrate on startup in Docker (can be overridden in .env)
       Database__AutoMigrateOnStartup: ${AUTO_MIGRATE:-true}
       Storage__ServiceUrl: ${STORAGE_SERVICEURL}
