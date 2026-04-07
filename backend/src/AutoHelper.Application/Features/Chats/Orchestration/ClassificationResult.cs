@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using AutoHelper.Domain.Chats;
 
 namespace AutoHelper.Application.Features.Chats.Orchestration;
 
@@ -41,4 +42,17 @@ public sealed record ClassificationResult
     /// </summary>
     [JsonPropertyName("should_decrement_quota")]
     public bool ShouldDecrementQuota { get; init; }
+
+    /// <summary>
+    /// Returns a pre-approved classification for follow-up answers.
+    /// Used when the chat is in AwaitingUserAnswers state — any reply is valid
+    /// by definition because the user is answering the assistant's own question.
+    /// </summary>
+    public static ClassificationResult ValidFollowUpAnswer(ChatMode mode) => new()
+    {
+        Mode = mode.ToString(),
+        IsValid = true,
+        ShouldEscalate = false,
+        ShouldDecrementQuota = mode != ChatMode.PartnerAdvice,
+    };
 }

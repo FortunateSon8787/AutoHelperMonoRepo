@@ -1,3 +1,4 @@
+using System.Text.Json;
 using AutoHelper.Application.Common.Interfaces;
 using AutoHelper.Application.Features.Partners.PartnerSearch;
 using AutoHelper.Domain.Chats;
@@ -37,6 +38,7 @@ namespace AutoHelper.Application.Features.Chats.Orchestration;
 public sealed class AutoAssistantOrchestrator(
     ILlmProvider llm,
     IInvalidChatRequestRepository invalidRequests,
+    IChatRepository chats,
     IVehicleRepository vehicles,
     IServiceRecordRepository serviceRecords,
     IMarketPriceGateway marketPrices,
@@ -50,11 +52,25 @@ public sealed class AutoAssistantOrchestrator(
 
     // ─── System prompts ───────────────────────────────────────────────────────
 
+    private const string ClassifierEscalationCriteria =
+        "Set should_escalate = true when ANY of the following is true: " +
+        "1) Multiple simultaneous unrelated symptoms (e.g. engine misfire AND ABS fault AND AC failure). " +
+        "2) Rare or exotic vehicle (uncommon brand, discontinued model, vehicles older than 20 years). " +
+        "3) Non-standard fault codes: manufacturer-specific P1xxx/P2xxx/P3xxx, body B-codes, chassis C-codes, or network U0xxx/U1xxx/U2xxx/U3xxx codes. " +
+        "4) Request contains technical measurement data: pressures, temperatures, waveforms, oscilloscope readings, live sensor values. " +
+        "Otherwise set should_escalate = false.";
+
+    private const string ClassifierQuotaCriteria =
+        "Set should_decrement_quota = true for FaultHelp and WorkClarification modes. " +
+        "Set should_decrement_quota = false for PartnerAdvice mode.";
+
     private const string ClassifierSystemPrompt =
         "You are a request classifier for an automotive AI assistant. " +
         "Allowed topics: 1) vehicle faults and diagnostics, 2) analysis of completed service work, " +
         "3) finding automotive service partners. " +
         "Forbidden: made-up facts, illegal advice, off-topic requests. " +
+        ClassifierEscalationCriteria + " " +
+        ClassifierQuotaCriteria + " " +
         "Respond only with the structured JSON schema provided.";
 
     private const string SummarisationSystemPrompt =
@@ -131,7 +147,8 @@ public sealed class AutoAssistantOrchestrator(
 
         var assistantReply = FormatWorkClarificationReply(result, locale);
 
-        chat.AddExchange(userInput, assistantReply);
+        var newMessages = chat.AddExchange(userInput, assistantReply);
+        chats.AddMessages(newMessages);
         chat.Complete();
         await unitOfWork.SaveChangesAsync(ct);
 
@@ -190,7 +207,8 @@ public sealed class AutoAssistantOrchestrator(
         var assistantReply = formatterResult.ResponseText
             ?? BuildNoPartnersFoundMessage(locale);
 
-        chat.AddExchange(userInput, assistantReply);
+        var newMessages = chat.AddExchange(userInput, assistantReply);
+        chats.AddMessages(newMessages);
         chat.Complete();
         await unitOfWork.SaveChangesAsync(ct);
 
@@ -295,14 +313,21 @@ public sealed class AutoAssistantOrchestrator(
 
         var assistantReply = FormatDiagnosticsReply(diagnosticsResult, locale);
 
+        var isDiagnosticResult = diagnosticsResult.ResponseStage == "diagnostic_result";
+        var diagnosticResultJson = isDiagnosticResult
+            ? JsonSerializer.Serialize(diagnosticsResult)
+            : null;
+
         if (diagnosticsResult.ResponseStage == "follow_up")
         {
-            chat.AddExchange(userInput, assistantReply);
+            var newMessages = chat.AddExchange(userInput, assistantReply);
+            chats.AddMessages(newMessages);
             chat.TransitionToAwaitingAnswers();
         }
         else
         {
-            chat.AddExchange(userInput, assistantReply);
+            var newMessages = chat.AddExchange(userInput, assistantReply, diagnosticResultJson);
+            chats.AddMessages(newMessages);
             chat.TransitionToFinalAnswerSent();
         }
 
@@ -316,7 +341,8 @@ public sealed class AutoAssistantOrchestrator(
             WasValid: true,
             QuotaDecremented: true,
             ResponseStage: diagnosticsResult.ResponseStage,
-            ChatStatus: chat.Status);
+            ChatStatus: chat.Status,
+            DiagnosticResultJson: diagnosticResultJson);
     }
 
     // ─── Public entry point ───────────────────────────────────────────────────
@@ -332,7 +358,12 @@ public sealed class AutoAssistantOrchestrator(
         CancellationToken ct)
     {
         // ── Step 1: RequestClassifier ─────────────────────────────────────────
-        var classification = await ClassifyAsync(chat.Mode, userInput, ct);
+        // When the chat is awaiting follow-up answers the user is responding to
+        // a direct question from the assistant — skip classification entirely to
+        // avoid false positives on short answers like "yes", "no", "2 days ago".
+        var classification = chat.Status == ChatStatus.AwaitingUserAnswers
+            ? ClassificationResult.ValidFollowUpAnswer(chat.Mode)
+            : await ClassifyAsync(chat.Mode, userInput, ct);
 
         // ── Step 2: Reject invalid requests ──────────────────────────────────
         if (!classification.IsValid)
@@ -348,7 +379,8 @@ public sealed class AutoAssistantOrchestrator(
                 classification.RejectionReason ?? "unknown");
 
             invalidRequests.Add(auditRecord);
-            chat.AddInvalidUserMessage(userInput);
+            var invalidMsg = chat.AddInvalidUserMessage(userInput);
+            chats.AddMessages([invalidMsg]);
             await unitOfWork.SaveChangesAsync(ct);
 
             return new OrchestratorResult(
@@ -373,11 +405,16 @@ public sealed class AutoAssistantOrchestrator(
         // ── Step 6: ResponseGenerator ─────────────────────────────────────────
         string assistantReply;
         string? responseStage = null;
+        string? diagnosticResultJson = null;
 
         if (chat.Mode == ChatMode.FaultHelp)
         {
-            (assistantReply, responseStage) = await GenerateFaultHelpResponseAsync(
+            DiagnosticsLlmResult faultHelpLlmResult;
+            (assistantReply, responseStage, faultHelpLlmResult) = await GenerateFaultHelpResponseAsync(
                 chat, context, userInput, model, ct);
+
+            if (responseStage == "diagnostic_result")
+                diagnosticResultJson = JsonSerializer.Serialize(faultHelpLlmResult);
         }
         else
         {
@@ -386,7 +423,8 @@ public sealed class AutoAssistantOrchestrator(
         }
 
         // ── Step 7: ChatStateManager ──────────────────────────────────────────
-        chat.AddExchange(userInput, assistantReply);
+        var exchangeMessages = chat.AddExchange(userInput, assistantReply, diagnosticResultJson);
+        chats.AddMessages(exchangeMessages);
 
         if (chat.Mode == ChatMode.FaultHelp)
             UpdateFaultHelpStatus(chat, responseStage);
@@ -407,7 +445,8 @@ public sealed class AutoAssistantOrchestrator(
             WasValid: true,
             QuotaDecremented: quotaDecremented,
             ResponseStage: responseStage,
-            ChatStatus: chat.Status);
+            ChatStatus: chat.Status,
+            DiagnosticResultJson: diagnosticResultJson);
     }
 
     // ─── Step 1 impl ──────────────────────────────────────────────────────────
@@ -561,7 +600,7 @@ public sealed class AutoAssistantOrchestrator(
 
     // ─── FaultHelp multi-step response generation ─────────────────────────────
 
-    private async Task<(string Reply, string Stage)> GenerateFaultHelpResponseAsync(
+    private async Task<(string Reply, string Stage, DiagnosticsLlmResult LlmResult)> GenerateFaultHelpResponseAsync(
         Chat chat,
         ChatContext context,
         string userInput,
@@ -588,7 +627,7 @@ public sealed class AutoAssistantOrchestrator(
         }
 
         var reply = FormatDiagnosticsReply(result, context.Locale);
-        return (reply, result.ResponseStage);
+        return (reply, result.ResponseStage, result);
     }
 
     private static void UpdateFaultHelpStatus(Chat chat, string? responseStage)

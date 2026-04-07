@@ -56,7 +56,7 @@ public sealed class CreateChatCommandHandler(
                 chat, customer, request.DiagnosticsInput!, locale, ct);
 
             return Result<CreateChatResponse>.Success(
-                new CreateChatResponse(chat.Id, orchResult.AssistantReply));
+                new CreateChatResponse(chat.Id, orchResult.AssistantReply, orchResult.DiagnosticResultJson));
         }
 
         // For WorkClarification, immediately process the work analysis form.

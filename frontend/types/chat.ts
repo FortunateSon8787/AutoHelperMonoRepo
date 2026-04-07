@@ -47,6 +47,7 @@ export interface SendMessageRequest {
 export interface CreateChatResponse {
   chatId: string;
   initialAssistantReply?: string;
+  diagnosticResultJson?: string | null;
 }
 
 export interface SendMessageResponse {
@@ -54,6 +55,7 @@ export interface SendMessageResponse {
   wasValid: boolean;
   responseStage?: string;
   chatStatus: ChatStatus;
+  diagnosticResultJson?: string | null;
 }
 
 export interface ChatSummary {
@@ -72,4 +74,24 @@ export interface ChatMessage {
   content: string;
   isValid: boolean;
   createdAt: string;
+  diagnosticResultJson?: string | null;
+}
+
+// ─── Diagnostic Result (FaultHelp mode) ──────────────────────────────────────
+
+export interface DiagnosticProblem {
+  name: string;
+  probability: number;
+  possible_causes?: string | null;
+  recommended_actions?: string | null;
+}
+
+export interface DiagnosticResult {
+  response_stage: string;
+  potential_problems?: DiagnosticProblem[] | null;
+  urgency?: string | null;
+  current_risks?: string | null;
+  safe_to_drive?: boolean | null;
+  suggested_partner_category?: string | null;
+  disclaimer?: string | null;
 }

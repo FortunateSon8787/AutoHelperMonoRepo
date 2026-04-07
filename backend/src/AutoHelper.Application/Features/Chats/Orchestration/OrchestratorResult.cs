@@ -11,4 +11,9 @@ public sealed record OrchestratorResult(
     /// Diagnostics response stage: "follow_up" | "diagnostic_result" | null (non-FaultHelp modes).
     /// </summary>
     string? ResponseStage,
-    ChatStatus ChatStatus);
+    ChatStatus ChatStatus,
+    /// <summary>
+    /// Serialized <see cref="DiagnosticsLlmResult"/> JSON.
+    /// Non-null only when ResponseStage == "diagnostic_result".
+    /// </summary>
+    string? DiagnosticResultJson = null);

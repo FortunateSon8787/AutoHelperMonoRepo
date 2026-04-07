@@ -78,7 +78,7 @@ Domain/Common/
 | Агрегат | Файл | Описание |
 |---------|------|----------|
 | `Chat` | `Chats/Chat.cs` | Чат-сессия AI-помощника. Реализован в AUT-17 |
-| `Message` | `Chats/Message.cs` | Сообщение чата (User/Assistant). Реализован в AUT-17 |
+| `Message` | `Chats/Message.cs` | Сообщение чата (User/Assistant). Поле `DiagnosticResultJson` добавлено для FaultHelp diagnostic_result. |
 | `ChatbotConfig` | `Chatbot/ChatbotConfig.cs` | Singleton-конфигурация АвтоПомощника (вкл/выкл, лимиты, цены). Реализован в AUT-162 |
 
 ---
@@ -143,6 +143,9 @@ Common/Interfaces/
   ├── IJwtTokenService              — GenerateAccessToken, GenerateAdminAccessToken, GenerateRefreshToken,
   │                                   RefreshTokenExpiryDays, AdminRefreshTokenExpiryDays
   ├── IPasswordHasher               — Hash, Verify
+  ├── IChatRepository          — GetByIdAsync, GetSummariesByCustomerIdAsync, Add, AddMessages
+  │                              AddMessages(IEnumerable<Message>) — явная регистрация новых сообщений в EF Core
+  │                              (необходима, т.к. backing-field коллекция _messages не отслеживается автоматически)
   ├── IChatbotConfigRepository — GetAsync, Add (singleton chatbot config)
   ├── IStorageService          — UploadAsync, CompressAsync
   ├── ILlmProvider             — GenerateStructuredAsync, GenerateTextAsync, SummarizeConversationAsync — абстракция LLM (начальная реализация: OpenAI Responses API, модели gpt-5.4-nano / gpt-5.4-mini / gpt-5.4)
@@ -221,9 +224,26 @@ Storage/
 
 ```
 Ai/
-  ├── OpenAiLlmProvider.cs — ILlmProvider реализация через OpenAI Chat Completions API
-  └── LlmSettings.cs       — Конфигурация (ApiKey, Model); секция "LLM" в appsettings
+  ├── OpenAiLlmProvider.cs  — ILlmProvider реализация через OpenAI Chat Completions API
+  ├── LlmModelSelector.cs   — ILlmModelSelector: предоставляет RouterModel / DefaultModel / EscalationModel
+  └── LlmSettings.cs        — Конфигурация: ApiKey, RouterModel (gpt-4.1-nano),
+                              DefaultModel (gpt-4.1-mini), EscalationModel (gpt-4.1);
+                              секция "LLM" в appsettings
 ```
+
+**Трёхуровневая маршрутизация моделей (AutoAssistantOrchestrator):**
+
+| Уровень | Модель (default) | Когда используется |
+|---------|------------------|--------------------|
+| Router | `gpt-4.1-nano` | Классификация каждого входящего запроса (Structured Outputs) |
+| Default | `gpt-4.1-mini` | Генерация ответа при `should_escalate = false` |
+| Escalation | `gpt-4.1` | Генерация ответа при `should_escalate = true` |
+
+**Критерии эскалации** (`ClassifierEscalationCriteria` в `AutoAssistantOrchestrator`):
+- Несколько одновременных несвязанных симптомов
+- Редкий/экзотический автомобиль (нераспространённая марка, модель старше 20 лет)
+- Нестандартные коды ошибок: P1xxx/P2xxx/P3xxx, B-коды, C-коды, U0xxx–U3xxx
+- Запрос содержит технические измерения (давление, температура, осциллограммы, live-данные сенсоров)
 
 ### Common
 

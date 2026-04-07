@@ -18,6 +18,13 @@ public sealed class Message : Entity<Guid>
     /// Invalid messages are stored for audit but do not decrement the quota.
     /// </summary>
     public bool IsValid { get; private set; }
+
+    /// <summary>
+    /// Serialized <c>DiagnosticsLlmResult</c> JSON for FaultHelp diagnostic_result messages.
+    /// Null for all other message types.
+    /// </summary>
+    public string? DiagnosticResultJson { get; private set; }
+
     public DateTime CreatedAt { get; private set; }
 
     // ─── EF Core ──────────────────────────────────────────────────────────────
@@ -42,7 +49,7 @@ public sealed class Message : Entity<Guid>
         };
     }
 
-    internal static Message CreateAssistantMessage(Guid chatId, string content)
+    internal static Message CreateAssistantMessage(Guid chatId, string content, string? diagnosticResultJson = null)
     {
         if (string.IsNullOrWhiteSpace(content))
             throw new ArgumentException("Assistant response content cannot be empty.", nameof(content));
@@ -54,6 +61,7 @@ public sealed class Message : Entity<Guid>
             Role = MessageRole.Assistant,
             Content = content.Trim(),
             IsValid = true,
+            DiagnosticResultJson = diagnosticResultJson,
             CreatedAt = DateTime.UtcNow
         };
     }

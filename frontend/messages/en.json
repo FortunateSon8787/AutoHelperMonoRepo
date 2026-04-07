@@ -611,6 +611,25 @@
         "lngInvalid": "Longitude: from -180 to 180"
       }
     },
+    "diagnosticResult": {
+      "title": "Diagnostic Result",
+      "summary": "Potential Issues",
+      "urgency": "Urgency Level",
+      "urgencyValues": {
+        "low": "LOW — Monitor the situation",
+        "medium": "MEDIUM — Schedule repair soon",
+        "high": "HIGH — Schedule repair within 3-5 days",
+        "stop_driving": "CRITICAL — Stop driving immediately"
+      },
+      "currentRisks": "Current Risks",
+      "safeToDrive": "Safe to Drive?",
+      "safeYes": "YES — Safe to continue driving",
+      "safeNo": "NO — Avoid driving, schedule repair immediately",
+      "recommendedActions": "Recommended Actions",
+      "possibleCauses": "Possible causes",
+      "disclaimer": "Important Disclaimer",
+      "probability": "probability"
+    },
     "errors": {
       "loadFailed": "Failed to load chats",
       "createFailed": "Failed to start chat",

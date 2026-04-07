@@ -65,20 +65,28 @@ public sealed class Chat : AggregateRoot<Guid>
 
     // ─── Business operations ──────────────────────────────────────────────────
 
-    /// <summary>Records the user's message and the LLM's response as a valid exchange.</summary>
-    public void AddExchange(string userContent, string assistantContent)
+    /// <summary>
+    /// Records the user's message and the LLM's response as a valid exchange.
+    /// Returns the two newly created messages so callers can register them with the persistence context.
+    /// </summary>
+    public IReadOnlyList<Message> AddExchange(string userContent, string assistantContent, string? diagnosticResultJson = null)
     {
-        _messages.Add(Message.CreateUserMessage(Id, userContent));
-        _messages.Add(Message.CreateAssistantMessage(Id, assistantContent));
+        var userMsg = Message.CreateUserMessage(Id, userContent);
+        var assistantMsg = Message.CreateAssistantMessage(Id, assistantContent, diagnosticResultJson);
+        _messages.Add(userMsg);
+        _messages.Add(assistantMsg);
+        return [userMsg, assistantMsg];
     }
 
     /// <summary>
     /// Records an off-topic or rejected user message.
-    /// Does NOT produce an assistant reply entry — the caller returns a fixed rejection text.
+    /// Returns the newly created message so callers can register it with the persistence context.
     /// </summary>
-    public void AddInvalidUserMessage(string userContent)
+    public Message AddInvalidUserMessage(string userContent)
     {
-        _messages.Add(Message.CreateInvalidUserMessage(Id, userContent));
+        var msg = Message.CreateInvalidUserMessage(Id, userContent);
+        _messages.Add(msg);
+        return msg;
     }
 
     // ─── FaultHelp state transitions ─────────────────────────────────────────

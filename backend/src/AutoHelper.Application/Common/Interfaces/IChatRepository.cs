@@ -29,4 +29,11 @@ public interface IChatRepository
 
     /// <summary>Adds a new chat aggregate (tracked, not yet persisted).</summary>
     void Add(Chat chat);
+
+    /// <summary>
+    /// Explicitly registers new message entities with the persistence context.
+    /// Required when messages are added to a chat that was loaded from the database,
+    /// because EF Core does not automatically detect additions to backing-field collections.
+    /// </summary>
+    void AddMessages(IEnumerable<Message> messages);
 }

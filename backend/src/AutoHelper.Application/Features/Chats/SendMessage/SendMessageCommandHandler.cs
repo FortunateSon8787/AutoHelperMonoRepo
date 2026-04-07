@@ -42,7 +42,8 @@ public sealed class SendMessageCommandHandler(
                 result.AssistantReply,
                 WasValid: result.WasValid,
                 ResponseStage: result.ResponseStage,
-                ChatStatus: result.ChatStatus));
+                ChatStatus: result.ChatStatus,
+                DiagnosticResultJson: result.DiagnosticResultJson));
     }
 
     private static bool CanSendMessage(Customer customer, ChatMode mode) =>

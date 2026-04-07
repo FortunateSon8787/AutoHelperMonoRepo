@@ -50,6 +50,7 @@ public class AutoAssistantOrchestratorTests
         _sut = new AutoAssistantOrchestrator(
             _llm.Object,
             _invalidRequests.Object,
+            Mock.Of<IChatRepository>(),
             _vehicles.Object,
             _serviceRecords.Object,
             _marketPrices.Object,

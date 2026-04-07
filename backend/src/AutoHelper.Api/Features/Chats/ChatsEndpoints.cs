@@ -112,7 +112,7 @@ public static class ChatsEndpoints
 
         return Results.Created(
             $"/api/chats/{result.Value.ChatId}",
-            new CreateChatApiResponse(result.Value.ChatId, result.Value.InitialAssistantReply));
+            new CreateChatApiResponse(result.Value.ChatId, result.Value.InitialAssistantReply, result.Value.DiagnosticResultJson));
     }
 
     private static async Task<IResult> GetChatMessages(
@@ -177,7 +177,8 @@ public static class ChatsEndpoints
             result.Value.AssistantReply,
             result.Value.WasValid,
             result.Value.ResponseStage,
-            result.Value.ChatStatus.ToString()));
+            result.Value.ChatStatus.ToString(),
+            result.Value.DiagnosticResultJson));
     }
 
     // ─── Request / Response DTOs ──────────────────────────────────────────────
@@ -209,7 +210,7 @@ public static class ChatsEndpoints
         PartnerAdviceInputRequest? PartnerAdviceInput,
         string? Locale);
 
-    private sealed record CreateChatApiResponse(Guid ChatId, string? InitialAssistantReply);
+    private sealed record CreateChatApiResponse(Guid ChatId, string? InitialAssistantReply, string? DiagnosticResultJson);
 
     private sealed record SendMessageRequest(string Content, string? Locale);
 
@@ -217,5 +218,6 @@ public static class ChatsEndpoints
         string AssistantReply,
         bool WasValid,
         string? ResponseStage,
-        string ChatStatus);
+        string ChatStatus,
+        string? DiagnosticResultJson);
 }

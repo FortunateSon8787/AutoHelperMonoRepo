@@ -130,6 +130,7 @@ export default function ChatPage() {
             content: res.initialAssistantReply,
             isValid: true,
             createdAt: new Date().toISOString(),
+            diagnosticResultJson: res.diagnosticResultJson,
           });
         }
         setMessages(initialMessages);
@@ -176,6 +177,7 @@ export default function ChatPage() {
           content: res.assistantReply,
           isValid: res.wasValid,
           createdAt: new Date().toISOString(),
+          diagnosticResultJson: res.diagnosticResultJson,
         };
         setMessages((prev) => [...prev, assistantMsg]);
         setChatStatus(res.chatStatus);

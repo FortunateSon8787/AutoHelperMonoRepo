@@ -34,4 +34,7 @@ public sealed class ChatRepository(AppDbContext context) : IChatRepository
 
     public void Add(Chat chat) =>
         context.Chats.Add(chat);
+
+    public void AddMessages(IEnumerable<Message> messages) =>
+        context.Messages.AddRange(messages);
 }

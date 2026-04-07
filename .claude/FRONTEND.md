@@ -109,6 +109,12 @@ frontend/
 │   ├── ads/
 │   │   ├── AdBanner.tsx      # Рекламный баннер
 │   │   └── OffersBlock.tsx   # Блок рекламных предложений
+│   ├── chat/
+│   │   ├── ChatWindow.tsx           # Окно чата (сообщения, инпут, статусы)
+│   │   ├── DiagnosticResultCard.tsx # Карточка структурированного диагноза FaultHelp (urgency, проблемы, риски, рекомендации, safe-to-drive)
+│   │   ├── DiagnosticsForm.tsx      # Форма создания FaultHelp чата
+│   │   ├── WorkClarificationForm.tsx # Форма создания WorkClarification чата
+│   │   └── PartnerAdviceForm.tsx    # Форма создания PartnerAdvice чата
 │   ├── partners/
 │   │   └── PartnersMap.tsx   # Карта партнёров (Leaflet/OSM)
 │   └── ui/
@@ -136,7 +142,10 @@ frontend/
 │   ├── vehicle.ts            # Vehicle, VehicleStatus, VehicleOwner, Create/UpdateRequest
 │   ├── serviceRecord.ts      # ServiceRecord, CreateServiceRecordRequest
 │   ├── partner.ts            # PartnerProfile, PARTNER_TYPES, etc.
-│   └── adCampaign.ts         # AdCampaign, AD_TYPES, TARGET_CATEGORIES
+│   ├── adCampaign.ts         # AdCampaign, AD_TYPES, TARGET_CATEGORIES
+│   └── chat.ts               # ChatMode, ChatMessage, DiagnosticsInput, WorkClarificationInput,
+│                             # PartnerAdviceInput, DiagnosticResult, DiagnosticProblem,
+│                             # SendMessageResponse, CreateChatResponse
 │
 ├── i18n/
 │   └── request.ts            # next-intl server конфиг (locale из cookie)
@@ -241,6 +250,36 @@ const PUBLIC_ROUTES = ["/auth/login", "/auth/register"];
 | `/partner/register` | Client | Да | Регистрация как партнёр |
 | `/partner/cabinet` | Client | Да | Кабинет партнёра (профиль) |
 | `/partner/cabinet/ad-campaigns` | Client | Да | Рекламные кампании партнёра |
+| `/dashboard/chat` | Client | Да | AI-чат (FaultHelp, WorkClarification, PartnerAdvice) |
+
+---
+
+## Чат-компоненты (`components/chat/`)
+
+### DiagnosticResultCard
+
+Отображает структурированный результат диагностики FaultHelp (`responseStage = "diagnostic_result"`).
+
+Рендерится вместо текстового сообщения ассистента когда `message.diagnosticResultJson != null`. Парсинг происходит в `ChatMessageBubble`:
+
+```tsx
+const diagnosticResult: DiagnosticResult | null = (() => {
+  if (!message.diagnosticResultJson) return null;
+  try { return JSON.parse(message.diagnosticResultJson) as DiagnosticResult; }
+  catch { return null; }
+})();
+```
+
+**Секции карточки:**
+- Заголовок с бейджем (summary)
+- Urgency (цветовой бейдж: low/medium/high/stop_driving)
+- Potential problems — список с вероятностями (цветовое кодирование: green <0.4, yellow 0.4–0.7, red >0.7)
+- Current risks (AlertCircle, destructive)
+- Recommended actions (нумерованный список)
+- Safe to drive (ShieldCheck/ShieldOff)
+- Disclaimer
+
+**i18n ключи:** `chat.diagnosticResult.*` в `messages/ru.json` и `messages/en.json`
 
 ---
 
@@ -281,6 +320,9 @@ serviceRecords.list, serviceRecords.form
 partner.register, partner.register.validation, partner.register.errors
 partner.cabinet, partner.cabinet.errors
 adCampaigns, adCampaigns.errors, adCampaigns.validation
+chat.window, chat.modes, chat.modeSubtitles
+chat.diagnosticResult           ← карточка диагноза FaultHelp
+chat.diagnostics, chat.workClarification, chat.partnerAdvice  ← формы режимов
 common
 ```
 

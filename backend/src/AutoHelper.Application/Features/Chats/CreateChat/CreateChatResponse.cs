@@ -7,4 +7,5 @@ namespace AutoHelper.Application.Features.Chats.CreateChat;
 /// </summary>
 public sealed record CreateChatResponse(
     Guid ChatId,
-    string? InitialAssistantReply);
+    string? InitialAssistantReply,
+    string? DiagnosticResultJson = null);

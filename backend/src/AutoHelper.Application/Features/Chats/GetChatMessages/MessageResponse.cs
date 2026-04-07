@@ -7,12 +7,14 @@ public sealed record MessageResponse(
     MessageRole Role,
     string Content,
     bool IsValid,
-    DateTime CreatedAt)
+    DateTime CreatedAt,
+    string? DiagnosticResultJson = null)
 {
     public static MessageResponse FromMessage(Message message) =>
         new(message.Id,
             message.Role,
             message.Content,
             message.IsValid,
-            message.CreatedAt);
+            message.CreatedAt,
+            message.DiagnosticResultJson);
 }

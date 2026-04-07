@@ -17,12 +17,14 @@ import { Button } from "@/components/ui/button";
 import { DiagnosticsForm } from "@/components/chat/DiagnosticsForm";
 import { WorkClarificationForm } from "@/components/chat/WorkClarificationForm";
 import { PartnerAdviceForm } from "@/components/chat/PartnerAdviceForm";
+import { DiagnosticResultCard } from "@/components/chat/DiagnosticResultCard";
 import type {
   ChatMode,
   ChatMessage,
   DiagnosticsInput,
   WorkClarificationInput,
   PartnerAdviceInput,
+  DiagnosticResult,
 } from "@/types/chat";
 
 // ─── Props ────────────────────────────────────────────────────────────────────
@@ -62,7 +64,6 @@ export function ChatWindow({
   onNewChat,
   onClearError,
 }: ChatWindowProps) {
-  const t = useTranslations("chat");
   const tWindow = useTranslations("chat.window");
   const tModes = useTranslations("chat.modes");
   const tSubtitles = useTranslations("chat.modeSubtitles");
@@ -292,10 +293,19 @@ function ChatMessageBubble({
     );
   }
 
+  const diagnosticResult: DiagnosticResult | null = (() => {
+    if (!message.diagnosticResultJson) return null;
+    try {
+      return JSON.parse(message.diagnosticResultJson) as DiagnosticResult;
+    } catch {
+      return null;
+    }
+  })();
+
   return (
     <div className="flex justify-start">
       <div className="max-w-4xl w-full bg-secondary border border-border rounded-2xl overflow-hidden shadow-sm">
-        <div className="px-5 py-4 space-y-3">
+        <div className="px-5 py-4 space-y-4">
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-1.5 px-2 py-1 bg-accent/10 rounded-md">
               <Sparkles className="w-3 h-3 text-accent" />
@@ -307,9 +317,13 @@ function ChatMessageBubble({
               </span>
             )}
           </div>
-          <div className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">
-            {message.content}
-          </div>
+          {diagnosticResult ? (
+            <DiagnosticResultCard result={diagnosticResult} />
+          ) : (
+            <div className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">
+              {message.content}
+            </div>
+          )}
         </div>
       </div>
     </div>

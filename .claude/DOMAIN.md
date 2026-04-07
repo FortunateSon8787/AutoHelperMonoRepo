@@ -239,8 +239,10 @@ Chat : AggregateRoot<Guid>
 │       ↳ throws DomainException если title пустой
 │
 ├── Business operations:
-│   ├── AddExchange(userContent, assistantContent) — валидный обмен
-│   ├── AddInvalidUserMessage(userContent)         — off-topic, не уменьшает квоту
+│   ├── AddExchange(userContent, assistantContent, diagnosticResultJson?) → IReadOnlyList<Message>
+│   │   — валидный обмен; возвращает 2 новых сообщения для явной регистрации в EF Core
+│   ├── AddInvalidUserMessage(userContent) → Message
+│   │   — off-topic, не уменьшает квоту; возвращает новое сообщение для регистрации в EF Core
 │   └── CanReceiveMessage() → bool
 │
 └── FaultHelp state transitions (только Mode = FaultHelp):
@@ -300,20 +302,23 @@ Message : Entity<Guid>
 ├── Role: MessageRole          (User | Assistant)
 ├── Content: string
 ├── IsValid: bool              (false — off-topic/rejected; не уменьшает квоту подписки)
+├── DiagnosticResultJson: string?  (сериализованный DiagnosticsLlmResult; только для FaultHelp diagnostic_result, null в остальных случаях)
 └── CreatedAt: DateTime
 ```
 
 **Фабрики Message (internal — только для Chat):**
 - `CreateUserMessage(chatId, content)` — IsValid=true
-- `CreateAssistantMessage(chatId, content)` — IsValid=true
+- `CreateAssistantMessage(chatId, content, diagnosticResultJson?)` — IsValid=true
 - `CreateInvalidUserMessage(chatId, content)` — IsValid=false
 
 **Бизнес-правила:**
 - Режим `FaultHelp` и `WorkClarification` — только `SubscriptionStatus = Premium`
 - Режим `PartnerAdvice` — бесплатный для всех клиентов
 - Topic guard: off-topic запросы сохраняются с `IsValid=false`, но не уменьшают квоту
+- При `ChatStatus = AwaitingUserAnswers` классификатор пропускается — ответ пользователя на уточняющий вопрос всегда валиден
 - История, передаваемая LLM, фильтрует `IsValid=false` сообщения
 - EF: cascade delete сообщений при удалении чата
+- **EF Core tracking:** новые `Message`-сущности, добавленные через `AddExchange`/`AddInvalidUserMessage`, должны явно регистрироваться через `IChatRepository.AddMessages()` — backing-field коллекция не отслеживается автоматически при загруженном агрегате
 
 ---
 

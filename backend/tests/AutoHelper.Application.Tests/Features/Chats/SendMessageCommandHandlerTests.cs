@@ -54,6 +54,7 @@ public class SendMessageCommandHandlerTests
         var orchestrator = new AutoAssistantOrchestrator(
             _llm.Object,
             _invalidRequests.Object,
+            _chats.Object,
             _vehicles.Object,
             _serviceRecords.Object,
             _marketPrices.Object,

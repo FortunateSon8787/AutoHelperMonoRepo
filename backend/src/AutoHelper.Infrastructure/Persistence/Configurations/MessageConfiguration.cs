@@ -30,6 +30,9 @@ public sealed class MessageConfiguration : IEntityTypeConfiguration<Message>
             .IsRequired()
             .HasDefaultValue(true);
 
+        builder.Property(m => m.DiagnosticResultJson)
+            .HasColumnType("text");
+
         builder.Property(m => m.CreatedAt)
             .IsRequired();
     }
