@@ -52,13 +52,13 @@ public sealed class OpenAiLlmProvider(
 
         try
         {
-            logger.LogInformation("LLM Request: {Request}", JsonSerializer.Serialize(messages));
+            logger.LogInformation("LLM {Model} Request: {Request}", model, JsonSerializer.Serialize(messages));
             
             var client = _openAiClient.GetChatClient(model);
             var completion = await client.CompleteChatAsync(messages, options, ct);
             var json = completion.Value.Content[0].Text;
 
-            logger.LogInformation("LLM Response: {Response}", json);
+            logger.LogInformation("LLM {Model} Response: {Response}",model, json);
 
             return JsonSerializer.Deserialize<T>(json, JsonOptions)
                 ?? throw new InvalidOperationException($"LLM returned null when deserializing {typeof(T).Name}");
@@ -99,9 +99,14 @@ public sealed class OpenAiLlmProvider(
 
         try
         {
+            logger.LogInformation("LLM {Model} Request: {Request}", model, JsonSerializer.Serialize(messages));
+            
             var client = _openAiClient.GetChatClient(model);
             var completion = await client.CompleteChatAsync(messages, chatOptions, ct);
             var json = completion.Value.Content[0].Text;
+
+            
+            logger.LogInformation("LLM {Model} Response: {Response}",model, json);
 
             return JsonSerializer.Deserialize<T>(json, JsonOptions)
                 ?? throw new InvalidOperationException($"LLM returned null when deserializing {typeof(T).Name}");

@@ -308,6 +308,7 @@ public sealed class AutoAssistantOrchestrator(
         var systemPrompt = BuildDiagnosticsSystemPrompt(context);
         var userInput = FormatDiagnosticsInput(input);
 
+        logger.LogInformation("Model process diag: {Model}", model);
         var diagnosticsResult = await llm.GenerateStructuredAsync<DiagnosticsLlmResult>(
             model, systemPrompt, userInput, ct);
 
@@ -397,6 +398,7 @@ public sealed class AutoAssistantOrchestrator(
         // ── Step 4: BackendDataGateway ────────────────────────────────────────
         var backendData = await FetchBackendDataAsync(chat, ct);
 
+        logger.LogInformation("Should escalate: {IsEscalate}", classification.ShouldEscalate);
         // ── Step 5: Model selection ───────────────────────────────────────────
         var model = classification.ShouldEscalate
             ? modelSelector.EscalationModel

@@ -87,7 +87,9 @@ services:
       Stripe__SecretKey: ${STRIPE_SECRET_KEY}
       Stripe__WebhookSecret: ${STRIPE_WEBHOOK_SECRET}
       LLM__ApiKey: ${OPENAI_API_KEY}
-      LLM__DefaultModel: ${OPENAI_MODEL:-gpt-4o}
+      LLM__DefaultModel: ${LLM_DefaultModel}
+      LLM__EscalationModel: ${LLM_EscalationModel}
+      LLM__RouterModel: ${LLM_RouterModel}
       # Auto-migrate on startup in Docker (can be overridden in .env)
       Database__AutoMigrateOnStartup: ${AUTO_MIGRATE:-true}
       Storage__ServiceUrl: ${STORAGE_SERVICEURL}

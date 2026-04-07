@@ -75,6 +75,8 @@ export interface ChatMessage {
   isValid: boolean;
   createdAt: string;
   diagnosticResultJson?: string | null;
+  /** Structured input for the first FaultHelp user message — used to render a readonly form */
+  diagnosticsInput?: DiagnosticsInput | null;
 }
 
 // ─── Diagnostic Result (FaultHelp mode) ──────────────────────────────────────

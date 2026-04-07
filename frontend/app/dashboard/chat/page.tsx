@@ -21,6 +21,27 @@ import type {
 import type { Vehicle } from "@/types/vehicle";
 import type { SubscriptionInfo } from "@/types/client";
 
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function parseDiagnosticsContent(content: string): DiagnosticsInput {
+  const lines = content.split("\n");
+  let symptoms = "";
+  let recentEvents: string | undefined;
+  let previousIssues: string | undefined;
+
+  for (const line of lines) {
+    if (line.startsWith("Symptoms: ")) {
+      symptoms = line.slice("Symptoms: ".length);
+    } else if (line.startsWith("Recent events: ")) {
+      recentEvents = line.slice("Recent events: ".length);
+    } else if (line.startsWith("Previous issues: ")) {
+      previousIssues = line.slice("Previous issues: ".length);
+    }
+  }
+
+  return { symptoms, recentEvents, previousIssues };
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function ChatPage() {
@@ -74,8 +95,20 @@ export default function ChatPage() {
     setError(null);
     try {
       const msgs = await chatService.getChatMessages(chatId);
-      setMessages(msgs);
       const chat = chats.find((c) => c.id === chatId);
+      // For FaultHelp chats, parse the first user message into structured diagnosticsInput
+      const enriched = msgs.map((msg, idx) => {
+        if (
+          chat?.mode === "FaultHelp" &&
+          msg.role === "User" &&
+          idx === 0
+        ) {
+          const parsed = parseDiagnosticsContent(msg.content);
+          return { ...msg, diagnosticsInput: parsed };
+        }
+        return msg;
+      });
+      setMessages(enriched);
       if (chat) setChatStatus(chat.status);
     } catch {
       setError(t("errors.loadFailed"));
@@ -123,6 +156,17 @@ export default function ChatPage() {
         setActiveChatId(res.chatId);
 
         const initialMessages: ChatMessage[] = [];
+        if (mode === "FaultHelp") {
+          const diagInput = modeInput as DiagnosticsInput;
+          initialMessages.push({
+            id: "user-initial",
+            role: "User",
+            content: "",
+            isValid: true,
+            createdAt: new Date().toISOString(),
+            diagnosticsInput: diagInput,
+          });
+        }
         if (res.initialAssistantReply) {
           initialMessages.push({
             id: "initial",

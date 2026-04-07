@@ -39,8 +39,11 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/*
 
 # Create a dedicated non-root user
-RUN groupadd --system --gid 1001 appgroup \
- && useradd  --system --uid 1001 --gid appgroup --no-create-home appuser
+# RUN groupadd --system --gid 1001 appgroup \
+#  && useradd  --system --uid 1001 --gid appgroup --no-create-home appuser
+
+ RUN groupadd --system --gid 1001 appgroup \
+ && useradd --system --uid 1001 --gid appgroup -m -d /home/appuser -s /bin/bash appuser
 
 # Copy published artefacts with correct ownership
 COPY --from=build --chown=appuser:appgroup /app/publish .
