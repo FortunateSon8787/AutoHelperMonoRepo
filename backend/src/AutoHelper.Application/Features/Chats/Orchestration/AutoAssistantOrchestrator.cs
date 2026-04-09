@@ -836,10 +836,10 @@ public sealed class AutoAssistantOrchestrator(
             parts.Add($"Stated reason: {input.WorkReason}");
 
         if (input.LaborCost > 0)
-            parts.Add($"Labor cost: {input.LaborCost:F0}");
+            parts.Add($"Labor cost: ${input.LaborCost:F0} USD");
 
         if (input.PartsCost > 0)
-            parts.Add($"Parts cost: {input.PartsCost:F0}");
+            parts.Add($"Parts cost: ${input.PartsCost:F0} USD");
 
         if (!string.IsNullOrWhiteSpace(input.Guarantees))
             parts.Add($"Guarantees: {input.Guarantees}");
