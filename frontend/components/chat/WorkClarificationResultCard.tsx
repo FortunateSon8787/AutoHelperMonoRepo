@@ -28,7 +28,13 @@ type PriceLevel = "below_market" | "near_market" | "above_market" | "unknown";
 type GuaranteeLevel = "weak" | "normal" | "strong" | "unclear";
 type HonestyLevel = "poor" | "mixed" | "fair" | "good" | "unknown";
 
-function RelevanceBadge({ value }: { value: string }) {
+function RelevanceBadge({
+  value,
+  label,
+}: {
+  value: string;
+  label: string;
+}) {
   const colorClass: Record<RelevanceLevel, string> = {
     low: "bg-destructive/10 text-destructive",
     medium: "bg-warning/10 text-warning",
@@ -39,7 +45,7 @@ function RelevanceBadge({ value }: { value: string }) {
     colorClass[value as RelevanceLevel] ?? "bg-muted text-muted-foreground";
   return (
     <span className={`px-2 py-0.5 rounded-md text-xs font-medium ${cls}`}>
-      {value}
+      {label}
     </span>
   );
 }
@@ -54,7 +60,13 @@ function PriceIcon({ value }: { value: string }) {
   return <HelpCircle className="w-4 h-4 text-muted-foreground flex-shrink-0" />;
 }
 
-function PriceBadge({ value }: { value: string }) {
+function PriceBadge({
+  value,
+  label,
+}: {
+  value: string;
+  label: string;
+}) {
   const colorClass: Record<PriceLevel, string> = {
     below_market: "bg-success/10 text-success",
     near_market: "bg-info/10 text-info",
@@ -65,12 +77,18 @@ function PriceBadge({ value }: { value: string }) {
     colorClass[value as PriceLevel] ?? "bg-muted text-muted-foreground";
   return (
     <span className={`px-2 py-0.5 rounded-md text-xs font-medium ${cls}`}>
-      {value}
+      {label}
     </span>
   );
 }
 
-function GuaranteeBadge({ value }: { value: string }) {
+function GuaranteeBadge({
+  value,
+  label,
+}: {
+  value: string;
+  label: string;
+}) {
   const colorClass: Record<GuaranteeLevel, string> = {
     weak: "bg-destructive/10 text-destructive",
     normal: "bg-info/10 text-info",
@@ -81,12 +99,18 @@ function GuaranteeBadge({ value }: { value: string }) {
     colorClass[value as GuaranteeLevel] ?? "bg-muted text-muted-foreground";
   return (
     <span className={`px-2 py-0.5 rounded-md text-xs font-medium ${cls}`}>
-      {value}
+      {label}
     </span>
   );
 }
 
-function HonestyBadge({ value }: { value: string }) {
+function HonestyBadge({
+  value,
+  label,
+}: {
+  value: string;
+  label: string;
+}) {
   const colorClass: Record<HonestyLevel, string> = {
     poor: "bg-destructive/10 text-destructive border border-destructive/30",
     mixed: "bg-warning/10 text-warning border border-warning/30",
@@ -99,7 +123,7 @@ function HonestyBadge({ value }: { value: string }) {
     "bg-muted text-muted-foreground border border-border";
   return (
     <span className={`px-3 py-1 rounded-lg text-sm font-semibold ${cls}`}>
-      {value.toUpperCase()}
+      {label.toUpperCase()}
     </span>
   );
 }
@@ -159,7 +183,14 @@ export function WorkClarificationResultCard({
           </span>
         </div>
         <div className="flex items-center gap-3">
-          <HonestyBadge value={result.overall_honesty} />
+          <HonestyBadge
+            value={result.overall_honesty}
+            label={
+              t.has(`honestyValues.${result.overall_honesty}` as Parameters<typeof t>[0])
+                ? t(`honestyValues.${result.overall_honesty}` as Parameters<typeof t>[0])
+                : result.overall_honesty
+            }
+          />
         </div>
         {result.overall_explanation && (
           <p className="text-sm text-muted-foreground leading-relaxed">
@@ -172,7 +203,16 @@ export function WorkClarificationResultCard({
       <AssessmentSection
         icon={<CheckCircle className="w-4 h-4 text-info flex-shrink-0" />}
         label={t("workReasonRelevance")}
-        badge={<RelevanceBadge value={result.work_reason_relevance} />}
+        badge={
+          <RelevanceBadge
+            value={result.work_reason_relevance}
+            label={
+              t.has(`relevanceValues.${result.work_reason_relevance}` as Parameters<typeof t>[0])
+                ? t(`relevanceValues.${result.work_reason_relevance}` as Parameters<typeof t>[0])
+                : result.work_reason_relevance
+            }
+          />
+        }
         explanation={result.work_reason_explanation}
       />
 
@@ -183,7 +223,14 @@ export function WorkClarificationResultCard({
         badge={
           <div className="flex items-center gap-1.5">
             <PriceIcon value={result.labor_price_assessment} />
-            <PriceBadge value={result.labor_price_assessment} />
+            <PriceBadge
+              value={result.labor_price_assessment}
+              label={
+                t.has(`priceValues.${result.labor_price_assessment}` as Parameters<typeof t>[0])
+                  ? t(`priceValues.${result.labor_price_assessment}` as Parameters<typeof t>[0])
+                  : result.labor_price_assessment
+              }
+            />
           </div>
         }
         explanation={result.labor_price_explanation}
@@ -196,7 +243,14 @@ export function WorkClarificationResultCard({
         badge={
           <div className="flex items-center gap-1.5">
             <PriceIcon value={result.parts_price_assessment} />
-            <PriceBadge value={result.parts_price_assessment} />
+            <PriceBadge
+              value={result.parts_price_assessment}
+              label={
+                t.has(`priceValues.${result.parts_price_assessment}` as Parameters<typeof t>[0])
+                  ? t(`priceValues.${result.parts_price_assessment}` as Parameters<typeof t>[0])
+                  : result.parts_price_assessment
+              }
+            />
           </div>
         }
         explanation={result.parts_price_explanation}
@@ -206,7 +260,16 @@ export function WorkClarificationResultCard({
       <AssessmentSection
         icon={<Shield className="w-4 h-4 text-muted-foreground flex-shrink-0" />}
         label={t("guarantees")}
-        badge={<GuaranteeBadge value={result.guarantee_assessment} />}
+        badge={
+          <GuaranteeBadge
+            value={result.guarantee_assessment}
+            label={
+              t.has(`guaranteeValues.${result.guarantee_assessment}` as Parameters<typeof t>[0])
+                ? t(`guaranteeValues.${result.guarantee_assessment}` as Parameters<typeof t>[0])
+                : result.guarantee_assessment
+            }
+          />
+        }
         explanation={result.guarantee_explanation}
       />
 

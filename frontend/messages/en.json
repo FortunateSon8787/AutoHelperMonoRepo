@@ -640,7 +640,32 @@
       "futureExpectations": "Future Service Expectations",
       "nextService": "Recommended next service",
       "nextServiceValue": "in {km} km",
-      "disclaimer": "Important Disclaimer"
+      "disclaimer": "Important Disclaimer",
+      "relevanceValues": {
+        "low": "Low",
+        "medium": "Medium",
+        "high": "High",
+        "unclear": "Unclear"
+      },
+      "priceValues": {
+        "below_market": "Below market",
+        "near_market": "Near market",
+        "above_market": "Above market",
+        "unknown": "No data"
+      },
+      "guaranteeValues": {
+        "weak": "Weak",
+        "normal": "Standard",
+        "strong": "Strong",
+        "unclear": "Unclear"
+      },
+      "honestyValues": {
+        "poor": "Poor",
+        "mixed": "Mixed",
+        "fair": "Fair",
+        "good": "Good",
+        "unknown": "No data"
+      }
     },
     "errors": {
       "loadFailed": "Failed to load chats",

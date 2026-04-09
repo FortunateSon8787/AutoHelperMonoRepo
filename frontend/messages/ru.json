@@ -640,7 +640,32 @@
       "futureExpectations": "Ожидания от дальнейшего обслуживания",
       "nextService": "Рекомендуемое следующее ТО",
       "nextServiceValue": "через {km} км",
-      "disclaimer": "Важный дисклеймер"
+      "disclaimer": "Важный дисклеймер",
+      "relevanceValues": {
+        "low": "Низкая",
+        "medium": "Средняя",
+        "high": "Высокая",
+        "unclear": "Неясно"
+      },
+      "priceValues": {
+        "below_market": "Ниже рынка",
+        "near_market": "По рынку",
+        "above_market": "Выше рынка",
+        "unknown": "Нет данных"
+      },
+      "guaranteeValues": {
+        "weak": "Слабые",
+        "normal": "Стандартные",
+        "strong": "Сильные",
+        "unclear": "Неясно"
+      },
+      "honestyValues": {
+        "poor": "Плохая",
+        "mixed": "Смешанная",
+        "fair": "Удовлетворительная",
+        "good": "Хорошая",
+        "unknown": "Нет данных"
+      }
     },
     "errors": {
       "loadFailed": "Не удалось загрузить чаты",

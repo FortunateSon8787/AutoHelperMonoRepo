@@ -290,8 +290,9 @@ public sealed class AutoAssistantOrchestrator(
     }
 
     private static string BuildNoPartnersFoundMessage(string locale) =>
-        "К сожалению, рядом с вашим местоположением не найдено подходящих партнёров. " +
-        "Попробуйте увеличить радиус поиска или обратиться позже.";
+        locale.StartsWith("en", StringComparison.OrdinalIgnoreCase)
+            ? "Unfortunately, no suitable partners were found near your location. Try expanding your search radius or check back later."
+            : "К сожалению, рядом с вашим местоположением не найдено подходящих партнёров. Попробуйте увеличить радиус поиска или обратиться позже.";
 
     // ─── FaultHelp initial processing ────────────────────────────────────────
 
@@ -758,39 +759,43 @@ public sealed class AutoAssistantOrchestrator(
 
     private static string FormatDiagnosticsReply(DiagnosticsLlmResult result, string locale)
     {
+        var isEn = locale.StartsWith("en", StringComparison.OrdinalIgnoreCase);
+
         if (result.ResponseStage == "follow_up")
-            return result.FollowUpQuestion ?? "Пожалуйста, уточните симптомы.";
+            return result.FollowUpQuestion ?? (isEn ? "Please clarify the symptoms." : "Пожалуйста, уточните симптомы.");
 
         // diagnostic_result
         if (result.PotentialProblems is null or { Length: 0 })
-            return "Недостаточно информации для диагноза.";
+            return isEn ? "Not enough information to make a diagnosis." : "Недостаточно информации для диагноза.";
 
         var sb = new System.Text.StringBuilder();
 
-        sb.AppendLine("**Диагностика завершена**\n");
+        sb.AppendLine(isEn ? "**Diagnosis complete**\n" : "**Диагностика завершена**\n");
 
-        sb.AppendLine("**Возможные проблемы:**");
+        sb.AppendLine(isEn ? "**Potential problems:**" : "**Возможные проблемы:**");
         foreach (var problem in result.PotentialProblems.OrderByDescending(p => p.Probability))
         {
             var pct = (int)(problem.Probability * 100);
             sb.AppendLine($"- **{problem.Name}** ({pct}%)");
             if (!string.IsNullOrWhiteSpace(problem.PossibleCauses))
-                sb.AppendLine($"  Причины: {problem.PossibleCauses}");
+                sb.AppendLine($"  {(isEn ? "Causes" : "Причины")}: {problem.PossibleCauses}");
             if (!string.IsNullOrWhiteSpace(problem.RecommendedActions))
-                sb.AppendLine($"  Рекомендации: {problem.RecommendedActions}");
+                sb.AppendLine($"  {(isEn ? "Recommendations" : "Рекомендации")}: {problem.RecommendedActions}");
         }
 
         if (!string.IsNullOrWhiteSpace(result.Urgency))
-            sb.AppendLine($"\n**Срочность:** {result.Urgency}");
+            sb.AppendLine($"\n**{(isEn ? "Urgency" : "Срочность")}:** {result.Urgency}");
 
         if (!string.IsNullOrWhiteSpace(result.CurrentRisks))
-            sb.AppendLine($"**Текущие риски:** {result.CurrentRisks}");
+            sb.AppendLine($"**{(isEn ? "Current risks" : "Текущие риски")}:** {result.CurrentRisks}");
 
         if (result.SafeToDrive.HasValue)
-            sb.AppendLine($"**Безопасность езды:** {(result.SafeToDrive.Value ? "Можно продолжать" : "Рекомендуется остановиться")}");
+            sb.AppendLine(isEn
+                ? $"**Safe to drive:** {(result.SafeToDrive.Value ? "Yes, safe to continue" : "No, stop driving")}"
+                : $"**Безопасность езды:** {(result.SafeToDrive.Value ? "Можно продолжать" : "Рекомендуется остановиться")}");
 
         if (!string.IsNullOrWhiteSpace(result.SuggestedPartnerCategory))
-            sb.AppendLine($"**Рекомендуемый сервис:** {result.SuggestedPartnerCategory}");
+            sb.AppendLine($"**{(isEn ? "Recommended service" : "Рекомендуемый сервис")}:** {result.SuggestedPartnerCategory}");
 
         if (!string.IsNullOrWhiteSpace(result.Disclaimer))
             sb.AppendLine($"\n_{result.Disclaimer}_");
@@ -844,30 +849,33 @@ public sealed class AutoAssistantOrchestrator(
 
     private static string FormatWorkClarificationReply(WorkClarificationLlmResult result, string locale)
     {
+        var isEn = locale.StartsWith("en", StringComparison.OrdinalIgnoreCase);
         var sb = new System.Text.StringBuilder();
 
-        sb.AppendLine("**Анализ выполненных работ**\n");
+        sb.AppendLine(isEn ? "**Work Analysis Result**\n" : "**Анализ выполненных работ**\n");
 
-        sb.AppendLine($"**Обоснованность работ:** {TranslateRelevance(result.WorkReasonRelevance)}");
+        sb.AppendLine($"**{(isEn ? "Work Justification" : "Обоснованность работ")}:** {TranslateRelevance(result.WorkReasonRelevance, isEn)}");
         sb.AppendLine(result.WorkReasonExplanation);
 
-        sb.AppendLine($"\n**Стоимость работ:** {TranslatePriceAssessment(result.LaborPriceAssessment)}");
+        sb.AppendLine($"\n**{(isEn ? "Labor Cost (USD)" : "Стоимость работ (USD)")}:** {TranslatePriceAssessment(result.LaborPriceAssessment, isEn)}");
         sb.AppendLine(result.LaborPriceExplanation);
 
-        sb.AppendLine($"\n**Стоимость деталей:** {TranslatePriceAssessment(result.PartsPriceAssessment)}");
+        sb.AppendLine($"\n**{(isEn ? "Parts Cost (USD)" : "Стоимость деталей (USD)")}:** {TranslatePriceAssessment(result.PartsPriceAssessment, isEn)}");
         sb.AppendLine(result.PartsPriceExplanation);
 
-        sb.AppendLine($"\n**Гарантии:** {TranslateGuaranteeAssessment(result.GuaranteeAssessment)}");
+        sb.AppendLine($"\n**{(isEn ? "Guarantees" : "Гарантии")}:** {TranslateGuaranteeAssessment(result.GuaranteeAssessment, isEn)}");
         sb.AppendLine(result.GuaranteeExplanation);
 
-        sb.AppendLine($"\n**Общая оценка честности сервиса:** {TranslateOverallHonesty(result.OverallHonesty)}");
+        sb.AppendLine($"\n**{(isEn ? "Overall Service Honesty" : "Общая оценка честности сервиса")}:** {TranslateOverallHonesty(result.OverallHonesty, isEn)}");
         sb.AppendLine(result.OverallExplanation);
 
         if (!string.IsNullOrWhiteSpace(result.FutureExpectations))
-            sb.AppendLine($"\n**Ожидания от дальнейшего обслуживания:** {result.FutureExpectations}");
+            sb.AppendLine($"\n**{(isEn ? "Future Service Expectations" : "Ожидания от дальнейшего обслуживания")}:** {result.FutureExpectations}");
 
         if (result.RepeatIntervalKm.HasValue)
-            sb.AppendLine($"**Следующее ТО/замена:** через {result.RepeatIntervalKm:N0} км");
+            sb.AppendLine(isEn
+                ? $"**Recommended next service:** in {result.RepeatIntervalKm:N0} km"
+                : $"**Следующее ТО/замена:** через {result.RepeatIntervalKm:N0} км");
 
         if (!string.IsNullOrWhiteSpace(result.Disclaimer))
             sb.AppendLine($"\n_{result.Disclaimer}_");
@@ -875,40 +883,40 @@ public sealed class AutoAssistantOrchestrator(
         return sb.ToString().TrimEnd();
     }
 
-    private static string TranslateRelevance(string value) => value switch
+    private static string TranslateRelevance(string value, bool isEn) => value switch
     {
-        "low" => "Низкая",
-        "medium" => "Средняя",
-        "high" => "Высокая",
-        "unclear" => "Неясно",
+        "low" => isEn ? "Low" : "Низкая",
+        "medium" => isEn ? "Medium" : "Средняя",
+        "high" => isEn ? "High" : "Высокая",
+        "unclear" => isEn ? "Unclear" : "Неясно",
         _ => value
     };
 
-    private static string TranslatePriceAssessment(string value) => value switch
+    private static string TranslatePriceAssessment(string value, bool isEn) => value switch
     {
-        "below_market" => "Ниже рынка",
-        "near_market" => "По рынку",
-        "above_market" => "Выше рынка",
-        "unknown" => "Нет данных",
+        "below_market" => isEn ? "Below market" : "Ниже рынка",
+        "near_market" => isEn ? "Near market" : "По рынку",
+        "above_market" => isEn ? "Above market" : "Выше рынка",
+        "unknown" => isEn ? "No data" : "Нет данных",
         _ => value
     };
 
-    private static string TranslateGuaranteeAssessment(string value) => value switch
+    private static string TranslateGuaranteeAssessment(string value, bool isEn) => value switch
     {
-        "weak" => "Слабые",
-        "normal" => "Стандартные",
-        "strong" => "Сильные",
-        "unclear" => "Неясно",
+        "weak" => isEn ? "Weak" : "Слабые",
+        "normal" => isEn ? "Standard" : "Стандартные",
+        "strong" => isEn ? "Strong" : "Сильные",
+        "unclear" => isEn ? "Unclear" : "Неясно",
         _ => value
     };
 
-    private static string TranslateOverallHonesty(string value) => value switch
+    private static string TranslateOverallHonesty(string value, bool isEn) => value switch
     {
-        "poor" => "Плохая",
-        "mixed" => "Смешанная",
-        "fair" => "Удовлетворительная",
-        "good" => "Хорошая",
-        "unknown" => "Нет данных",
+        "poor" => isEn ? "Poor" : "Плохая",
+        "mixed" => isEn ? "Mixed" : "Смешанная",
+        "fair" => isEn ? "Fair" : "Удовлетворительная",
+        "good" => isEn ? "Good" : "Хорошая",
+        "unknown" => isEn ? "No data" : "Нет данных",
         _ => value
     };
 
@@ -916,20 +924,25 @@ public sealed class AutoAssistantOrchestrator(
 
     private static string BuildRejectionMessage(string? reason, string locale)
     {
+        var isEn = locale.StartsWith("en", StringComparison.OrdinalIgnoreCase);
+
         return reason switch
         {
-            "unsafe" =>
-                "Извините, я не могу помочь с этим запросом. " +
-                "Пожалуйста, задайте вопрос об автомобилях и автосервисах.",
-            "out_of_scope" or "off_topic" =>
-                "Извините, я могу отвечать только на вопросы об автомобилях и автосервисах. " +
-                "Пожалуйста, задайте вопрос по теме.",
-            "missing_context" =>
-                "Для ответа на ваш вопрос недостаточно контекста. " +
-                "Пожалуйста, уточните детали или добавьте автомобиль в профиль.",
-            _ =>
-                "Извините, я не могу обработать этот запрос. " +
-                "Пожалуйста, задайте вопрос об автомобилях и автосервисах."
+            "unsafe" => isEn
+                ? "Sorry, I can't help with this request. Please ask a question about cars or automotive services."
+                : "Извините, я не могу помочь с этим запросом. Пожалуйста, задайте вопрос об автомобилях и автосервисах.",
+
+            "out_of_scope" or "off_topic" => isEn
+                ? "Sorry, I can only answer questions about cars and automotive services. Please stay on topic."
+                : "Извините, я могу отвечать только на вопросы об автомобилях и автосервисах. Пожалуйста, задайте вопрос по теме.",
+
+            "missing_context" => isEn
+                ? "There's not enough context to answer your question. Please provide more details or add a vehicle to your profile."
+                : "Для ответа на ваш вопрос недостаточно контекста. Пожалуйста, уточните детали или добавьте автомобиль в профиль.",
+
+            _ => isEn
+                ? "Sorry, I can't process this request. Please ask a question about cars or automotive services."
+                : "Извините, я не могу обработать этот запрос. Пожалуйста, задайте вопрос об автомобилях и автосервисах."
         };
     }
 }
