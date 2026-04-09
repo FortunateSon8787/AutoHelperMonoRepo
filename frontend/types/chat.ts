@@ -48,6 +48,7 @@ export interface CreateChatResponse {
   chatId: string;
   initialAssistantReply?: string;
   diagnosticResultJson?: string | null;
+  workClarificationResultJson?: string | null;
 }
 
 export interface SendMessageResponse {
@@ -75,8 +76,11 @@ export interface ChatMessage {
   isValid: boolean;
   createdAt: string;
   diagnosticResultJson?: string | null;
+  workClarificationResultJson?: string | null;
   /** Structured input for the first FaultHelp user message — used to render a readonly form */
   diagnosticsInput?: DiagnosticsInput | null;
+  /** Structured input for the first WorkClarification user message — used to render a readonly form */
+  workClarificationInput?: WorkClarificationInput | null;
 }
 
 // ─── Diagnostic Result (FaultHelp mode) ──────────────────────────────────────
@@ -95,5 +99,28 @@ export interface DiagnosticResult {
   current_risks?: string | null;
   safe_to_drive?: boolean | null;
   suggested_partner_category?: string | null;
+  disclaimer?: string | null;
+}
+
+// ─── Work Clarification Result (WorkClarification mode) ───────────────────────
+
+export interface WorkClarificationResult {
+  /** "low" | "medium" | "high" | "unclear" */
+  work_reason_relevance: string;
+  work_reason_explanation: string;
+  /** "below_market" | "near_market" | "above_market" | "unknown" */
+  labor_price_assessment: string;
+  labor_price_explanation: string;
+  /** "below_market" | "near_market" | "above_market" | "unknown" */
+  parts_price_assessment: string;
+  parts_price_explanation: string;
+  /** "weak" | "normal" | "strong" | "unclear" */
+  guarantee_assessment: string;
+  guarantee_explanation: string;
+  /** "poor" | "mixed" | "fair" | "good" | "unknown" */
+  overall_honesty: string;
+  overall_explanation: string;
+  future_expectations?: string | null;
+  repeat_interval_km?: number | null;
   disclaimer?: string | null;
 }

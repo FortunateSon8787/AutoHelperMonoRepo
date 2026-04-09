@@ -42,6 +42,31 @@ function parseDiagnosticsContent(content: string): DiagnosticsInput {
   return { symptoms, recentEvents, previousIssues };
 }
 
+function parseWorkClarificationContent(content: string): WorkClarificationInput {
+  const lines = content.split("\n");
+  let worksPerformed = "";
+  let workReason = "";
+  let laborCost = 0;
+  let partsCost = 0;
+  let guarantees: string | undefined;
+
+  for (const line of lines) {
+    if (line.startsWith("Works performed: ")) {
+      worksPerformed = line.slice("Works performed: ".length);
+    } else if (line.startsWith("Stated reason: ")) {
+      workReason = line.slice("Stated reason: ".length);
+    } else if (line.startsWith("Labor cost: ")) {
+      laborCost = parseFloat(line.slice("Labor cost: ".length)) || 0;
+    } else if (line.startsWith("Parts cost: ")) {
+      partsCost = parseFloat(line.slice("Parts cost: ".length)) || 0;
+    } else if (line.startsWith("Guarantees: ")) {
+      guarantees = line.slice("Guarantees: ".length);
+    }
+  }
+
+  return { worksPerformed, workReason, laborCost, partsCost, guarantees };
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function ChatPage() {
@@ -96,15 +121,15 @@ export default function ChatPage() {
     try {
       const msgs = await chatService.getChatMessages(chatId);
       const chat = chats.find((c) => c.id === chatId);
-      // For FaultHelp chats, parse the first user message into structured diagnosticsInput
+      // For FaultHelp/WorkClarification chats, parse the first user message into structured input
       const enriched = msgs.map((msg, idx) => {
-        if (
-          chat?.mode === "FaultHelp" &&
-          msg.role === "User" &&
-          idx === 0
-        ) {
-          const parsed = parseDiagnosticsContent(msg.content);
-          return { ...msg, diagnosticsInput: parsed };
+        if (msg.role === "User" && idx === 0) {
+          if (chat?.mode === "FaultHelp") {
+            return { ...msg, diagnosticsInput: parseDiagnosticsContent(msg.content) };
+          }
+          if (chat?.mode === "WorkClarification") {
+            return { ...msg, workClarificationInput: parseWorkClarificationContent(msg.content) };
+          }
         }
         return msg;
       });
@@ -167,6 +192,17 @@ export default function ChatPage() {
             diagnosticsInput: diagInput,
           });
         }
+        if (mode === "WorkClarification") {
+          const wcInput = modeInput as WorkClarificationInput;
+          initialMessages.push({
+            id: "user-initial",
+            role: "User",
+            content: "",
+            isValid: true,
+            createdAt: new Date().toISOString(),
+            workClarificationInput: wcInput,
+          });
+        }
         if (res.initialAssistantReply) {
           initialMessages.push({
             id: "initial",
@@ -175,6 +211,7 @@ export default function ChatPage() {
             isValid: true,
             createdAt: new Date().toISOString(),
             diagnosticResultJson: res.diagnosticResultJson,
+            workClarificationResultJson: res.workClarificationResultJson,
           });
         }
         setMessages(initialMessages);

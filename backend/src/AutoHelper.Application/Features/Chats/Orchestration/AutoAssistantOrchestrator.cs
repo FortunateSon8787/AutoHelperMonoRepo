@@ -97,6 +97,8 @@ public sealed class AutoAssistantOrchestrator(
         "fairly priced, and accompanied by adequate guarantees. " +
         "Use the market price benchmarks provided (MARKET_BENCHMARKS section) to compare the actual costs. " +
         "For each assessment field use only the allowed enum values specified. " +
+        "IMPORTANT: All monetary values in labor_price_explanation, parts_price_explanation, " +
+        "and any cost references MUST be expressed in US dollars (USD, $). " +
         "Do not invent facts. Do not give illegal advice. Do not diagnose faults not related to the submitted work. " +
         "Always include a mandatory disclaimer that this is an estimate only. " +
         "Respond only with the structured JSON schema provided.";
@@ -146,8 +148,9 @@ public sealed class AutoAssistantOrchestrator(
             model, systemPrompt, userInput, ct);
 
         var assistantReply = FormatWorkClarificationReply(result, locale);
+        var workClarificationResultJson = JsonSerializer.Serialize(result);
 
-        var newMessages = chat.AddExchange(userInput, assistantReply);
+        var newMessages = chat.AddExchange(userInput, assistantReply, workClarificationResultJson: workClarificationResultJson);
         chats.AddMessages(newMessages);
         chat.Complete();
         await unitOfWork.SaveChangesAsync(ct);
@@ -160,7 +163,8 @@ public sealed class AutoAssistantOrchestrator(
             WasValid: true,
             QuotaDecremented: true,
             ResponseStage: "work_clarification_result",
-            ChatStatus: chat.Status);
+            ChatStatus: chat.Status,
+            WorkClarificationResultJson: workClarificationResultJson);
     }
 
     // ─── PartnerAdvice initial processing ────────────────────────────────────
@@ -820,11 +824,17 @@ public sealed class AutoAssistantOrchestrator(
     {
         var parts = new List<string>
         {
-            $"Works performed: {input.WorksPerformed}",
-            $"Stated reason: {input.WorkReason}",
-            $"Labor cost: {input.LaborCost:F0}",
-            $"Parts cost: {input.PartsCost:F0}"
+            $"Works performed: {input.WorksPerformed}"
         };
+
+        if (!string.IsNullOrWhiteSpace(input.WorkReason))
+            parts.Add($"Stated reason: {input.WorkReason}");
+
+        if (input.LaborCost > 0)
+            parts.Add($"Labor cost: {input.LaborCost:F0}");
+
+        if (input.PartsCost > 0)
+            parts.Add($"Parts cost: {input.PartsCost:F0}");
 
         if (!string.IsNullOrWhiteSpace(input.Guarantees))
             parts.Add($"Guarantees: {input.Guarantees}");

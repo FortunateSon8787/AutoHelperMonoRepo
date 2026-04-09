@@ -25,6 +25,12 @@ public sealed class Message : Entity<Guid>
     /// </summary>
     public string? DiagnosticResultJson { get; private set; }
 
+    /// <summary>
+    /// Serialized <c>WorkClarificationLlmResult</c> JSON for WorkClarification assistant messages.
+    /// Null for all other message types.
+    /// </summary>
+    public string? WorkClarificationResultJson { get; private set; }
+
     public DateTime CreatedAt { get; private set; }
 
     // ─── EF Core ──────────────────────────────────────────────────────────────
@@ -49,7 +55,11 @@ public sealed class Message : Entity<Guid>
         };
     }
 
-    internal static Message CreateAssistantMessage(Guid chatId, string content, string? diagnosticResultJson = null)
+    internal static Message CreateAssistantMessage(
+        Guid chatId,
+        string content,
+        string? diagnosticResultJson = null,
+        string? workClarificationResultJson = null)
     {
         if (string.IsNullOrWhiteSpace(content))
             throw new ArgumentException("Assistant response content cannot be empty.", nameof(content));
@@ -62,6 +72,7 @@ public sealed class Message : Entity<Guid>
             Content = content.Trim(),
             IsValid = true,
             DiagnosticResultJson = diagnosticResultJson,
+            WorkClarificationResultJson = workClarificationResultJson,
             CreatedAt = DateTime.UtcNow
         };
     }

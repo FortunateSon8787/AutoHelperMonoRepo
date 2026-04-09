@@ -69,10 +69,14 @@ public sealed class Chat : AggregateRoot<Guid>
     /// Records the user's message and the LLM's response as a valid exchange.
     /// Returns the two newly created messages so callers can register them with the persistence context.
     /// </summary>
-    public IReadOnlyList<Message> AddExchange(string userContent, string assistantContent, string? diagnosticResultJson = null)
+    public IReadOnlyList<Message> AddExchange(
+        string userContent,
+        string assistantContent,
+        string? diagnosticResultJson = null,
+        string? workClarificationResultJson = null)
     {
         var userMsg = Message.CreateUserMessage(Id, userContent);
-        var assistantMsg = Message.CreateAssistantMessage(Id, assistantContent, diagnosticResultJson);
+        var assistantMsg = Message.CreateAssistantMessage(Id, assistantContent, diagnosticResultJson, workClarificationResultJson);
         _messages.Add(userMsg);
         _messages.Add(assistantMsg);
         return [userMsg, assistantMsg];

@@ -66,7 +66,7 @@ public sealed class CreateChatCommandHandler(
                 chat, customer, request.WorkClarificationInput!, locale, ct);
 
             return Result<CreateChatResponse>.Success(
-                new CreateChatResponse(chat.Id, orchResult.AssistantReply));
+                new CreateChatResponse(chat.Id, orchResult.AssistantReply, WorkClarificationResultJson: orchResult.WorkClarificationResultJson));
         }
 
         // For PartnerAdvice, immediately process partner search + LLM formatting.

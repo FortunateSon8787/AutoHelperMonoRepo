@@ -630,6 +630,18 @@
       "disclaimer": "Important Disclaimer",
       "probability": "probability"
     },
+    "workClarificationResult": {
+      "title": "Work Analysis Result",
+      "overallHonesty": "Overall Service Honesty",
+      "workReasonRelevance": "Work Justification",
+      "laborCost": "Labor Cost (USD)",
+      "partsCost": "Parts Cost (USD)",
+      "guarantees": "Guarantees",
+      "futureExpectations": "Future Service Expectations",
+      "nextService": "Recommended next service",
+      "nextServiceValue": "in {km} km",
+      "disclaimer": "Important Disclaimer"
+    },
     "errors": {
       "loadFailed": "Failed to load chats",
       "createFailed": "Failed to start chat",

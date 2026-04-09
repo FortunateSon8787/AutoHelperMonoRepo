@@ -33,6 +33,9 @@ public sealed class MessageConfiguration : IEntityTypeConfiguration<Message>
         builder.Property(m => m.DiagnosticResultJson)
             .HasColumnType("text");
 
+        builder.Property(m => m.WorkClarificationResultJson)
+            .HasColumnType("text");
+
         builder.Property(m => m.CreatedAt)
             .IsRequired();
     }

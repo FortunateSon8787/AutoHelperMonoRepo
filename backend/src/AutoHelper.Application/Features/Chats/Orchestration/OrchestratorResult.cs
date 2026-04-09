@@ -8,7 +8,7 @@ public sealed record OrchestratorResult(
     bool WasValid,
     bool QuotaDecremented,
     /// <summary>
-    /// Diagnostics response stage: "follow_up" | "diagnostic_result" | null (non-FaultHelp modes).
+    /// Diagnostics response stage: "follow_up" | "diagnostic_result" | "work_clarification_result" | null.
     /// </summary>
     string? ResponseStage,
     ChatStatus ChatStatus,
@@ -16,4 +16,9 @@ public sealed record OrchestratorResult(
     /// Serialized <see cref="DiagnosticsLlmResult"/> JSON.
     /// Non-null only when ResponseStage == "diagnostic_result".
     /// </summary>
-    string? DiagnosticResultJson = null);
+    string? DiagnosticResultJson = null,
+    /// <summary>
+    /// Serialized <see cref="WorkClarificationLlmResult"/> JSON.
+    /// Non-null only when ResponseStage == "work_clarification_result".
+    /// </summary>
+    string? WorkClarificationResultJson = null);

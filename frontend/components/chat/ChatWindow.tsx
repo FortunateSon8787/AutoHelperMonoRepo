@@ -11,6 +11,7 @@ import {
   CheckCircle2,
   Clock,
   Stethoscope,
+  FileCheck,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 
@@ -19,6 +20,7 @@ import { DiagnosticsForm } from "@/components/chat/DiagnosticsForm";
 import { WorkClarificationForm } from "@/components/chat/WorkClarificationForm";
 import { PartnerAdviceForm } from "@/components/chat/PartnerAdviceForm";
 import { DiagnosticResultCard } from "@/components/chat/DiagnosticResultCard";
+import { WorkClarificationResultCard } from "@/components/chat/WorkClarificationResultCard";
 import type {
   ChatMode,
   ChatMessage,
@@ -26,6 +28,7 @@ import type {
   WorkClarificationInput,
   PartnerAdviceInput,
   DiagnosticResult,
+  WorkClarificationResult,
 } from "@/types/chat";
 
 // ─── Props ────────────────────────────────────────────────────────────────────
@@ -318,6 +321,71 @@ function DiagnosticsInputReadonly({
   );
 }
 
+function WorkClarificationInputReadonly({
+  input,
+}: {
+  input: NonNullable<ChatMessage["workClarificationInput"]>;
+}) {
+  const t = useTranslations("chat.workClarificationForm");
+
+  return (
+    <div className="flex justify-end">
+      <div className="max-w-3xl w-full bg-card border border-border rounded-2xl px-5 py-4 shadow-sm">
+        <div className="flex items-center gap-2 mb-4">
+          <div className="w-7 h-7 bg-gradient-to-br from-primary to-blue-600 rounded-lg flex items-center justify-center">
+            <FileCheck className="w-3.5 h-3.5 text-white" />
+          </div>
+          <span className="text-xs font-medium text-muted-foreground">{t("title")}</span>
+        </div>
+        <div className="space-y-3">
+          <div className="space-y-1">
+            <p className="text-xs font-medium text-muted-foreground">{t("worksPerformedLabel")}</p>
+            <div className="px-3 py-2 bg-secondary border border-border rounded-xl text-sm text-foreground leading-relaxed whitespace-pre-wrap">
+              {input.worksPerformed}
+            </div>
+          </div>
+          {input.workReason && (
+            <div className="space-y-1">
+              <p className="text-xs font-medium text-muted-foreground">{t("workReasonLabel")}</p>
+              <div className="px-3 py-2 bg-secondary border border-border rounded-xl text-sm text-foreground leading-relaxed whitespace-pre-wrap">
+                {input.workReason}
+              </div>
+            </div>
+          )}
+          {(input.laborCost > 0 || input.partsCost > 0) && (
+            <div className="grid grid-cols-2 gap-3">
+              {input.laborCost > 0 && (
+                <div className="space-y-1">
+                  <p className="text-xs font-medium text-muted-foreground">{t("laborCostLabel")}</p>
+                  <div className="px-3 py-2 bg-secondary border border-border rounded-xl text-sm text-foreground">
+                    {input.laborCost}
+                  </div>
+                </div>
+              )}
+              {input.partsCost > 0 && (
+                <div className="space-y-1">
+                  <p className="text-xs font-medium text-muted-foreground">{t("partsCostLabel")}</p>
+                  <div className="px-3 py-2 bg-secondary border border-border rounded-xl text-sm text-foreground">
+                    {input.partsCost}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+          {input.guarantees && (
+            <div className="space-y-1">
+              <p className="text-xs font-medium text-muted-foreground">{t("guaranteesLabel")}</p>
+              <div className="px-3 py-2 bg-secondary border border-border rounded-xl text-sm text-foreground leading-relaxed whitespace-pre-wrap">
+                {input.guarantees}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ChatMessageBubble({
   message,
   aiLabel,
@@ -330,6 +398,9 @@ function ChatMessageBubble({
   if (isUser) {
     if (message.diagnosticsInput) {
       return <DiagnosticsInputReadonly input={message.diagnosticsInput} />;
+    }
+    if (message.workClarificationInput) {
+      return <WorkClarificationInputReadonly input={message.workClarificationInput} />;
     }
     return (
       <div className="flex justify-end">
@@ -346,6 +417,15 @@ function ChatMessageBubble({
     if (!message.diagnosticResultJson) return null;
     try {
       return JSON.parse(message.diagnosticResultJson) as DiagnosticResult;
+    } catch {
+      return null;
+    }
+  })();
+
+  const workClarificationResult: WorkClarificationResult | null = (() => {
+    if (!message.workClarificationResultJson) return null;
+    try {
+      return JSON.parse(message.workClarificationResultJson) as WorkClarificationResult;
     } catch {
       return null;
     }
@@ -368,6 +448,8 @@ function ChatMessageBubble({
           </div>
           {diagnosticResult ? (
             <DiagnosticResultCard result={diagnosticResult} />
+          ) : workClarificationResult ? (
+            <WorkClarificationResultCard result={workClarificationResult} />
           ) : (
             <div className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">
               {message.content}

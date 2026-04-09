@@ -630,6 +630,18 @@
       "disclaimer": "Важный дисклеймер",
       "probability": "вероятность"
     },
+    "workClarificationResult": {
+      "title": "Результат анализа работ",
+      "overallHonesty": "Общая оценка честности сервиса",
+      "workReasonRelevance": "Обоснованность работ",
+      "laborCost": "Стоимость работ (USD)",
+      "partsCost": "Стоимость деталей (USD)",
+      "guarantees": "Гарантии",
+      "futureExpectations": "Ожидания от дальнейшего обслуживания",
+      "nextService": "Рекомендуемое следующее ТО",
+      "nextServiceValue": "через {km} км",
+      "disclaimer": "Важный дисклеймер"
+    },
     "errors": {
       "loadFailed": "Не удалось загрузить чаты",
       "createFailed": "Не удалось начать чат",
