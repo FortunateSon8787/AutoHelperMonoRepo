@@ -96,7 +96,12 @@ public sealed class AutoAssistantOrchestrator(
         "Your task is to evaluate whether the work performed at a service center was justified, " +
         "fairly priced, and accompanied by adequate guarantees. " +
         "Use the market price benchmarks provided (MARKET_BENCHMARKS section) to compare the actual costs. " +
-        "For each assessment field use only the allowed enum values specified. " +
+        "STRICT ENUM CONSTRAINTS — you MUST use ONLY these exact string values, no other words allowed: " +
+        "work_reason_relevance: \"low\" | \"medium\" | \"high\" | \"unclear\". " +
+        "labor_price_assessment: \"below_market\" | \"near_market\" | \"above_market\" | \"unknown\". " +
+        "parts_price_assessment: \"below_market\" | \"near_market\" | \"above_market\" | \"unknown\". " +
+        "guarantee_assessment: \"weak\" | \"normal\" | \"strong\" | \"unclear\". " +
+        "overall_honesty: \"poor\" | \"mixed\" | \"fair\" | \"good\" | \"unknown\". " +
         "IMPORTANT: All monetary values in labor_price_explanation, parts_price_explanation, " +
         "and any cost references MUST be expressed in US dollars (USD, $). " +
         "Do not invent facts. Do not give illegal advice. Do not diagnose faults not related to the submitted work. " +
@@ -146,6 +151,8 @@ public sealed class AutoAssistantOrchestrator(
 
         var result = await llm.GenerateStructuredAsync<WorkClarificationLlmResult>(
             model, systemPrompt, userInput, ct);
+
+        result = NormalizeWorkClarificationResult(result);
 
         var assistantReply = FormatWorkClarificationReply(result, locale);
         var workClarificationResultJson = JsonSerializer.Serialize(result);
@@ -846,6 +853,26 @@ public sealed class AutoAssistantOrchestrator(
 
         return string.Join("\n", parts);
     }
+
+    private static readonly string[] RelevanceValues = ["low", "medium", "high", "unclear"];
+    private static readonly string[] PriceValues = ["below_market", "near_market", "above_market", "unknown"];
+    private static readonly string[] GuaranteeValues = ["weak", "normal", "strong", "unclear"];
+    private static readonly string[] HonestyValues = ["poor", "mixed", "fair", "good", "unknown"];
+
+    private static string NormalizeEnum(string value, string[] allowed, string fallback) =>
+        allowed.Contains(value, StringComparer.OrdinalIgnoreCase)
+            ? value.ToLowerInvariant().Replace(' ', '_')
+            : fallback;
+
+    private static WorkClarificationLlmResult NormalizeWorkClarificationResult(WorkClarificationLlmResult r) =>
+        r with
+        {
+            WorkReasonRelevance = NormalizeEnum(r.WorkReasonRelevance, RelevanceValues, "unclear"),
+            LaborPriceAssessment = NormalizeEnum(r.LaborPriceAssessment, PriceValues, "unknown"),
+            PartsPriceAssessment = NormalizeEnum(r.PartsPriceAssessment, PriceValues, "unknown"),
+            GuaranteeAssessment = NormalizeEnum(r.GuaranteeAssessment, GuaranteeValues, "unclear"),
+            OverallHonesty = NormalizeEnum(r.OverallHonesty, HonestyValues, "unknown"),
+        };
 
     private static string FormatWorkClarificationReply(WorkClarificationLlmResult result, string locale)
     {
