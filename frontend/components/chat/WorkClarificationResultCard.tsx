@@ -5,7 +5,6 @@ import {
   DollarSign,
   Shield,
   Star,
-  AlertCircle,
   CheckCircle,
   HelpCircle,
   TrendingUp,
@@ -163,6 +162,19 @@ export function WorkClarificationResultCard({
   result,
 }: WorkClarificationResultCardProps) {
   const t = useTranslations("chat.workClarificationResult");
+  const tRelevance = useTranslations("chat.workClarificationResult.relevanceValues");
+  const tPrice = useTranslations("chat.workClarificationResult.priceValues");
+  const tGuarantee = useTranslations("chat.workClarificationResult.guaranteeValues");
+  const tHonesty = useTranslations("chat.workClarificationResult.honestyValues");
+
+  const relevanceLabel = (v: string) =>
+    tRelevance.has(v as Parameters<typeof tRelevance>[0]) ? tRelevance(v as Parameters<typeof tRelevance>[0]) : v;
+  const priceLabel = (v: string) =>
+    tPrice.has(v as Parameters<typeof tPrice>[0]) ? tPrice(v as Parameters<typeof tPrice>[0]) : v;
+  const guaranteeLabel = (v: string) =>
+    tGuarantee.has(v as Parameters<typeof tGuarantee>[0]) ? tGuarantee(v as Parameters<typeof tGuarantee>[0]) : v;
+  const honestyLabel = (v: string) =>
+    tHonesty.has(v as Parameters<typeof tHonesty>[0]) ? tHonesty(v as Parameters<typeof tHonesty>[0]) : v;
 
   return (
     <div className="space-y-4">
@@ -183,14 +195,7 @@ export function WorkClarificationResultCard({
           </span>
         </div>
         <div className="flex items-center gap-3">
-          <HonestyBadge
-            value={result.overall_honesty}
-            label={
-              t.has(`honestyValues.${result.overall_honesty}` as Parameters<typeof t>[0])
-                ? t(`honestyValues.${result.overall_honesty}` as Parameters<typeof t>[0])
-                : result.overall_honesty
-            }
-          />
+          <HonestyBadge value={result.overall_honesty} label={honestyLabel(result.overall_honesty)} />
         </div>
         {result.overall_explanation && (
           <p className="text-sm text-muted-foreground leading-relaxed">
@@ -203,16 +208,7 @@ export function WorkClarificationResultCard({
       <AssessmentSection
         icon={<CheckCircle className="w-4 h-4 text-info flex-shrink-0" />}
         label={t("workReasonRelevance")}
-        badge={
-          <RelevanceBadge
-            value={result.work_reason_relevance}
-            label={
-              t.has(`relevanceValues.${result.work_reason_relevance}` as Parameters<typeof t>[0])
-                ? t(`relevanceValues.${result.work_reason_relevance}` as Parameters<typeof t>[0])
-                : result.work_reason_relevance
-            }
-          />
-        }
+        badge={<RelevanceBadge value={result.work_reason_relevance} label={relevanceLabel(result.work_reason_relevance)} />}
         explanation={result.work_reason_explanation}
       />
 
@@ -223,14 +219,7 @@ export function WorkClarificationResultCard({
         badge={
           <div className="flex items-center gap-1.5">
             <PriceIcon value={result.labor_price_assessment} />
-            <PriceBadge
-              value={result.labor_price_assessment}
-              label={
-                t.has(`priceValues.${result.labor_price_assessment}` as Parameters<typeof t>[0])
-                  ? t(`priceValues.${result.labor_price_assessment}` as Parameters<typeof t>[0])
-                  : result.labor_price_assessment
-              }
-            />
+            <PriceBadge value={result.labor_price_assessment} label={priceLabel(result.labor_price_assessment)} />
           </div>
         }
         explanation={result.labor_price_explanation}
@@ -243,14 +232,7 @@ export function WorkClarificationResultCard({
         badge={
           <div className="flex items-center gap-1.5">
             <PriceIcon value={result.parts_price_assessment} />
-            <PriceBadge
-              value={result.parts_price_assessment}
-              label={
-                t.has(`priceValues.${result.parts_price_assessment}` as Parameters<typeof t>[0])
-                  ? t(`priceValues.${result.parts_price_assessment}` as Parameters<typeof t>[0])
-                  : result.parts_price_assessment
-              }
-            />
+            <PriceBadge value={result.parts_price_assessment} label={priceLabel(result.parts_price_assessment)} />
           </div>
         }
         explanation={result.parts_price_explanation}
@@ -260,33 +242,9 @@ export function WorkClarificationResultCard({
       <AssessmentSection
         icon={<Shield className="w-4 h-4 text-muted-foreground flex-shrink-0" />}
         label={t("guarantees")}
-        badge={
-          <GuaranteeBadge
-            value={result.guarantee_assessment}
-            label={
-              t.has(`guaranteeValues.${result.guarantee_assessment}` as Parameters<typeof t>[0])
-                ? t(`guaranteeValues.${result.guarantee_assessment}` as Parameters<typeof t>[0])
-                : result.guarantee_assessment
-            }
-          />
-        }
+        badge={<GuaranteeBadge value={result.guarantee_assessment} label={guaranteeLabel(result.guarantee_assessment)} />}
         explanation={result.guarantee_explanation}
       />
-
-      {/* Future expectations */}
-      {result.future_expectations && (
-        <div className="bg-info/5 border border-info/20 rounded-xl p-4 space-y-2">
-          <div className="flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 text-info flex-shrink-0" />
-            <span className="text-sm font-medium text-info">
-              {t("futureExpectations")}
-            </span>
-          </div>
-          <p className="text-sm text-foreground leading-relaxed">
-            {result.future_expectations}
-          </p>
-        </div>
-      )}
 
       {/* Next service interval */}
       {result.repeat_interval_km && (
