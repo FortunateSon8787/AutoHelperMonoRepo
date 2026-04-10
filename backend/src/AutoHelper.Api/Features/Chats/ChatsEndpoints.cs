@@ -1,5 +1,6 @@
 using AutoHelper.Application.Common;
 using AutoHelper.Application.Features.Chats.CreateChat;
+using AutoHelper.Application.Features.Chats.DeleteChat;
 using AutoHelper.Application.Features.Chats.GetChatMessages;
 using AutoHelper.Application.Features.Chats.GetMyChats;
 using AutoHelper.Application.Features.Chats.SendMessage;
@@ -17,7 +18,7 @@ public static class ChatsEndpoints
         var group = app.MapGroup("/api/chats").WithTags("Chats").RequireAuthorization();
 
         group.MapGet("/", GetMyChats)
-            .WithSummary("Get all chat sessions for the authenticated customer");
+            .WithSummary("Get paginated chat sessions for the authenticated customer");
 
         group.MapPost("/", CreateChat)
             .WithSummary("Create a new AI chat session (optionally linked to a vehicle). " +
@@ -37,15 +38,22 @@ public static class ChatsEndpoints
             .ProducesValidationProblem()
             .ProducesProblem(StatusCodes.Status403Forbidden)
             .ProducesProblem(StatusCodes.Status404NotFound);
+
+        group.MapDelete("/{chatId:guid}", DeleteChat)
+            .WithSummary("Soft-delete a chat session")
+            .Produces(StatusCodes.Status204NoContent)
+            .ProducesProblem(StatusCodes.Status404NotFound);
     }
 
     // ─── Handlers ─────────────────────────────────────────────────────────────
 
     private static async Task<IResult> GetMyChats(
         ISender mediator,
-        CancellationToken ct)
+        CancellationToken ct,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20)
     {
-        var result = await mediator.Send(new GetMyChatsQuery(), ct);
+        var result = await mediator.Send(new GetMyChatsQuery(page, pageSize), ct);
 
         if (result.IsFailure)
             return Results.Unauthorized();
@@ -179,6 +187,29 @@ public static class ChatsEndpoints
             result.Value.ResponseStage,
             result.Value.ChatStatus.ToString(),
             result.Value.DiagnosticResultJson));
+    }
+
+    private static async Task<IResult> DeleteChat(
+        Guid chatId,
+        ISender mediator,
+        CancellationToken ct)
+    {
+        var result = await mediator.Send(new DeleteChatCommand(chatId), ct);
+
+        if (result.IsFailure)
+        {
+            if (result.Error!.Code == AppErrors.Auth.NotAuthenticated.Code)
+                return Results.Unauthorized();
+
+            return Results.NotFound(new ProblemDetails
+            {
+                Status = StatusCodes.Status404NotFound,
+                Title = result.Error.Code,
+                Detail = result.Error.Description
+            });
+        }
+
+        return Results.NoContent();
     }
 
     // ─── Request / Response DTOs ──────────────────────────────────────────────

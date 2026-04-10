@@ -168,6 +168,9 @@ public static class AppErrors
 
         public static readonly AppError QuotaExceeded =
             new("CHAT_009", "AI request quota exceeded. Upgrade your plan or top up requests.");
+
+        public static readonly AppError AlreadyDeleted =
+            new("CHAT_010", "Chat is already deleted.");
     }
 
     // ─── AdminAuth ────────────────────────────────────────────────────────────

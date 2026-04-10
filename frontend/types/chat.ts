@@ -69,6 +69,15 @@ export interface ChatSummary {
   createdAt: string;
 }
 
+export interface PagedResult<T> {
+  items: T[];
+  totalCount: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+  hasNextPage: boolean;
+}
+
 export interface ChatMessage {
   id: string;
   role: MessageRole;
@@ -121,6 +130,5 @@ export interface WorkClarificationResult {
   overall_honesty: string;
   overall_explanation: string;
   future_expectations?: string | null;
-  repeat_interval_km?: number | null;
   disclaimer?: string | null;
 }

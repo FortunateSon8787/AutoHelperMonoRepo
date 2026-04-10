@@ -231,6 +231,7 @@ Chat : AggregateRoot<Guid>
 ├── Title: string                      (пользовательское название сессии, max 200)
 ├── CreatedAt: DateTime
 ├── AllowOneAdditionalQuestion: bool   (true после FinalAnswerSent; один доп. вопрос разрешён)
+├── IsDeleted: bool                    (soft-delete; EF HasQueryFilter исключает удалённые из всех запросов)
 └── Messages: List<Message>            (private backing field, PropertyAccessMode.Field)
 │
 ├── Factory method:
@@ -243,7 +244,10 @@ Chat : AggregateRoot<Guid>
 │   │   — валидный обмен; возвращает 2 новых сообщения для явной регистрации в EF Core
 │   ├── AddInvalidUserMessage(userContent) → Message
 │   │   — off-topic, не уменьшает квоту; возвращает новое сообщение для регистрации в EF Core
-│   └── CanReceiveMessage() → bool
+│   ├── CanReceiveMessage() → bool
+│   └── SoftDelete()
+│       ↳ IsDeleted = true
+│       ↳ throws DomainException если уже удалён
 │
 └── FaultHelp state transitions (только Mode = FaultHelp):
     ├── TransitionToAwaitingAnswers()  Active → AwaitingUserAnswers

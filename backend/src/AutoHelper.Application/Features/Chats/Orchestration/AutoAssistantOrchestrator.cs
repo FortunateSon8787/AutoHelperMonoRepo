@@ -96,14 +96,18 @@ public sealed class AutoAssistantOrchestrator(
         "Your task is to evaluate whether the work performed at a service center was justified, " +
         "fairly priced, and accompanied by adequate guarantees. " +
         "Use the market price benchmarks provided (MARKET_BENCHMARKS section) to compare the actual costs. " +
+        "PRICING CONTEXT: Use average European market prices as your benchmark baseline. " +
+        "European average labor rates range from €60–€120/h for standard workshops, €80–€150/h for dealerships. " +
+        "Parts prices follow European OEM and aftermarket retail averages. " +
+        "All monetary amounts in your explanations MUST be expressed in euros (EUR, €). " +
+        "If the customer provided costs in a different currency, convert them to EUR for comparison " +
+        "using approximate current exchange rates, and note the conversion. " +
         "STRICT ENUM CONSTRAINTS — you MUST use ONLY these exact string values, no other words allowed: " +
         "work_reason_relevance: \"low\" | \"medium\" | \"high\" | \"unclear\". " +
         "labor_price_assessment: \"below_market\" | \"near_market\" | \"above_market\" | \"unknown\". " +
         "parts_price_assessment: \"below_market\" | \"near_market\" | \"above_market\" | \"unknown\". " +
         "guarantee_assessment: \"weak\" | \"normal\" | \"strong\" | \"unclear\". " +
         "overall_honesty: \"poor\" | \"mixed\" | \"fair\" | \"good\" | \"unknown\". " +
-        "IMPORTANT: All monetary values in labor_price_explanation, parts_price_explanation, " +
-        "and any cost references MUST be expressed in US dollars (USD, $). " +
         "Do not invent facts. Do not give illegal advice. Do not diagnose faults not related to the submitted work. " +
         "Always include a mandatory disclaimer that this is an estimate only. " +
         "Respond only with the structured JSON schema provided.";
@@ -843,10 +847,10 @@ public sealed class AutoAssistantOrchestrator(
             parts.Add($"Stated reason: {input.WorkReason}");
 
         if (input.LaborCost > 0)
-            parts.Add($"Labor cost: ${input.LaborCost:F0} USD");
+            parts.Add($"Labor cost: {input.LaborCost:F2} EUR");
 
         if (input.PartsCost > 0)
-            parts.Add($"Parts cost: ${input.PartsCost:F0} USD");
+            parts.Add($"Parts cost: {input.PartsCost:F2} EUR");
 
         if (!string.IsNullOrWhiteSpace(input.Guarantees))
             parts.Add($"Guarantees: {input.Guarantees}");
@@ -884,10 +888,10 @@ public sealed class AutoAssistantOrchestrator(
         sb.AppendLine($"**{(isEn ? "Work Justification" : "Обоснованность работ")}:** {TranslateRelevance(result.WorkReasonRelevance, isEn)}");
         sb.AppendLine(result.WorkReasonExplanation);
 
-        sb.AppendLine($"\n**{(isEn ? "Labor Cost (USD)" : "Стоимость работ (USD)")}:** {TranslatePriceAssessment(result.LaborPriceAssessment, isEn)}");
+        sb.AppendLine($"\n**{(isEn ? "Labor Cost (EUR)" : "Стоимость работ (EUR)")}:** {TranslatePriceAssessment(result.LaborPriceAssessment, isEn)}");
         sb.AppendLine(result.LaborPriceExplanation);
 
-        sb.AppendLine($"\n**{(isEn ? "Parts Cost (USD)" : "Стоимость деталей (USD)")}:** {TranslatePriceAssessment(result.PartsPriceAssessment, isEn)}");
+        sb.AppendLine($"\n**{(isEn ? "Parts Cost (EUR)" : "Стоимость деталей (EUR)")}:** {TranslatePriceAssessment(result.PartsPriceAssessment, isEn)}");
         sb.AppendLine(result.PartsPriceExplanation);
 
         sb.AppendLine($"\n**{(isEn ? "Guarantees" : "Гарантии")}:** {TranslateGuaranteeAssessment(result.GuaranteeAssessment, isEn)}");
@@ -898,11 +902,6 @@ public sealed class AutoAssistantOrchestrator(
 
         if (!string.IsNullOrWhiteSpace(result.FutureExpectations))
             sb.AppendLine($"\n**{(isEn ? "Future Service Expectations" : "Ожидания от дальнейшего обслуживания")}:** {result.FutureExpectations}");
-
-        if (result.RepeatIntervalKm.HasValue)
-            sb.AppendLine(isEn
-                ? $"**Recommended next service:** in {result.RepeatIntervalKm:N0} km"
-                : $"**Следующее ТО/замена:** через {result.RepeatIntervalKm:N0} км");
 
         if (!string.IsNullOrWhiteSpace(result.Disclaimer))
             sb.AppendLine($"\n_{result.Disclaimer}_");

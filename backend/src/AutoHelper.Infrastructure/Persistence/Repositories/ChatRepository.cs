@@ -1,3 +1,4 @@
+using AutoHelper.Application.Common;
 using AutoHelper.Application.Common.Interfaces;
 using AutoHelper.Domain.Chats;
 using Microsoft.EntityFrameworkCore;
@@ -16,11 +17,18 @@ public sealed class ChatRepository(AppDbContext context) : IChatRepository
         return query.FirstOrDefaultAsync(c => c.Id == id, ct);
     }
 
-    public async Task<IReadOnlyList<ChatSummary>> GetSummariesByCustomerIdAsync(Guid customerId, CancellationToken ct)
+    public async Task<PagedResult<ChatSummary>> GetPagedSummariesByCustomerIdAsync(
+        Guid customerId, int page, int pageSize, CancellationToken ct)
     {
-        return await context.Chats
+        var baseQuery = context.Chats
             .Where(c => c.CustomerId == customerId)
-            .OrderByDescending(c => c.CreatedAt)
+            .OrderByDescending(c => c.CreatedAt);
+
+        var totalCount = await baseQuery.CountAsync(ct);
+
+        var items = await baseQuery
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
             .Select(c => new ChatSummary(
                 c.Id,
                 c.Mode,
@@ -30,6 +38,8 @@ public sealed class ChatRepository(AppDbContext context) : IChatRepository
                 c.Messages.Count,
                 c.CreatedAt))
             .ToListAsync(ct);
+
+        return new PagedResult<ChatSummary>(items, totalCount, page, pageSize);
     }
 
     public void Add(Chat chat) =>

@@ -68,10 +68,6 @@ public sealed record WorkClarificationLlmResult
     [JsonPropertyName("future_expectations")]
     public string? FutureExpectations { get; init; }
 
-    /// <summary>Recommended mileage interval before repeating the work or replacing parts.</summary>
-    [JsonPropertyName("repeat_interval_km")]
-    public int? RepeatIntervalKm { get; init; }
-
     /// <summary>Mandatory disclaimer about the estimate nature of the assessment.</summary>
     [JsonPropertyName("disclaimer")]
     public string? Disclaimer { get; init; }

@@ -199,4 +199,37 @@ public class ChatTests
         chat.Status.ShouldBe(ChatStatus.Completed);
         chat.CanReceiveMessage().ShouldBeFalse();
     }
+
+    // ─── SoftDelete ───────────────────────────────────────────────────────────
+
+    [Fact]
+    public void SoftDelete_WhenNotDeleted_ShouldSetIsDeletedTrue()
+    {
+        var chat = Chat.Create(Guid.NewGuid(), ChatMode.FaultHelp, "Test chat");
+
+        chat.SoftDelete();
+
+        chat.IsDeleted.ShouldBeTrue();
+    }
+
+    [Fact]
+    public void SoftDelete_WhenAlreadyDeleted_ShouldThrowDomainException()
+    {
+        var chat = Chat.Create(Guid.NewGuid(), ChatMode.FaultHelp, "Test chat");
+        chat.SoftDelete();
+
+        Should.Throw<DomainException>(() => chat.SoftDelete())
+            .Message.ShouldContain("already deleted");
+    }
+
+    [Fact]
+    public void SoftDelete_ShouldNotAffectChatStatus()
+    {
+        var chat = Chat.Create(Guid.NewGuid(), ChatMode.WorkClarification, "Work review");
+
+        chat.SoftDelete();
+
+        chat.Status.ShouldBe(ChatStatus.Active);
+        chat.IsDeleted.ShouldBeTrue();
+    }
 }

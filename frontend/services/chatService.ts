@@ -1,6 +1,7 @@
 import axios, { AxiosError } from "axios";
 import type {
   ChatSummary,
+  PagedResult,
   ChatMessage,
   CreateChatRequest,
   CreateChatResponse,
@@ -53,10 +54,20 @@ function resolveErrorCode(error: unknown): ChatErrorCode {
 // ─── Chat Service ─────────────────────────────────────────────────────────────
 
 export const chatService = {
-  async getMyChats(): Promise<ChatSummary[]> {
+  async getMyChats(page = 1, pageSize = 20): Promise<PagedResult<ChatSummary>> {
     try {
-      const response = await api.get<ChatSummary[]>("/api/chats");
+      const response = await api.get<PagedResult<ChatSummary>>("/api/chats", {
+        params: { page, pageSize },
+      });
       return response.data;
+    } catch (error) {
+      throw new ChatServiceError(resolveErrorCode(error));
+    }
+  },
+
+  async deleteChat(chatId: string): Promise<void> {
+    try {
+      await api.delete(`/api/chats/${chatId}`);
     } catch (error) {
       throw new ChatServiceError(resolveErrorCode(error));
     }

@@ -246,16 +246,6 @@ export function WorkClarificationResultCard({
         explanation={result.guarantee_explanation}
       />
 
-      {/* Next service interval */}
-      {result.repeat_interval_km && (
-        <div className="bg-secondary border border-border rounded-xl p-4">
-          <p className="text-sm text-foreground">
-            <span className="font-medium">{t("nextService")}: </span>
-            {t("nextServiceValue", { km: result.repeat_interval_km.toLocaleString() })}
-          </p>
-        </div>
-      )}
-
       {/* Disclaimer */}
       {result.disclaimer && (
         <div className="bg-muted/50 border border-border rounded-xl p-4 space-y-1">

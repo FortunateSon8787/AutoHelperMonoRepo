@@ -403,7 +403,6 @@ public class AutoAssistantOrchestratorTests
                 GuaranteeExplanation = "Standard 6-month guarantee.",
                 OverallHonesty = "good",
                 OverallExplanation = "Service appears honest.",
-                RepeatIntervalKm = 30000,
                 Disclaimer = "Estimate only."
             });
 
@@ -419,7 +418,6 @@ public class AutoAssistantOrchestratorTests
         result.AssistantReply.ShouldContain("Хорошая");       // OverallHonesty = "good"
         result.AssistantReply.ShouldContain("Высокая");       // WorkReasonRelevance = "high"
         result.AssistantReply.ShouldContain("По рынку");      // LaborPriceAssessment = "near_market"
-        result.AssistantReply.ShouldContain("30");            // RepeatIntervalKm
         result.AssistantReply.ShouldContain("Estimate only.");
     }
 

@@ -11,10 +11,15 @@ import {
   TrendingUp,
   Plus,
   MessageSquare,
+  Trash2,
+  ChevronDown,
+  Loader2,
 } from "lucide-react";
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import type { ChatMode, ChatSummary } from "@/types/chat";
 import type { Vehicle } from "@/types/vehicle";
 import type { SubscriptionInfo } from "@/types/client";
@@ -24,6 +29,8 @@ import type { SubscriptionInfo } from "@/types/client";
 interface ChatSidebarProps {
   vehicles: Vehicle[];
   chats: ChatSummary[];
+  hasNextPage: boolean;
+  isLoadingMore: boolean;
   subscription: SubscriptionInfo | null;
   selectedVehicleId: string | undefined;
   selectedMode: ChatMode;
@@ -34,6 +41,8 @@ interface ChatSidebarProps {
   onModeChange: (mode: ChatMode) => void;
   onChatSelect: (chatId: string) => void;
   onNewChat: () => void;
+  onLoadMore: () => void;
+  onDeleteChat: (chatId: string) => Promise<void>;
 }
 
 // ─── Mode config ──────────────────────────────────────────────────────────────
@@ -49,6 +58,8 @@ const MODES: { id: ChatMode; icon: React.ElementType; gradient: string }[] = [
 export function ChatSidebar({
   vehicles,
   chats,
+  hasNextPage,
+  isLoadingMore,
   subscription,
   selectedVehicleId,
   selectedMode,
@@ -59,11 +70,20 @@ export function ChatSidebar({
   onModeChange,
   onChatSelect,
   onNewChat,
+  onLoadMore,
+  onDeleteChat,
 }: ChatSidebarProps) {
   const t = useTranslations("chat.sidebar");
   const tModes = useTranslations("chat.modes");
 
+  const [deletingChatId, setDeletingChatId] = useState<string | null>(null);
+  const [confirmChatId, setConfirmChatId] = useState<string | null>(null);
+
   const selectedVehicle = vehicles.find((v) => v.id === selectedVehicleId);
+
+  const filteredChats = selectedVehicleId
+    ? chats.filter((c) => c.vehicleId === selectedVehicleId)
+    : chats;
 
   const formatDate = (iso: string) => {
     const date = new Date(iso);
@@ -79,6 +99,23 @@ export function ChatSidebar({
   const renewsOn = subscription?.endDate
     ? new Date(subscription.endDate).toLocaleDateString()
     : null;
+
+  const handleDeleteRequest = (e: React.MouseEvent, chatId: string) => {
+    e.stopPropagation();
+    setConfirmChatId(chatId);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!confirmChatId) return;
+    const chatId = confirmChatId;
+    setConfirmChatId(null);
+    setDeletingChatId(chatId);
+    try {
+      await onDeleteChat(chatId);
+    } finally {
+      setDeletingChatId(null);
+    }
+  };
 
   return (
     <>
@@ -215,37 +252,67 @@ export function ChatSidebar({
           </div>
 
           {/* Recent chats */}
-          {chats.length > 0 && (
+          {filteredChats.length > 0 && (
             <div className="space-y-2">
               <div className="text-xs font-medium text-foreground uppercase tracking-wide px-1">
                 {t("recentChats")}
               </div>
               <div className="space-y-1">
-                {chats.slice(0, 8).map((chat) => (
-                  <button
+                {filteredChats.map((chat) => (
+                  <div
                     key={chat.id}
-                    onClick={() => onChatSelect(chat.id)}
-                    className={`w-full text-left px-3 py-2.5 rounded-lg transition-colors ${
+                    className={`group relative flex items-start gap-2 px-3 py-2.5 rounded-lg transition-colors cursor-pointer ${
                       activeChatId === chat.id
                         ? "bg-secondary border border-border"
                         : "hover:bg-secondary/60"
                     }`}
+                    onClick={() => onChatSelect(chat.id)}
                   >
-                    <div className="flex items-start gap-2">
-                      <MessageSquare className="w-3.5 h-3.5 text-muted-foreground mt-0.5 flex-shrink-0" />
-                      <div className="flex-1 min-w-0">
-                        <div className="text-xs text-foreground truncate font-medium">
-                          {chat.title}
-                        </div>
-                        <div className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
-                          <Clock className="w-2.5 h-2.5" />
-                          {formatDate(chat.createdAt)}
-                        </div>
+                    <MessageSquare className="w-3.5 h-3.5 text-muted-foreground mt-0.5 flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <div className="text-xs text-foreground truncate font-medium pr-5">
+                        {chat.title}
+                      </div>
+                      <div className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
+                        <Clock className="w-2.5 h-2.5" />
+                        {formatDate(chat.createdAt)}
                       </div>
                     </div>
-                  </button>
+
+                    {/* Delete button — visible on hover */}
+                    <button
+                      onClick={(e) => handleDeleteRequest(e, chat.id)}
+                      disabled={deletingChatId === chat.id}
+                      className="absolute right-2 top-2.5 p-1 rounded-md opacity-0 group-hover:opacity-100 hover:bg-destructive/10 hover:text-destructive text-muted-foreground transition-all disabled:pointer-events-none"
+                      aria-label={t("deleteChat")}
+                    >
+                      {deletingChatId === chat.id ? (
+                        <Loader2 className="w-3 h-3 animate-spin" />
+                      ) : (
+                        <Trash2 className="w-3 h-3" />
+                      )}
+                    </button>
+                  </div>
                 ))}
               </div>
+
+              {/* Load more */}
+              {hasNextPage && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-full gap-1.5 text-xs text-muted-foreground"
+                  onClick={onLoadMore}
+                  disabled={isLoadingMore}
+                >
+                  {isLoadingMore ? (
+                    <Loader2 className="w-3 h-3 animate-spin" />
+                  ) : (
+                    <ChevronDown className="w-3 h-3" />
+                  )}
+                  {t("loadMore")}
+                </Button>
+              )}
             </div>
           )}
 
@@ -282,11 +349,23 @@ export function ChatSidebar({
           </div>
         </div>
       </aside>
+
+      {/* Delete confirm dialog */}
+      <ConfirmDialog
+        open={confirmChatId !== null}
+        title={t("deleteChatTitle")}
+        description={t("deleteChatDescription")}
+        confirmLabel={t("deleteChatConfirm")}
+        cancelLabel={t("deleteChatCancel")}
+        isDestructive
+        onConfirm={handleDeleteConfirm}
+        onCancel={() => setConfirmChatId(null)}
+      />
     </>
   );
 }
 
-// ─── Mode description helper (avoids per-render translation call) ─────────────
+// ─── Mode description helper ──────────────────────────────────────────────────
 
 function ModeDesc({ modeId }: { modeId: ChatMode }) {
   const t = useTranslations("chat.sidebar");

@@ -6,22 +6,26 @@ namespace AutoHelper.Application.Features.Chats.GetMyChats;
 
 public sealed class GetMyChatsQueryHandler(
     IChatRepository chats,
-    ICurrentUser currentUser) : IRequestHandler<GetMyChatsQuery, Result<IReadOnlyList<ChatSummaryResponse>>>
+    ICurrentUser currentUser) : IRequestHandler<GetMyChatsQuery, Result<PagedResult<ChatSummaryResponse>>>
 {
-    public async Task<Result<IReadOnlyList<ChatSummaryResponse>>> Handle(
+    public async Task<Result<PagedResult<ChatSummaryResponse>>> Handle(
         GetMyChatsQuery request,
         CancellationToken ct)
     {
         if (currentUser.Id is null)
             return AppErrors.Auth.NotAuthenticated;
 
-        var summaries = await chats.GetSummariesByCustomerIdAsync(currentUser.Id.Value, ct);
+        var paged = await chats.GetPagedSummariesByCustomerIdAsync(
+            currentUser.Id.Value, request.Page, request.PageSize, ct);
 
-        var response = summaries
+        var mappedItems = paged.Items
             .Select(ChatSummaryResponse.FromSummary)
             .ToList()
             .AsReadOnly();
 
-        return Result<IReadOnlyList<ChatSummaryResponse>>.Success(response);
+        var response = new PagedResult<ChatSummaryResponse>(
+            mappedItems, paged.TotalCount, paged.Page, paged.PageSize);
+
+        return Result<PagedResult<ChatSummaryResponse>>.Success(response);
     }
 }

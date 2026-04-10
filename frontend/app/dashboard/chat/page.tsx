@@ -21,6 +21,8 @@ import type {
 import type { Vehicle } from "@/types/vehicle";
 import type { SubscriptionInfo } from "@/types/client";
 
+const PAGE_SIZE = 20;
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function parseDiagnosticsContent(content: string): DiagnosticsInput {
@@ -78,6 +80,8 @@ export default function ChatPage() {
   const [selectedVehicleId, setSelectedVehicleId] = useState<string | undefined>(undefined);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [chats, setChats] = useState<ChatSummary[]>([]);
+  const [chatsPage, setChatsPage] = useState(1);
+  const [hasNextPage, setHasNextPage] = useState(false);
   const [subscription, setSubscription] = useState<SubscriptionInfo | null>(null);
 
   const [activeChatId, setActiveChatId] = useState<string | undefined>(undefined);
@@ -85,6 +89,7 @@ export default function ChatPage() {
   const [chatStatus, setChatStatus] = useState<string | null>(null);
 
   const [isLoadingInit, setIsLoadingInit] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [isLoadingMessages, setIsLoadingMessages] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -95,13 +100,17 @@ export default function ChatPage() {
   useEffect(() => {
     const init = async () => {
       try {
-        const [vehicleList, chatList, sub] = await Promise.all([
+        const [vehicleList, chatsPaged, sub] = await Promise.all([
           vehicleService.getMyVehicles().catch(() => [] as Vehicle[]),
-          chatService.getMyChats().catch(() => [] as ChatSummary[]),
+          chatService.getMyChats(1, PAGE_SIZE).catch(() => null),
           subscriptionService.getMySubscription().catch(() => null),
         ]);
         setVehicles(vehicleList);
-        setChats(chatList);
+        if (chatsPaged) {
+          setChats(chatsPaged.items);
+          setHasNextPage(chatsPaged.hasNextPage);
+          setChatsPage(1);
+        }
         setSubscription(sub);
         if (vehicleList.length > 0) {
           setSelectedVehicleId(vehicleList[0].id);
@@ -113,6 +122,22 @@ export default function ChatPage() {
     init();
   }, []);
 
+  // ─── Load more chats ──────────────────────────────────────────────────────
+
+  const handleLoadMore = useCallback(async () => {
+    if (isLoadingMore || !hasNextPage) return;
+    setIsLoadingMore(true);
+    try {
+      const nextPage = chatsPage + 1;
+      const result = await chatService.getMyChats(nextPage, PAGE_SIZE);
+      setChats((prev) => [...prev, ...result.items]);
+      setHasNextPage(result.hasNextPage);
+      setChatsPage(nextPage);
+    } finally {
+      setIsLoadingMore(false);
+    }
+  }, [isLoadingMore, hasNextPage, chatsPage]);
+
   // ─── Load messages for active chat ───────────────────────────────────────
 
   const loadMessages = useCallback(async (chatId: string) => {
@@ -121,7 +146,6 @@ export default function ChatPage() {
     try {
       const msgs = await chatService.getChatMessages(chatId);
       const chat = chats.find((c) => c.id === chatId);
-      // For FaultHelp/WorkClarification chats, parse the first user message into structured input
       const enriched = msgs.map((msg, idx) => {
         if (msg.role === "User" && idx === 0) {
           if (chat?.mode === "FaultHelp") {
@@ -144,8 +168,26 @@ export default function ChatPage() {
 
   const handleSelectChat = useCallback(async (chatId: string) => {
     setActiveChatId(chatId);
+    const chat = chats.find((c) => c.id === chatId);
+    if (chat) setSelectedMode(chat.mode);
     await loadMessages(chatId);
-  }, [loadMessages]);
+  }, [chats, loadMessages]);
+
+  // ─── Delete chat ──────────────────────────────────────────────────────────
+
+  const handleDeleteChat = useCallback(async (chatId: string) => {
+    try {
+      await chatService.deleteChat(chatId);
+      setChats((prev) => prev.filter((c) => c.id !== chatId));
+      if (activeChatId === chatId) {
+        setActiveChatId(undefined);
+        setMessages([]);
+        setChatStatus(null);
+      }
+    } catch {
+      setError(t("errors.unknown"));
+    }
+  }, [activeChatId, t]);
 
   // ─── Create new chat ─────────────────────────────────────────────────────
 
@@ -182,25 +224,23 @@ export default function ChatPage() {
 
         const initialMessages: ChatMessage[] = [];
         if (mode === "FaultHelp") {
-          const diagInput = modeInput as DiagnosticsInput;
           initialMessages.push({
             id: "user-initial",
             role: "User",
             content: "",
             isValid: true,
             createdAt: new Date().toISOString(),
-            diagnosticsInput: diagInput,
+            diagnosticsInput: modeInput as DiagnosticsInput,
           });
         }
         if (mode === "WorkClarification") {
-          const wcInput = modeInput as WorkClarificationInput;
           initialMessages.push({
             id: "user-initial",
             role: "User",
             content: "",
             isValid: true,
             createdAt: new Date().toISOString(),
-            workClarificationInput: wcInput,
+            workClarificationInput: modeInput as WorkClarificationInput,
           });
         }
         if (res.initialAssistantReply) {
@@ -275,7 +315,6 @@ export default function ChatPage() {
           );
         }
       } catch (err) {
-        // Remove optimistic message on failure
         setMessages((prev) => prev.filter((m) => m.id !== optimisticUserMsg.id));
         if (err instanceof ChatServiceError) {
           const key =
@@ -322,6 +361,8 @@ export default function ChatPage() {
       <ChatSidebar
         vehicles={vehicles}
         chats={chats}
+        hasNextPage={hasNextPage}
+        isLoadingMore={isLoadingMore}
         subscription={subscription}
         selectedVehicleId={selectedVehicleId}
         selectedMode={selectedMode}
@@ -335,6 +376,8 @@ export default function ChatPage() {
         }}
         onChatSelect={handleSelectChat}
         onNewChat={handleNewChat}
+        onLoadMore={handleLoadMore}
+        onDeleteChat={handleDeleteChat}
       />
 
       <div className="flex-1 flex flex-col min-w-0">

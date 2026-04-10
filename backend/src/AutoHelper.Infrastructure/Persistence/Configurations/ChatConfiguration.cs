@@ -41,6 +41,12 @@ public sealed class ChatConfiguration : IEntityTypeConfiguration<Chat>
         builder.Property(c => c.CreatedAt)
             .IsRequired();
 
+        builder.Property(c => c.IsDeleted)
+            .IsRequired()
+            .HasDefaultValue(false);
+
+        builder.HasQueryFilter(c => !c.IsDeleted);
+
         builder.HasMany(c => c.Messages)
             .WithOne()
             .HasForeignKey(m => m.ChatId)

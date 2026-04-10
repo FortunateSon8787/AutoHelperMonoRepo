@@ -31,6 +31,8 @@ public sealed class Chat : AggregateRoot<Guid>
     /// </summary>
     public bool AllowOneAdditionalQuestion { get; private set; }
 
+    public bool IsDeleted { get; private set; }
+
     public IReadOnlyCollection<Message> Messages => _messages.AsReadOnly();
 
     // ─── EF Core ──────────────────────────────────────────────────────────────
@@ -151,4 +153,13 @@ public sealed class Chat : AggregateRoot<Guid>
     public bool CanReceiveMessage() =>
         Status is ChatStatus.Active or ChatStatus.AwaitingUserAnswers or ChatStatus.FinalAnswerSent
         && !(Status == ChatStatus.FinalAnswerSent && !AllowOneAdditionalQuestion);
+
+    /// <summary>Soft-deletes the chat. The record remains in the database but is excluded from all queries.</summary>
+    public void SoftDelete()
+    {
+        if (IsDeleted)
+            throw new DomainException("Chat is already deleted.");
+
+        IsDeleted = true;
+    }
 }

@@ -21,11 +21,12 @@ public interface IChatRepository
     Task<Chat?> GetByIdAsync(Guid id, bool includeMessages, CancellationToken ct);
 
     /// <summary>
-    /// Returns summary projections for all chats belonging to a customer.
+    /// Returns a paginated list of summary projections for all chats belonging to a customer.
     /// Does NOT load message bodies — only the message count per chat.
     /// Ordered by creation date descending.
     /// </summary>
-    Task<IReadOnlyList<ChatSummary>> GetSummariesByCustomerIdAsync(Guid customerId, CancellationToken ct);
+    Task<PagedResult<ChatSummary>> GetPagedSummariesByCustomerIdAsync(
+        Guid customerId, int page, int pageSize, CancellationToken ct);
 
     /// <summary>Adds a new chat aggregate (tracked, not yet persisted).</summary>
     void Add(Chat chat);
