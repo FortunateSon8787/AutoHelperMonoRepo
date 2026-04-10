@@ -110,13 +110,14 @@ frontend/
 │   │   ├── AdBanner.tsx      # Рекламный баннер
 │   │   └── OffersBlock.tsx   # Блок рекламных предложений
 │   ├── chat/
-│   │   ├── ChatWindow.tsx           # Окно чата (сообщения, инпут, статусы)
-│   │   ├── DiagnosticResultCard.tsx # Карточка структурированного диагноза FaultHelp (urgency, проблемы, риски, рекомендации, safe-to-drive)
-│   │   ├── DiagnosticsForm.tsx      # Форма создания FaultHelp чата
-│   │   ├── WorkClarificationForm.tsx # Форма создания WorkClarification чата
-│   │   └── PartnerAdviceForm.tsx    # Форма создания PartnerAdvice чата
+│   │   ├── ChatWindow.tsx                  # Окно чата (сообщения, инпут, статусы)
+│   │   ├── DiagnosticResultCard.tsx        # Карточка диагноза FaultHelp (urgency, проблемы, риски, рекомендации, safe-to-drive)
+│   │   ├── WorkClarificationResultCard.tsx # Карточка анализа работ (рыночные бенчмарки, оценка стоимости)
+│   │   ├── DiagnosticsForm.tsx             # Форма создания FaultHelp чата
+│   │   ├── WorkClarificationForm.tsx       # Форма создания WorkClarification чата
+│   │   └── PartnerAdviceForm.tsx           # Форма создания PartnerAdvice чата
 │   ├── partners/
-│   │   └── PartnersMap.tsx   # Карта партнёров (Leaflet/OSM)
+│   │   └── PartnersMap.tsx   # Карта партнёров (Leaflet/OSM); принимает i18n-метки yourLocationLabel/openLabel/closedLabel/kmLabel как props
 │   └── ui/
 │       ├── button.tsx        # Button (варианты: default, accent, outline, secondary, ghost, link)
 │       ├── input.tsx         # Input (rounded-xl, ring=accent)
@@ -322,7 +323,9 @@ partner.cabinet, partner.cabinet.errors
 adCampaigns, adCampaigns.errors, adCampaigns.validation
 chat.window, chat.modes, chat.modeSubtitles
 chat.diagnosticResult           ← карточка диагноза FaultHelp
-chat.diagnostics, chat.workClarification, chat.partnerAdvice  ← формы режимов
+chat.workClarificationResult    ← карточка анализа работ WorkClarification
+chat.diagnosticsForm, chat.workClarificationForm, chat.partnerAdviceForm  ← формы режимов
+partners.search                 ← поиск партнёров (incl. yourLocationLabel, openLabel, closedLabel, kmLabel)
 common
 ```
 

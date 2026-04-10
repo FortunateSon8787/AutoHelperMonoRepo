@@ -336,6 +336,23 @@ return <Link href="/partner/cabinet">← Партнёрский кабинет</
 - **`'use client'`** — только если нужны: хуки состояния, события браузера, useTranslations (если нет server-side версии).
 - **Server Actions** (`'use server'`) — в `app/actions/` или `actions.ts` рядом с фичей.
 
+### setTimeout в компонентах — обязательный cleanup
+
+Любой `setTimeout`, созданный внутри компонента и изменяющий состояние, должен быть отменён при размонтировании:
+
+```typescript
+const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+useEffect(() => {
+  return () => {
+    if (timerRef.current !== null) clearTimeout(timerRef.current);
+  };
+}, []);
+
+// В обработчике:
+timerRef.current = setTimeout(() => setState(false), 3000);
+```
+
 ### AbortController в async useEffect — ОБЯЗАТЕЛЬНО
 
 Любой `useEffect` с асинхронным запросом должен:

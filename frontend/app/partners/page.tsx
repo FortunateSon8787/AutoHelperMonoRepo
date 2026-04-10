@@ -300,6 +300,10 @@ export default function PartnersSearchPage() {
             radiusKm={radiusKm}
             selectedId={selectedId}
             onSelectPartner={setSelectedId}
+            yourLocationLabel={t("yourLocationLabel")}
+            openLabel={t("openLabel")}
+            closedLabel={t("closedLabel")}
+            kmLabel={t("kmLabel")}
           />
         </main>
       </div>

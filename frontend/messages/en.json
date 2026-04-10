@@ -412,6 +412,7 @@
       "kmLabel": "km",
       "openLabel": "Open",
       "closedLabel": "Closed",
+      "yourLocationLabel": "Your location",
       "viewProfileLink": "View profile",
       "types": {
         "AutoService": "Auto Service",
@@ -552,7 +553,8 @@
       "send": "Send",
       "newChatButton": "New chat",
       "completedBadge": "Completed",
-      "awaitingBadge": "Awaiting your answers"
+      "awaitingBadge": "Awaiting your answers",
+      "invalidBadge": "invalid"
     },
     "modes": {
       "FaultHelp": "Diagnostics",

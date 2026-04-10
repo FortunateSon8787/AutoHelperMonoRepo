@@ -29,6 +29,10 @@ interface Props {
   radiusKm: number;
   selectedId: string | null;
   onSelectPartner: (id: string) => void;
+  yourLocationLabel: string;
+  openLabel: string;
+  closedLabel: string;
+  kmLabel: string;
 }
 
 function RecenterView({ lat, lng }: { lat: number; lng: number }) {
@@ -46,6 +50,10 @@ export default function PartnersMap({
   radiusKm,
   selectedId,
   onSelectPartner,
+  yourLocationLabel,
+  openLabel,
+  closedLabel,
+  kmLabel,
 }: Props) {
   return (
     <MapContainer
@@ -70,7 +78,7 @@ export default function PartnersMap({
 
       {/* User position */}
       <Marker position={[userLat, userLng]} icon={userIcon}>
-        <Popup>Ваше местоположение</Popup>
+        <Popup>{yourLocationLabel}</Popup>
       </Marker>
 
       {/* Partner markers */}
@@ -84,11 +92,11 @@ export default function PartnersMap({
             <div className="text-sm">
               <p className="font-semibold">{p.name}</p>
               <p className="text-gray-500 text-xs">{p.address}</p>
-              <p className="text-xs mt-1">{p.distanceKm} км</p>
+              <p className="text-xs mt-1">{p.distanceKm} {kmLabel}</p>
               {p.isOpenNow ? (
-                <span className="text-green-600 text-xs">● Открыто</span>
+                <span className="text-green-600 text-xs">● {openLabel}</span>
               ) : (
-                <span className="text-red-500 text-xs">● Закрыто</span>
+                <span className="text-red-500 text-xs">● {closedLabel}</span>
               )}
             </div>
           </Popup>

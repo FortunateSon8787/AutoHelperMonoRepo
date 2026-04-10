@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -26,6 +26,15 @@ export default function PartnerRegisterPage() {
 
   const [serverError, setServerError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const redirectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (redirectTimerRef.current !== null) {
+        clearTimeout(redirectTimerRef.current);
+      }
+    };
+  }, []);
 
   // ─── Schema ────────────────────────────────────────────────────────────────
 
@@ -97,7 +106,7 @@ export default function PartnerRegisterPage() {
         contactsWebsite: values.contactsWebsite || null,
       });
       setSuccessMessage(t("successMessage"));
-      setTimeout(() => router.push("/partner/cabinet"), 2000);
+      redirectTimerRef.current = setTimeout(() => router.push("/partner/cabinet"), 2000);
     } catch (error) {
       if (error instanceof PartnerServiceError) {
         setServerError(tErrors(error.code as Parameters<typeof tErrors>[0]));

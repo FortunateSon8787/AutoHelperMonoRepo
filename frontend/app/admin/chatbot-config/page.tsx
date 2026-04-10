@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Loader2, Bot, Save, CheckCircle2 } from "lucide-react";
 
@@ -100,6 +100,15 @@ export default function AdminChatbotConfigPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const successTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (successTimerRef.current !== null) {
+        clearTimeout(successTimerRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     const load = async () => {
@@ -129,7 +138,7 @@ export default function AdminChatbotConfigPage() {
     try {
       await adminService.updateChatbotConfig(config);
       setSaveSuccess(true);
-      setTimeout(() => setSaveSuccess(false), 3000);
+      successTimerRef.current = setTimeout(() => setSaveSuccess(false), 3000);
     } catch (err) {
       setSaveError(
         err instanceof AdminServiceError

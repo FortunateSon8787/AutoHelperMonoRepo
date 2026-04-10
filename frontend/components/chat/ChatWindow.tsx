@@ -213,7 +213,7 @@ export function ChatWindow({
           /* Messages */
           <div className="space-y-5 max-w-4xl mx-auto">
             {messages.map((msg, idx) => (
-              <ChatMessageBubble key={msg.id ?? idx} message={msg} aiLabel={tWindow("aiLabel")} />
+              <ChatMessageBubble key={msg.id ?? idx} message={msg} aiLabel={tWindow("aiLabel")} invalidBadge={tWindow("invalidBadge")} />
             ))}
             {isSending && (
               <div className="flex justify-start">
@@ -389,9 +389,11 @@ function WorkClarificationInputReadonly({
 function ChatMessageBubble({
   message,
   aiLabel,
+  invalidBadge,
 }: {
   message: ChatMessage;
   aiLabel: string;
+  invalidBadge: string;
 }) {
   const isUser = message.role === "User";
 
@@ -442,7 +444,7 @@ function ChatMessageBubble({
             </div>
             {!message.isValid && (
               <span className="text-xs text-destructive bg-destructive/10 px-2 py-0.5 rounded-md">
-                invalid
+                {invalidBadge}
               </span>
             )}
           </div>

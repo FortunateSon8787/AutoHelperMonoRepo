@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, useRef } from "react";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { Loader2, Users, Search, ShieldBan, ShieldCheck } from "lucide-react";
 import axios from "axios";
 
@@ -55,6 +55,7 @@ const PAGE_SIZE = 20;
 
 export default function AdminCustomersPage() {
   const t = useTranslations("admin.customers");
+  const locale = useLocale();
 
   const [data, setData] = useState<AdminCustomerListResponse | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -85,7 +86,7 @@ export default function AdminCustomersPage() {
   // ─── Load data ────────────────────────────────────────────────────────────
 
   const load = useCallback(async () => {
-    // Отменяем предыдущий запрос, если он ещё выполняется
+    // Cancel previous in-flight request
     abortRef.current?.abort();
     const controller = new AbortController();
     abortRef.current = controller;
@@ -270,7 +271,7 @@ export default function AdminCustomersPage() {
                           </span>
                         </td>
                         <td className="px-4 py-3 text-muted-foreground">
-                          {new Date(customer.registrationDate).toLocaleDateString()}
+                          {new Date(customer.registrationDate).toLocaleDateString(locale)}
                         </td>
                         <td className="px-4 py-3 text-center">
                           {customer.isBlocked ? (

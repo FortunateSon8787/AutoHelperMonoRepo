@@ -412,6 +412,7 @@
       "kmLabel": "км",
       "openLabel": "Открыто",
       "closedLabel": "Закрыто",
+      "yourLocationLabel": "Ваше местоположение",
       "viewProfileLink": "Открыть профиль",
       "types": {
         "AutoService": "Автосервис",
@@ -552,7 +553,8 @@
       "send": "Отправить",
       "newChatButton": "Новый чат",
       "completedBadge": "Завершён",
-      "awaitingBadge": "Ожидает ваших ответов"
+      "awaitingBadge": "Ожидает ваших ответов",
+      "invalidBadge": "невалидный"
     },
     "modes": {
       "FaultHelp": "Диагностика",
