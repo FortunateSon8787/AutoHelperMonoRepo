@@ -21,6 +21,11 @@ public class LoginCommandHandlerTests
     {
         _jwtTokenService.Setup(j => j.RefreshTokenExpiryDays).Returns(30);
 
+        // Default: no existing tokens for any customer (login revokes active tokens before creating new one)
+        _refreshTokens
+            .Setup(r => r.GetByCustomerIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<RefreshToken>());
+
         _sut = new LoginCommandHandler(
             _customers.Object,
             _refreshTokens.Object,

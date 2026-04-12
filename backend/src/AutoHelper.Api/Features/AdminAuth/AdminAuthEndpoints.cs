@@ -28,7 +28,7 @@ public static class AdminAuthEndpoints
             .ProducesProblem(StatusCodes.Status401Unauthorized);
 
         group.MapPost("/logout", Logout)
-            .RequireAuthorization("admin")
+            .RequireAuthorization(WebApplicationBuilderExtensions.AdminPolicy)
             .WithSummary("Revoke admin refresh token and clear admin auth cookies")
             .Produces(StatusCodes.Status204NoContent)
             .ProducesProblem(StatusCodes.Status404NotFound);

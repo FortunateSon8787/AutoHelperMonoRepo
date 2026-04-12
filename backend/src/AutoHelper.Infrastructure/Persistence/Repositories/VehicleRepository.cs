@@ -14,7 +14,7 @@ public sealed class VehicleRepository(AppDbContext db) : IVehicleRepository
             .FirstOrDefaultAsync(v => v.Vin == vin.Trim().ToUpperInvariant(), ct);
 
     public async Task<IReadOnlyList<Vehicle>> GetAllByOwnerIdAsync(Guid ownerId, CancellationToken ct) =>
-        await db.Vehicles.Where(v => v.OwnerId == ownerId).ToListAsync(ct);
+        await db.Vehicles.AsNoTracking().Where(v => v.OwnerId == ownerId).ToListAsync(ct);
 
     public Task<bool> ExistsByVinAsync(string vin, CancellationToken ct) =>
         db.Vehicles
@@ -40,6 +40,7 @@ public sealed class VehicleRepository(AppDbContext db) : IVehicleRepository
         var totalCount = await query.CountAsync(ct);
 
         var items = await query
+            .AsNoTracking()
             .OrderByDescending(v => v.Id)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)

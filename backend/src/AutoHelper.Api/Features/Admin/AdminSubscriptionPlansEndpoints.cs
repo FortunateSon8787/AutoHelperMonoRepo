@@ -1,3 +1,4 @@
+using AutoHelper.Api.Extensions;
 using AutoHelper.Application.Features.Admin.SubscriptionPlans.GetAllPlanConfigs;
 using AutoHelper.Application.Features.Admin.SubscriptionPlans.UpdatePlanConfig;
 using MediatR;
@@ -11,7 +12,7 @@ public static class AdminSubscriptionPlansEndpoints
     {
         var group = app.MapGroup("/api/admin/subscription-plans")
             .WithTags("Admin — Subscription Plans")
-            .RequireAuthorization("admin");
+            .RequireAuthorization(WebApplicationBuilderExtensions.AdminPolicy);
 
         group.MapGet("/", GetAll)
             .WithSummary("Get all subscription plan configurations")

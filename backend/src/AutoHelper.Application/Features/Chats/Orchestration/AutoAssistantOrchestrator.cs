@@ -164,8 +164,6 @@ public sealed class AutoAssistantOrchestrator(
         var newMessages = chat.AddExchange(userInput, assistantReply, workClarificationResultJson: workClarificationResultJson);
         chats.AddMessages(newMessages);
         chat.Complete();
-        await unitOfWork.SaveChangesAsync(ct);
-
         customer.DecrementAiQuota();
         await unitOfWork.SaveChangesAsync(ct);
 
@@ -348,8 +346,6 @@ public sealed class AutoAssistantOrchestrator(
             chat.TransitionToFinalAnswerSent();
         }
 
-        await unitOfWork.SaveChangesAsync(ct);
-
         customer.DecrementAiQuota();
         await unitOfWork.SaveChangesAsync(ct);
 
@@ -447,16 +443,15 @@ public sealed class AutoAssistantOrchestrator(
         if (chat.Mode == ChatMode.FaultHelp)
             UpdateFaultHelpStatus(chat, responseStage);
 
-        await unitOfWork.SaveChangesAsync(ct);
-
         // ── Step 8: UsageMeter ────────────────────────────────────────────────
         var quotaDecremented = false;
         if (classification.ShouldDecrementQuota)
         {
             customer.DecrementAiQuota();
-            await unitOfWork.SaveChangesAsync(ct);
             quotaDecremented = true;
         }
+
+        await unitOfWork.SaveChangesAsync(ct);
 
         return new OrchestratorResult(
             AssistantReply: assistantReply,

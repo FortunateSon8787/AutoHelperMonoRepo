@@ -23,6 +23,9 @@ public sealed class CreateChatCommandHandler(
         if (customer is null)
             return AppErrors.Chat.CustomerNotFound;
 
+        if (customer.IsBlocked)
+            return AppErrors.Chat.CustomerBlocked;
+
         if (!CanAccessAiChat(customer, request.Mode))
             return AppErrors.Chat.CreateSubscriptionRequired;
 

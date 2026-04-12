@@ -15,6 +15,7 @@ public static class WebApplicationBuilderExtensions
 {
     internal const string ClientScheme = "ClientJwt";
     internal const string AdminScheme = "AdminJwt";
+    internal const string AdminPolicy = "admin";
     internal const string LoginRateLimitPolicy = "login";
 
     public static WebApplicationBuilder AddServices(this WebApplicationBuilder builder)
@@ -126,7 +127,7 @@ public static class WebApplicationBuilderExtensions
 
         services.AddAuthorization(options =>
         {
-            options.AddPolicy("admin", policy =>
+            options.AddPolicy(AdminPolicy, policy =>
                 policy
                     .AddAuthenticationSchemes(AdminScheme)
                     .RequireAuthenticatedUser()

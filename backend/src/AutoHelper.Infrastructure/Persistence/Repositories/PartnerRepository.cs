@@ -17,25 +17,25 @@ public sealed class PartnerRepository(AppDbContext db) : IPartnerRepository
     public Task<bool> ExistsByAccountUserIdAsync(Guid accountUserId, CancellationToken ct) =>
         db.Partners.AnyAsync(p => p.AccountUserId == accountUserId, ct);
 
-    public Task<IReadOnlyList<Partner>> GetAllVerifiedAsync(CancellationToken ct) =>
-        db.Partners
+    public async Task<IReadOnlyList<Partner>> GetAllVerifiedAsync(CancellationToken ct) =>
+        await db.Partners
+            .AsNoTracking()
             .Where(p => p.IsVerified && p.IsActive)
             .OrderBy(p => p.Name)
-            .ToListAsync(ct)
-            .ContinueWith(t => (IReadOnlyList<Partner>)t.Result, ct);
+            .ToListAsync(ct);
 
-    public Task<IReadOnlyList<Partner>> SearchByLocationAsync(CancellationToken ct) =>
-        db.Partners
+    public async Task<IReadOnlyList<Partner>> SearchByLocationAsync(CancellationToken ct) =>
+        await db.Partners
+            .AsNoTracking()
             .Where(p => p.IsVerified && p.IsActive)
-            .ToListAsync(ct)
-            .ContinueWith(t => (IReadOnlyList<Partner>)t.Result, ct);
+            .ToListAsync(ct);
 
-    public Task<IReadOnlyList<Partner>> GetPendingVerificationAsync(CancellationToken ct) =>
-        db.Partners
+    public async Task<IReadOnlyList<Partner>> GetPendingVerificationAsync(CancellationToken ct) =>
+        await db.Partners
+            .AsNoTracking()
             .Where(p => !p.IsVerified)
             .OrderBy(p => p.Name)
-            .ToListAsync(ct)
-            .ContinueWith(t => (IReadOnlyList<Partner>)t.Result, ct);
+            .ToListAsync(ct);
 
     public async Task<(IReadOnlyList<Partner> Items, int TotalCount)> GetPagedForAdminAsync(
         int page, int pageSize, string? search, CancellationToken ct)
@@ -52,6 +52,7 @@ public sealed class PartnerRepository(AppDbContext db) : IPartnerRepository
 
         var totalCount = await query.CountAsync(ct);
         var items = await query
+            .AsNoTracking()
             .OrderBy(p => p.Name)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
@@ -60,12 +61,12 @@ public sealed class PartnerRepository(AppDbContext db) : IPartnerRepository
         return (items, totalCount);
     }
 
-    public Task<IReadOnlyList<Partner>> GetPotentiallyUnfitAsync(CancellationToken ct) =>
-        db.Partners
+    public async Task<IReadOnlyList<Partner>> GetPotentiallyUnfitAsync(CancellationToken ct) =>
+        await db.Partners
+            .AsNoTracking()
             .Where(p => p.IsPotentiallyUnfit)
             .OrderBy(p => p.Name)
-            .ToListAsync(ct)
-            .ContinueWith(t => (IReadOnlyList<Partner>)t.Result, ct);
+            .ToListAsync(ct);
 
     public async Task<IReadOnlyList<Partner>> SearchByTypeAndLocationAsync(
         PartnerType type,
@@ -78,6 +79,7 @@ public sealed class PartnerRepository(AppDbContext db) : IPartnerRepository
         // Geographic filtering is done in-memory (same as SearchByLocationAsync)
         // because PostgreSQL doesn't have built-in Haversine; PostGIS is not yet set up.
         var partners = await db.Partners
+            .AsNoTracking()
             .Where(p => p.IsVerified && p.IsActive && p.Type == type)
             .ToListAsync(ct);
 

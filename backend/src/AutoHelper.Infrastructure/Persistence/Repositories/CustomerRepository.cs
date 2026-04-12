@@ -37,6 +37,7 @@ public sealed class CustomerRepository(AppDbContext db) : ICustomerRepository
         var totalCount = await query.CountAsync(ct);
 
         var items = await query
+            .AsNoTracking()
             .OrderByDescending(c => c.RegistrationDate)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)

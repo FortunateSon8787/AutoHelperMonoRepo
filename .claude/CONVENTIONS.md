@@ -220,6 +220,25 @@ public async Task<Result<Guid>> Handle(RegisterCustomerCommand request, Cancella
 }
 ```
 
+### Единственный SaveChangesAsync на обработчик
+
+**Правило:** В каждом Command Handler и методе оркестратора вызывать `SaveChangesAsync` **ровно один раз** — в самом конце, после всех мутаций. Никаких промежуточных сохранений.
+
+```csharp
+// ✅ Правильно — все мутации, потом один save
+chat.Complete();
+customer.DecrementAiQuota();
+await unitOfWork.SaveChangesAsync(ct);
+
+// ❌ Неверно — два отдельных save нарушают транзакционную консистентность
+chat.Complete();
+await unitOfWork.SaveChangesAsync(ct);       // первый save
+customer.DecrementAiQuota();
+await unitOfWork.SaveChangesAsync(ct);       // второй save
+```
+
+Если логика требует нескольких сохранений — рассмотреть `IDbContextTransaction` или вынести операции в отдельные команды.
+
 ### Domain Events
 
 Агрегаты публикуют события через `AddDomainEvent(...)`. `AppDbContext.SaveChangesAsync` автоматически диспатчит их через MediatR после коммита.

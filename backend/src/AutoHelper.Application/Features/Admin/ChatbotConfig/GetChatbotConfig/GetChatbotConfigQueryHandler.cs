@@ -6,8 +6,7 @@ using DomainChatbotConfig = AutoHelper.Domain.Chatbot.ChatbotConfig;
 namespace AutoHelper.Application.Features.Admin.ChatbotConfig.GetChatbotConfig;
 
 public sealed class GetChatbotConfigQueryHandler(
-    IChatbotConfigRepository repository,
-    IUnitOfWork unitOfWork)
+    IChatbotConfigRepository repository)
     : IRequestHandler<GetChatbotConfigQuery, Result<ChatbotConfigResponse>>
 {
     public async Task<Result<ChatbotConfigResponse>> Handle(
@@ -16,12 +15,8 @@ public sealed class GetChatbotConfigQueryHandler(
         var config = await repository.GetAsync(ct);
 
         if (config is null)
-        {
-            // Auto-create default if missing (should not happen after seeding, but defensive)
-            config = DomainChatbotConfig.CreateDefault();
-            repository.Add(config);
-            await unitOfWork.SaveChangesAsync(ct);
-        }
+            throw new InvalidOperationException(
+                "ChatbotConfig was not found. Ensure ChatbotConfigSeeder ran correctly on startup.");
 
         return ToResponse(config);
     }

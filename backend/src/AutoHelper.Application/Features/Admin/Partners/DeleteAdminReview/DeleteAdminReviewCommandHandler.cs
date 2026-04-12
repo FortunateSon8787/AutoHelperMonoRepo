@@ -18,15 +18,17 @@ public sealed class DeleteAdminReviewCommandHandler(
 
         var partner = await partners.GetByIdAsync(review.PartnerId, ct);
 
-        review.Delete();
-        await unitOfWork.SaveChangesAsync(ct);
-
+        // Count low-ratings BEFORE marking deleted so the query filter still includes this review.
+        // Then adjust by -1 if the deleted review itself was low-rated.
         if (partner is not null)
         {
             var lowRatingCount = await reviews.CountLowRatingsForPartnerAsync(partner.Id, ct);
-            partner.RecalculateFitnessFlag(lowRatingCount);
-            await unitOfWork.SaveChangesAsync(ct);
+            var adjustment = review.Rating < 3 ? -1 : 0;
+            partner.RecalculateFitnessFlag(lowRatingCount + adjustment);
         }
+
+        review.Delete();
+        await unitOfWork.SaveChangesAsync(ct);
 
         return Result.Success();
     }

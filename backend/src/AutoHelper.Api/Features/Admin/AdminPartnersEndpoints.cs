@@ -1,3 +1,4 @@
+using AutoHelper.Api.Extensions;
 using AutoHelper.Application.Features.Admin.Partners;
 using AutoHelper.Application.Features.Admin.Partners.DeactivatePartner;
 using AutoHelper.Application.Features.Admin.Partners.DeleteAdminReview;
@@ -16,7 +17,7 @@ public static class AdminPartnersEndpoints
     {
         var partnersGroup = app.MapGroup("/api/admin/partners")
             .WithTags("Admin — Partners")
-            .RequireAuthorization("admin");
+            .RequireAuthorization(WebApplicationBuilderExtensions.AdminPolicy);
 
         partnersGroup.MapGet("/", GetAll)
             .WithSummary("Get paginated list of partners with optional search by name or address")
@@ -50,7 +51,7 @@ public static class AdminPartnersEndpoints
 
         var reviewsGroup = app.MapGroup("/api/admin/reviews")
             .WithTags("Admin — Partners")
-            .RequireAuthorization("admin");
+            .RequireAuthorization(WebApplicationBuilderExtensions.AdminPolicy);
 
         reviewsGroup.MapDelete("/{id:guid}", DeleteReview)
             .WithSummary("Soft-delete a partner review")

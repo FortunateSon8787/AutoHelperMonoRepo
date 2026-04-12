@@ -10,14 +10,14 @@ public sealed class AdCampaignRepository(AppDbContext db) : IAdCampaignRepositor
     public Task<AdCampaign?> GetByIdAsync(Guid id, CancellationToken ct) =>
         db.AdCampaigns.FindAsync([id], ct).AsTask();
 
-    public Task<IReadOnlyList<AdCampaign>> GetByPartnerIdAsync(Guid partnerId, CancellationToken ct) =>
-        db.AdCampaigns
+    public async Task<IReadOnlyList<AdCampaign>> GetByPartnerIdAsync(Guid partnerId, CancellationToken ct) =>
+        await db.AdCampaigns
+            .AsNoTracking()
             .Where(c => c.PartnerId == partnerId)
             .OrderByDescending(c => c.StartsAt)
-            .ToListAsync(ct)
-            .ContinueWith(t => (IReadOnlyList<AdCampaign>)t.Result, ct);
+            .ToListAsync(ct);
 
-    public Task<IReadOnlyList<AdCampaign>> GetActiveForDisplayAsync(
+    public async Task<IReadOnlyList<AdCampaign>> GetActiveForDisplayAsync(
         bool isAuthenticated,
         PartnerType? targetCategory,
         CancellationToken ct)
@@ -34,16 +34,14 @@ public sealed class AdCampaignRepository(AppDbContext db) : IAdCampaignRepositor
         if (!isAuthenticated)
             query = query.Where(c => c.ShowToAnonymous);
 
-        return query
-            .ToListAsync(ct)
-            .ContinueWith(t => (IReadOnlyList<AdCampaign>)t.Result, ct);
+        return await query.AsNoTracking().ToListAsync(ct);
     }
 
-    public Task<IReadOnlyList<AdCampaign>> GetActiveByPartnerIdAsync(Guid partnerId, CancellationToken ct) =>
-        db.AdCampaigns
+    public async Task<IReadOnlyList<AdCampaign>> GetActiveByPartnerIdAsync(Guid partnerId, CancellationToken ct) =>
+        await db.AdCampaigns
+            .AsNoTracking()
             .Where(c => c.PartnerId == partnerId && c.IsActive)
-            .ToListAsync(ct)
-            .ContinueWith(t => (IReadOnlyList<AdCampaign>)t.Result, ct);
+            .ToListAsync(ct);
 
     public void Add(AdCampaign campaign) =>
         db.AdCampaigns.Add(campaign);
@@ -51,7 +49,7 @@ public sealed class AdCampaignRepository(AppDbContext db) : IAdCampaignRepositor
     public async Task<(IReadOnlyList<AdCampaign> Items, int TotalCount)> GetPagedForAdminAsync(
         int page, int pageSize, Guid? partnerId, CancellationToken ct)
     {
-        var query = db.AdCampaigns.Where(c => !c.IsDeleted);
+        var query = db.AdCampaigns.AsQueryable();
 
         if (partnerId.HasValue)
             query = query.Where(c => c.PartnerId == partnerId.Value);
@@ -59,6 +57,7 @@ public sealed class AdCampaignRepository(AppDbContext db) : IAdCampaignRepositor
         var totalCount = await query.CountAsync(ct);
 
         var items = await query
+            .AsNoTracking()
             .OrderByDescending(c => c.StartsAt)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)

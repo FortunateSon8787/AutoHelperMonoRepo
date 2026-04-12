@@ -22,6 +22,9 @@ public sealed class SendMessageCommandHandler(
         if (customer is null)
             return AppErrors.Chat.CustomerNotFound;
 
+        if (customer.IsBlocked)
+            return AppErrors.Chat.CustomerBlocked;
+
         var chat = await chats.GetByIdAsync(request.ChatId, includeMessages: true, ct);
         if (chat is null || chat.CustomerId != currentUser.Id.Value)
             return AppErrors.Chat.NotFound;

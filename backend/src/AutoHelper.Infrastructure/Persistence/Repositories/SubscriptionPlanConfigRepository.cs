@@ -6,11 +6,11 @@ namespace AutoHelper.Infrastructure.Persistence.Repositories;
 
 public sealed class SubscriptionPlanConfigRepository(AppDbContext db) : ISubscriptionPlanConfigRepository
 {
-    public Task<IReadOnlyList<SubscriptionPlanConfig>> GetAllAsync(CancellationToken ct) =>
-        db.SubscriptionPlanConfigs
+    public async Task<IReadOnlyList<SubscriptionPlanConfig>> GetAllAsync(CancellationToken ct) =>
+        await db.SubscriptionPlanConfigs
+            .AsNoTracking()
             .OrderBy(c => c.Plan)
-            .ToListAsync(ct)
-            .ContinueWith<IReadOnlyList<SubscriptionPlanConfig>>(t => t.Result, ct);
+            .ToListAsync(ct);
 
     public Task<SubscriptionPlanConfig?> GetByPlanAsync(SubscriptionPlan plan, CancellationToken ct) =>
         db.SubscriptionPlanConfigs.FirstOrDefaultAsync(c => c.Plan == plan, ct);

@@ -1,3 +1,4 @@
+using AutoHelper.Api.Extensions;
 using AutoHelper.Application.Features.Admin.ChatbotConfig.GetChatbotConfig;
 using AutoHelper.Application.Features.Admin.ChatbotConfig.UpdateChatbotConfig;
 using MediatR;
@@ -11,7 +12,7 @@ public static class AdminChatbotConfigEndpoints
     {
         var group = app.MapGroup("/api/admin/chatbot-config")
             .WithTags("Admin — Chatbot Config")
-            .RequireAuthorization("admin");
+            .RequireAuthorization(WebApplicationBuilderExtensions.AdminPolicy);
 
         group.MapGet("/", Get)
             .WithSummary("Get current chatbot configuration")

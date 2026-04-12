@@ -1,3 +1,4 @@
+using AutoHelper.Api.Extensions;
 using AutoHelper.Application.Features.Admin.AdCampaigns;
 using AutoHelper.Application.Features.Admin.AdCampaigns.ActivateAdCampaign;
 using AutoHelper.Application.Features.Admin.AdCampaigns.DeactivateAdCampaign;
@@ -12,7 +13,7 @@ public static class AdminAdCampaignsEndpoints
     {
         var group = app.MapGroup("/api/admin/ad-campaigns")
             .WithTags("Admin — Ad Campaigns")
-            .RequireAuthorization("admin");
+            .RequireAuthorization(WebApplicationBuilderExtensions.AdminPolicy);
 
         group.MapGet("/", GetAll)
             .WithSummary("Get paginated list of all ad campaigns with optional filter by partner")

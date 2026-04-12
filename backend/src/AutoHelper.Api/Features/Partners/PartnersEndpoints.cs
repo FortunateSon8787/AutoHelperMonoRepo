@@ -1,3 +1,4 @@
+using AutoHelper.Api.Extensions;
 using AutoHelper.Application.Features.Partners;
 using AutoHelper.Application.Features.Partners.DeactivatePartner;
 using AutoHelper.Application.Features.Partners.GetMyPartnerProfile;
@@ -62,7 +63,7 @@ public static class PartnersEndpoints
             .Produces<IReadOnlyList<ReviewResponse>>(StatusCodes.Status200OK);
 
         // ── Admin operations ──────────────────────────────────────────────────
-        var adminGroup = app.MapGroup("/api/admin/partners").WithTags("Admin: Partners").RequireAuthorization("admin");
+        var adminGroup = app.MapGroup("/api/admin/partners").WithTags("Admin: Partners").RequireAuthorization(WebApplicationBuilderExtensions.AdminPolicy);
 
         adminGroup.MapGet("/pending", GetPendingPartners)
             .WithSummary("Get all partner profiles awaiting admin verification")

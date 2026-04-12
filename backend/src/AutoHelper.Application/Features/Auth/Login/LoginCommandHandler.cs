@@ -23,6 +23,14 @@ public sealed class LoginCommandHandler(
         if (!passwordValid)
             return AppErrors.Auth.InvalidCredentials;
 
+        // Revoke all previously active tokens for this customer to prevent unlimited token accumulation.
+        var existingTokens = await refreshTokens.GetByCustomerIdAsync(customer.Id, ct);
+        foreach (var token in existingTokens)
+        {
+            if (token.IsActive)
+                token.Revoke();
+        }
+
         var accessToken = jwtTokenService.GenerateAccessToken(customer);
         var rawRefreshToken = jwtTokenService.GenerateRefreshToken();
 

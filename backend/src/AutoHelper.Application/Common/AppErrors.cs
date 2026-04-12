@@ -171,6 +171,9 @@ public static class AppErrors
 
         public static readonly AppError AlreadyDeleted =
             new("CHAT_010", "Chat is already deleted.");
+
+        public static readonly AppError CustomerBlocked =
+            new("CHAT_011", "Your account has been blocked. Contact support for assistance.", ErrorType.Forbidden);
     }
 
     // ─── AdminAuth ────────────────────────────────────────────────────────────

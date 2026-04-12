@@ -1,3 +1,4 @@
+using AutoHelper.Api.Extensions;
 using AutoHelper.Application.Features.Admin.Customers;
 using AutoHelper.Application.Features.Admin.Customers.BlockCustomer;
 using AutoHelper.Application.Features.Admin.Customers.GetAdminCustomerById;
@@ -13,7 +14,7 @@ public static class AdminCustomersEndpoints
     {
         var group = app.MapGroup("/api/admin/customers")
             .WithTags("Admin — Customers")
-            .RequireAuthorization("admin");
+            .RequireAuthorization(WebApplicationBuilderExtensions.AdminPolicy);
 
         group.MapGet("/", GetAll)
             .WithSummary("Get paginated list of customers with optional search by name or email")

@@ -1,3 +1,4 @@
+using AutoHelper.Api.Extensions;
 using AutoHelper.Application.Features.Admin.Vehicles;
 using AutoHelper.Application.Features.Admin.Vehicles.GetAdminVehicleById;
 using AutoHelper.Application.Features.Admin.Vehicles.GetAdminVehicles;
@@ -11,7 +12,7 @@ public static class AdminVehiclesEndpoints
     {
         var group = app.MapGroup("/api/admin/vehicles")
             .WithTags("Admin — Vehicles")
-            .RequireAuthorization("admin");
+            .RequireAuthorization(WebApplicationBuilderExtensions.AdminPolicy);
 
         group.MapGet("/", GetAll)
             .WithSummary("Get paginated list of vehicles with optional search by VIN, brand or model")

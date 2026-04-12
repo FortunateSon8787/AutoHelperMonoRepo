@@ -101,6 +101,8 @@ The `AppError` value object: `sealed record AppError(string Code, string Descrip
 | `CHAT_007` | PartnerAdviceInput is required for PartnerAdvice mode. |
 | `CHAT_008` | This chat is completed and no longer accepts messages. |
 | `CHAT_009` | AI request quota exceeded. Upgrade your plan or top up requests. |
+| `CHAT_010` | Chat is already deleted. |
+| `CHAT_011` | Your account has been blocked. Contact support for assistance. *(403 Forbidden)* |
 
 ---
 

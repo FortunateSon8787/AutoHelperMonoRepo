@@ -22,9 +22,7 @@ namespace AutoHelper.Api.Middleware;
 ///   Logging:Http:Enabled          — enable/disable this middleware (default: true)
 ///   Logging:Http:LogRequestHeaders — include request headers in the log (default: true)
 /// </summary>
-public sealed class HttpLoggingMiddleware(
-    RequestDelegate next,
-    IConfiguration configuration)
+public sealed class HttpLoggingMiddleware
 {
     private static readonly ILogger Log = Serilog.Log.ForContext<HttpLoggingMiddleware>();
 
@@ -41,11 +39,24 @@ public sealed class HttpLoggingMiddleware(
 
     private const string MaskedValue = "***";
 
+    private readonly RequestDelegate _next;
+    private readonly bool _isEnabled;
+    private readonly bool _shouldLogHeaders;
+    private readonly IReadOnlyList<string> _ignorePaths;
+
+    public HttpLoggingMiddleware(RequestDelegate next, IConfiguration configuration)
+    {
+        _next = next;
+        _isEnabled = configuration.GetValue("Logging:Http:Enabled", defaultValue: true);
+        _shouldLogHeaders = configuration.GetValue("Logging:Http:LogRequestHeaders", defaultValue: true);
+        _ignorePaths = configuration.GetSection("Logging:Http:IgnorePaths").Get<List<string>>() ?? [];
+    }
+
     public async Task InvokeAsync(HttpContext context)
     {
-        if (!IsEnabled())
+        if (!_isEnabled)
         {
-            await next(context);
+            await _next(context);
             return;
         }
 
@@ -57,13 +68,13 @@ public sealed class HttpLoggingMiddleware(
 
         try
         {
-            await next(context);
+            await _next(context);
         }
         finally
         {
             sw.Stop();
 
-            var isPathIgnored = GetIgnorePaths().Any(p => path.EndsWith(p, StringComparison.InvariantCultureIgnoreCase));
+            var isPathIgnored = _ignorePaths.Any(p => path.EndsWith(p, StringComparison.InvariantCultureIgnoreCase));
             if (!isPathIgnored)
             {
                 var statusCode = context.Response.StatusCode;
@@ -76,7 +87,7 @@ public sealed class HttpLoggingMiddleware(
                 using (LogContext.PushProperty("StatusCode", statusCode))
                 using (LogContext.PushProperty("ElapsedMs", elapsed))
                 {
-                    if (ShouldLogHeaders())
+                    if (_shouldLogHeaders)
                     {
                         var headers = SanitiseHeaders(context.Request.Headers);
                         using (LogContext.PushProperty("RequestHeaders", headers, destructureObjects: true))
@@ -92,17 +103,6 @@ public sealed class HttpLoggingMiddleware(
             }
         }
     }
-
-    // ── Helpers ──────────────────────────────────────────────────────────────
-
-    private bool IsEnabled() =>
-        configuration.GetValue("Logging:Http:Enabled", defaultValue: true);
-
-    private IList<string> GetIgnorePaths() =>
-        configuration.GetSection("Logging:Http:IgnorePaths").Get<List<string>>() ?? [];
-
-    private bool ShouldLogHeaders() =>
-        configuration.GetValue("Logging:Http:LogRequestHeaders", defaultValue: true);
 
     private static Dictionary<string, string> SanitiseHeaders(IHeaderDictionary headers)
     {

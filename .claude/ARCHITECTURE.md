@@ -137,7 +137,7 @@ Common/Interfaces/
   ├── IUnitOfWork                   — SaveChangesAsync
   ├── ICustomerRepository           — GetByEmailAsync, GetByIdAsync, ExistsByEmailAsync, Add
   ├── IVehicleRepository            — GetByVinAsync, ExistsByVinAsync, Add
-  ├── IRefreshTokenRepository       — Add, GetByTokenAsync
+  ├── IRefreshTokenRepository       — Add, GetByTokenAsync, GetByCustomerIdAsync
   ├── IAdminUserRepository          — GetByEmailAsync, GetByIdAsync, ExistsByEmailAsync, Add
   ├── IAdminRefreshTokenRepository  — Add, GetByTokenAsync
   ├── IJwtTokenService              — GenerateAccessToken, GenerateAdminAccessToken, GenerateRefreshToken,
@@ -160,6 +160,18 @@ Common/Interfaces/
 Common/Behaviors/
   ├── LoggingBehavior.cs       — структурированное логирование всех запросов
   └── ValidationBehavior.cs    — автовалидация через FluentValidation
+```
+
+### AsNoTracking для read-only запросов
+
+Все репозиторные методы, которые только читают данные (не изменяют), должны вызывать `.AsNoTracking()` перед `.Where()`/`.ToListAsync()`. Это снижает нагрузку на EF Core change tracker и ускоряет запросы.
+
+```csharp
+// ✅ Правильно — read-only query
+return await db.Partners.AsNoTracking().Where(...).ToListAsync(ct);
+
+// ❌ Неверно — EF Core отслеживает сущности без необходимости
+return await db.Partners.Where(...).ToListAsync(ct);
 ```
 
 ### Result паттерн

@@ -265,7 +265,7 @@ public class AutoAssistantOrchestratorTests
 
         // Assert
         result.QuotaDecremented.ShouldBeTrue();
-        _unitOfWork.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Exactly(2));
+        _unitOfWork.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     // ─── PartnerAdvice — quota not decremented ────────────────────────────────
@@ -422,7 +422,7 @@ public class AutoAssistantOrchestratorTests
     }
 
     [Fact]
-    public async Task ProcessWorkClarificationInitialAsync_ShouldDecrementQuotaAndSaveTwice()
+    public async Task ProcessWorkClarificationInitialAsync_ShouldDecrementQuotaAndSave()
     {
         // Arrange
         var chat = Chat.Create(Guid.NewGuid(), ChatMode.WorkClarification, "Work check");
@@ -456,8 +456,8 @@ public class AutoAssistantOrchestratorTests
         // Act
         await _sut.ProcessWorkClarificationInitialAsync(chat, customer, input, "ru", CancellationToken.None);
 
-        // Assert — SaveChanges called twice: once for chat exchange, once for quota decrement
-        _unitOfWork.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Exactly(2));
+        // Assert — SaveChanges called once: chat exchange and quota decrement in a single transaction
+        _unitOfWork.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
