@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "microsoft-playwright-mcp": {
+      "command": "uvx",
+      "args": ["playwright-mcp"]
+    }
+  }
+}
