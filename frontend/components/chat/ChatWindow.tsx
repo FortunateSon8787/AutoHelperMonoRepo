@@ -184,7 +184,7 @@ export function ChatWindow({
       )}
 
       {/* Messages / Forms */}
-      <div className="flex-1 overflow-y-auto px-4 lg:px-6 py-6">
+      <div className="flex-1 overflow-y-auto scrollbar-stable px-4 lg:px-6 py-6">
         {isLoadingMessages ? (
           <div className="flex items-center justify-center h-full">
             <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />

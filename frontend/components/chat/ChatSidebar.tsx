@@ -128,7 +128,7 @@ export function ChatSidebar({
       )}
 
       <aside
-        className={`fixed lg:static inset-y-0 left-0 z-50 w-80 bg-card border-r border-border flex flex-col transition-transform lg:translate-x-0 ${
+        className={`fixed lg:static inset-y-0 left-0 z-50 w-80 flex-shrink-0 bg-card border-r border-border flex flex-col transition-transform lg:translate-x-0 ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
@@ -149,7 +149,7 @@ export function ChatSidebar({
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-4 space-y-5">
+        <div className="flex-1 overflow-y-auto scrollbar-stable p-4 space-y-5">
           {/* Vehicle selector */}
           <div className="bg-gradient-to-br from-secondary to-muted/30 rounded-xl p-4 border border-border space-y-3">
             {selectedVehicle ? (

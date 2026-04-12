@@ -93,3 +93,9 @@
     font-weight: var(--font-weight-medium);
   }
 }
+
+@layer utilities {
+  .scrollbar-stable {
+    scrollbar-gutter: stable;
+  }
+}
