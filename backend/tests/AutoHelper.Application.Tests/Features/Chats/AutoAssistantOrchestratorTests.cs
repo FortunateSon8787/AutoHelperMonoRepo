@@ -504,6 +504,17 @@ public class AutoAssistantOrchestratorTests
 
     // ─── PartnerAdvice — initial processing ──────────────────────────────────
 
+    private void SetupPartnerAdviceValidClassification() =>
+        _llm.Setup(l => l.GenerateStructuredAsync<ClassificationResult>(
+                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ClassificationResult
+            {
+                Mode = "PartnerAdvice",
+                IsValid = true,
+                ShouldEscalate = false,
+                ShouldDecrementQuota = false
+            });
+
     [Fact]
     public async Task ProcessPartnerAdviceInitialAsync_ShouldReturnFormattedReplyAndCompleteChat()
     {
@@ -518,7 +529,9 @@ public class AutoAssistantOrchestratorTests
             Lng = 30.52
         };
 
-        // Step 1: classifier returns category
+        SetupPartnerAdviceValidClassification();
+
+        // Step 1: classifier returns category; Step 2: formatter returns partner list
         _llm.SetupSequence(l => l.GenerateStructuredAsync<PartnerAdviceLlmResult>(
                 It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new PartnerAdviceLlmResult { ServiceCategory = "tire_service", Urgency = "medium" })
@@ -554,6 +567,8 @@ public class AutoAssistantOrchestratorTests
         var customer = Customer.CreateWithPassword("Alice", "alice@test.com", "hash");
         var input = new PartnerAdviceInput { Request = "Need a car repair shop", Lat = 50.0, Lng = 30.0 };
 
+        SetupPartnerAdviceValidClassification();
+
         _llm.SetupSequence(l => l.GenerateStructuredAsync<PartnerAdviceLlmResult>(
                 It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new PartnerAdviceLlmResult { ServiceCategory = "car_service", Urgency = "low" })
@@ -580,6 +595,8 @@ public class AutoAssistantOrchestratorTests
         var customer = Customer.CreateWithPassword("Alice", "alice@test.com", "hash");
         var input = new PartnerAdviceInput { Request = "Need a tow truck", Lat = 50.0, Lng = 30.0 };
 
+        SetupPartnerAdviceValidClassification();
+
         _llm.SetupSequence(l => l.GenerateStructuredAsync<PartnerAdviceLlmResult>(
                 It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new PartnerAdviceLlmResult { ServiceCategory = "tow_truck", Urgency = "high" })
@@ -595,6 +612,35 @@ public class AutoAssistantOrchestratorTests
         // Assert
         result.WasValid.ShouldBeTrue();
         result.AssistantReply.ShouldNotBeNullOrWhiteSpace();
+    }
+
+    [Fact]
+    public async Task ProcessPartnerAdviceInitialAsync_WhenRequestIsOffTopic_ShouldRejectAndLog()
+    {
+        // Arrange
+        var chat = Chat.Create(Guid.NewGuid(), ChatMode.PartnerAdvice, "Off-topic request");
+        var customer = Customer.CreateWithPassword("Alice", "alice@test.com", "hash");
+        var input = new PartnerAdviceInput { Request = "Where can I watch movies?", Lat = 50.0, Lng = 30.0 };
+
+        _llm.Setup(l => l.GenerateStructuredAsync<ClassificationResult>(
+                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ClassificationResult { IsValid = false, RejectionReason = "off_topic" });
+
+        // Act
+        var result = await _sut.ProcessPartnerAdviceInitialAsync(chat, customer, input, "ru", CancellationToken.None);
+
+        // Assert
+        result.WasValid.ShouldBeFalse();
+        result.QuotaDecremented.ShouldBeFalse();
+        result.ResponseStage.ShouldBeNull();
+        result.AssistantReply.ShouldNotBeNullOrWhiteSpace();
+        result.ChatStatus.ShouldBe(ChatStatus.Completed);
+        // LLM for PartnerAdvice steps should NOT be called
+        _llm.Verify(l => l.GenerateStructuredAsync<PartnerAdviceLlmResult>(
+            It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+        // Audit record should be saved
+        _unitOfWork.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     // ─── Classifier failure — fail open ──────────────────────────────────────

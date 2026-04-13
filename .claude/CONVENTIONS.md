@@ -239,6 +239,25 @@ await unitOfWork.SaveChangesAsync(ct);       // второй save
 
 Если логика требует нескольких сохранений — рассмотреть `IDbContextTransaction` или вынести операции в отдельные команды.
 
+### LLM JSON Schema — ограничение длины строк
+
+При добавлении новых полей в structured output классы (используемые с `GenerateStructuredAsync<T>`) применяй `[JsonSchemaMaxLength(N)]` для строковых полей, которые имеют DB-ограничения:
+
+```csharp
+// Application/Common/JsonSchemaMaxLengthAttribute.cs
+[AttributeUsage(AttributeTargets.Property)]
+public sealed class JsonSchemaMaxLengthAttribute(int maxLength) : Attribute
+{
+    public int MaxLength { get; } = maxLength;
+}
+
+// Использование — добавляет "maxLength": N в JSON Schema, отправляемую в OpenAI
+[JsonSchemaMaxLength(64)]
+public string? RejectionReason { get; init; }
+```
+
+`OpenAiLlmProvider.BuildPropertySchema` автоматически читает этот атрибут и добавляет `"maxLength"` в генерируемую JSON Schema. Это ограничивает длину строки на уровне LLM. Для дополнительной защиты добавляй truncation в domain factory method при сохранении в varchar-поля.
+
 ### Domain Events
 
 Агрегаты публикуют события через `AddDomainEvent(...)`. `AppDbContext.SaveChangesAsync` автоматически диспатчит их через MediatR после коммита.

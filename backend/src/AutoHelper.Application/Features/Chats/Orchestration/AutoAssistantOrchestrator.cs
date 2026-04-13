@@ -194,6 +194,34 @@ public sealed class AutoAssistantOrchestrator(
         string locale,
         CancellationToken ct)
     {
+        // ── Step 0: Validate request is on-topic ──────────────────────────────
+        var classification = await ClassifyAsync(ChatMode.PartnerAdvice, input.Request, ct);
+        if (!classification.IsValid)
+        {
+            logger.LogInformation(
+                "PartnerAdvice request rejected for chat {ChatId}, reason: {Reason}",
+                chat.Id, classification.RejectionReason);
+
+            var auditRecord = InvalidChatRequest.Create(
+                chat.Id,
+                customer.Id,
+                input.Request,
+                classification.RejectionReason ?? "unknown");
+
+            invalidRequests.Add(auditRecord);
+            var invalidMsg = chat.AddInvalidUserMessage(input.Request);
+            chats.AddMessages([invalidMsg]);
+            chat.Complete();
+            await unitOfWork.SaveChangesAsync(ct);
+
+            return new OrchestratorResult(
+                AssistantReply: BuildRejectionMessage(classification.RejectionReason, locale),
+                WasValid: false,
+                QuotaDecremented: false,
+                ResponseStage: null,
+                ChatStatus: chat.Status);
+        }
+
         // ── Step 1: classify category + urgency ───────────────────────────────
         var classificationResult = await llm.GenerateStructuredAsync<PartnerAdviceLlmResult>(
             modelSelector.RouterModel,
@@ -294,13 +322,19 @@ public sealed class AutoAssistantOrchestrator(
         return string.Join("\n\n", parts);
     }
 
-    private static string FormatPartnerAdviceUserInput(PartnerAdviceInput input, string? urgency)
+    private static string FormatPartnerAdviceUserInput(PartnerAdviceInput input, string? llmUrgency)
     {
         var parts = new List<string> { $"Request: {input.Request}" };
-        if (!string.IsNullOrWhiteSpace(urgency))
-            parts.Add($"Urgency: {urgency}");
-        if (!string.IsNullOrWhiteSpace(input.Urgency))
-            parts.Add($"User-stated urgency: {input.Urgency}");
+        if (!string.IsNullOrWhiteSpace(llmUrgency))
+            parts.Add($"Urgency: {llmUrgency}");
+        var urgencyText = input.Urgency switch
+        {
+            PartnerAdviceUrgency.Urgent => "urgent",
+            PartnerAdviceUrgency.NotUrgent => "not urgent",
+            _ => null
+        };
+        if (urgencyText is not null)
+            parts.Add($"User-stated urgency: {urgencyText}");
         return string.Join("\n", parts);
     }
 

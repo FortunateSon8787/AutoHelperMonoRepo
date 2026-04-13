@@ -1,6 +1,6 @@
 "use client";
 
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Loader2, Stethoscope } from "lucide-react";
@@ -20,9 +20,9 @@ export function DiagnosticsForm({ onSubmit, isLoading }: DiagnosticsFormProps) {
   const t = useTranslations("chat.diagnosticsForm");
 
   const schema = z.object({
-    symptoms: z.string().min(1, t("validation.symptomsRequired")),
-    recentEvents: z.string().optional(),
-    previousIssues: z.string().optional(),
+    symptoms: z.string().min(1, t("validation.symptomsRequired")).max(800, t("validation.symptomsMaxLength")),
+    recentEvents: z.string().max(300, t("validation.recentEventsMaxLength")).optional(),
+    previousIssues: z.string().max(300, t("validation.previousIssuesMaxLength")).optional(),
   });
 
   type FormValues = z.infer<typeof schema>;
@@ -30,8 +30,13 @@ export function DiagnosticsForm({ onSubmit, isLoading }: DiagnosticsFormProps) {
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors },
   } = useForm<FormValues>({ resolver: zodResolver(schema) });
+
+  const symptoms = useWatch({ control, name: "symptoms", defaultValue: "" });
+  const recentEvents = useWatch({ control, name: "recentEvents", defaultValue: "" });
+  const previousIssues = useWatch({ control, name: "previousIssues", defaultValue: "" });
 
   const onFormSubmit = async (values: FormValues) => {
     const title = values.symptoms.slice(0, 60) + (values.symptoms.length > 60 ? "..." : "");
@@ -56,10 +61,16 @@ export function DiagnosticsForm({ onSubmit, isLoading }: DiagnosticsFormProps) {
 
       <form onSubmit={handleSubmit(onFormSubmit)} className="space-y-4">
         <div className="space-y-1.5">
-          <Label htmlFor="symptoms">{t("symptomsLabel")}</Label>
+          <div className="flex items-center justify-between">
+            <Label htmlFor="symptoms">{t("symptomsLabel")}</Label>
+            <span className={`text-xs ${(symptoms?.length ?? 0) > 800 ? "text-destructive" : "text-muted-foreground"}`}>
+              {symptoms?.length ?? 0}/800
+            </span>
+          </div>
           <textarea
             id="symptoms"
             rows={4}
+            maxLength={800}
             placeholder={t("symptomsPlaceholder")}
             {...register("symptoms")}
             className={`w-full px-3 py-2.5 text-sm border rounded-xl bg-input text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring resize-none ${
@@ -72,21 +83,39 @@ export function DiagnosticsForm({ onSubmit, isLoading }: DiagnosticsFormProps) {
         </div>
 
         <div className="space-y-1.5">
-          <Label htmlFor="recentEvents">{t("recentEventsLabel")}</Label>
+          <div className="flex items-center justify-between">
+            <Label htmlFor="recentEvents">{t("recentEventsLabel")}</Label>
+            <span className={`text-xs ${(recentEvents?.length ?? 0) > 300 ? "text-destructive" : "text-muted-foreground"}`}>
+              {recentEvents?.length ?? 0}/300
+            </span>
+          </div>
           <Input
             id="recentEvents"
+            maxLength={300}
             placeholder={t("recentEventsPlaceholder")}
             {...register("recentEvents")}
           />
+          {errors.recentEvents && (
+            <p className="text-xs text-destructive">{errors.recentEvents.message}</p>
+          )}
         </div>
 
         <div className="space-y-1.5">
-          <Label htmlFor="previousIssues">{t("previousIssuesLabel")}</Label>
+          <div className="flex items-center justify-between">
+            <Label htmlFor="previousIssues">{t("previousIssuesLabel")}</Label>
+            <span className={`text-xs ${(previousIssues?.length ?? 0) > 300 ? "text-destructive" : "text-muted-foreground"}`}>
+              {previousIssues?.length ?? 0}/300
+            </span>
+          </div>
           <Input
             id="previousIssues"
+            maxLength={300}
             placeholder={t("previousIssuesPlaceholder")}
             {...register("previousIssues")}
           />
+          {errors.previousIssues && (
+            <p className="text-xs text-destructive">{errors.previousIssues.message}</p>
+          )}
         </div>
 
         <Button type="submit" className="w-full" disabled={isLoading}>

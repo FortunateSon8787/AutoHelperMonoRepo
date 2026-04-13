@@ -15,6 +15,6 @@ public sealed class PartnerAdviceInput
     /// <summary>User longitude for proximity partner search.</summary>
     public double Lng { get; init; }
 
-    /// <summary>Optional urgency hint provided by the user.</summary>
-    public string? Urgency { get; init; }
+    /// <summary>Urgency level selected by the user.</summary>
+    public PartnerAdviceUrgency Urgency { get; init; } = PartnerAdviceUrgency.NotSpecified;
 }

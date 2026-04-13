@@ -577,7 +577,10 @@
       "submitButton": "Начать диагностику",
       "submittingButton": "Запуск...",
       "validation": {
-        "symptomsRequired": "Пожалуйста, опишите симптомы"
+        "symptomsRequired": "Пожалуйста, опишите симптомы",
+        "symptomsMaxLength": "Симптомы не должны превышать 800 символов",
+        "recentEventsMaxLength": "Недавние события не должны превышать 300 символов",
+        "previousIssuesMaxLength": "Предыдущие проблемы не должны превышать 300 символов"
       }
     },
     "workClarificationForm": {
@@ -597,7 +600,10 @@
       "validation": {
         "worksRequired": "Пожалуйста, опишите выполненные работы",
         "workReasonRequired": "Пожалуйста, укажите причину работ",
-        "costInvalid": "Стоимость не может быть отрицательной"
+        "costInvalid": "Стоимость не может быть отрицательной",
+        "worksMaxLength": "Выполненные работы не должны превышать 400 символов",
+        "workReasonMaxLength": "Причина работ не должна превышать 200 символов",
+        "guaranteesMaxLength": "Гарантии не должны превышать 200 символов"
       }
     },
     "partnerAdviceForm": {
@@ -605,7 +611,11 @@
       "requestLabel": "Какой сервис вам нужен?",
       "requestPlaceholder": "Например: ремонт тормозов, замена масла, замена шин...",
       "urgencyLabel": "Срочность (необязательно)",
-      "urgencyPlaceholder": "Например: срочно, в течение недели...",
+      "urgencyOptions": {
+        "notSpecified": "Не указано",
+        "notUrgent": "Не срочно",
+        "urgent": "Срочно"
+      },
       "locationTitle": "Ваше местоположение",
       "latLabel": "Широта",
       "lngLabel": "Долгота",
@@ -618,7 +628,6 @@
       "validation": {
         "requestRequired": "Пожалуйста, опишите нужный сервис",
         "requestMaxLength": "Максимум 500 символов",
-        "urgencyMaxLength": "Максимум 100 символов",
         "latInvalid": "Широта: от -90 до 90",
         "lngInvalid": "Долгота: от -180 до 180"
       }

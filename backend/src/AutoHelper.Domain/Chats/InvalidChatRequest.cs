@@ -42,7 +42,7 @@ public sealed class InvalidChatRequest : Entity<Guid>
             ChatId = chatId,
             CustomerId = customerId,
             UserInput = userInput,
-            RejectionReason = string.IsNullOrWhiteSpace(rejectionReason) ? "unknown" : rejectionReason,
+            RejectionReason = string.IsNullOrWhiteSpace(rejectionReason) ? "unknown" : rejectionReason[..Math.Min(rejectionReason.Length, 64)],
             CreatedAt = DateTime.UtcNow
         };
     }

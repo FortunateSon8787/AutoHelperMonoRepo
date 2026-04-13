@@ -230,7 +230,7 @@ public static class ChatsEndpoints
         string Request,
         double Lat,
         double Lng,
-        string? Urgency);
+        PartnerAdviceUrgency Urgency = PartnerAdviceUrgency.NotSpecified);
 
     private sealed record CreateChatApiRequest(
         ChatMode Mode,

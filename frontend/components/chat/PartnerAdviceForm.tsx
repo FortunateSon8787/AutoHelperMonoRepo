@@ -8,8 +8,8 @@ import { Loader2, MapPin, Navigation, RefreshCw } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PARTNER_ADVICE_URGENCY_VALUES } from "@/types/chat";
 import type { PartnerAdviceInput } from "@/types/chat";
 
 interface PartnerAdviceFormProps {
@@ -32,6 +32,8 @@ function buildStaticMapUrl(lat: number, lng: number): string {
   return `https://maps.googleapis.com/maps/api/staticmap?${params.toString()}`;
 }
 
+const urgencySchema = z.enum(PARTNER_ADVICE_URGENCY_VALUES);
+
 export function PartnerAdviceForm({ onSubmit, isLoading }: PartnerAdviceFormProps) {
   const t = useTranslations("chat.partnerAdviceForm");
   const [isLocating, setIsLocating] = useState(false);
@@ -42,7 +44,7 @@ export function PartnerAdviceForm({ onSubmit, isLoading }: PartnerAdviceFormProp
       .string()
       .min(1, t("validation.requestRequired"))
       .max(500, t("validation.requestMaxLength")),
-    urgency: z.string().max(100, t("validation.urgencyMaxLength")).optional(),
+    urgency: urgencySchema,
     lat: z
       .number({ invalid_type_error: t("validation.latInvalid") })
       .min(-90, t("validation.latInvalid"))
@@ -61,10 +63,12 @@ export function PartnerAdviceForm({ onSubmit, isLoading }: PartnerAdviceFormProp
     setValue,
     watch,
     formState: { errors },
-  } = useForm<FormValues>({ resolver: zodResolver(schema) });
+  } = useForm<FormValues>({
+    resolver: zodResolver(schema),
+    defaultValues: { urgency: "NotSpecified" },
+  });
 
   const requestValue = watch("request") ?? "";
-  const urgencyValue = watch("urgency") ?? "";
 
   const handleLocate = () => {
     if (!navigator.geolocation) return;
@@ -93,7 +97,7 @@ export function PartnerAdviceForm({ onSubmit, isLoading }: PartnerAdviceFormProp
         request: values.request,
         lat: values.lat,
         lng: values.lng,
-        urgency: values.urgency || undefined,
+        urgency: values.urgency,
       },
       title
     );
@@ -132,21 +136,16 @@ export function PartnerAdviceForm({ onSubmit, isLoading }: PartnerAdviceFormProp
         </div>
 
         <div className="space-y-1.5">
-          <div className="flex items-center justify-between">
-            <Label htmlFor="urgency">{t("urgencyLabel")}</Label>
-            <span className={`text-xs ${urgencyValue.length > 100 ? "text-destructive" : "text-muted-foreground"}`}>
-              {urgencyValue.length}/100
-            </span>
-          </div>
-          <Input
+          <Label htmlFor="urgency">{t("urgencyLabel")}</Label>
+          <select
             id="urgency"
-            placeholder={t("urgencyPlaceholder")}
-            maxLength={100}
             {...register("urgency")}
-          />
-          {errors.urgency && (
-            <p className="text-xs text-destructive">{errors.urgency.message}</p>
-          )}
+            className="w-full px-3 py-2.5 text-sm border border-border rounded-xl bg-input text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+          >
+            <option value="NotSpecified">{t("urgencyOptions.notSpecified")}</option>
+            <option value="NotUrgent">{t("urgencyOptions.notUrgent")}</option>
+            <option value="Urgent">{t("urgencyOptions.urgent")}</option>
+          </select>
         </div>
 
         {/* Location */}

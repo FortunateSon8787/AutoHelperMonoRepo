@@ -1,4 +1,5 @@
 using System.Text.Json;
+using AutoHelper.Application.Common;
 using AutoHelper.Application.Common.Interfaces;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -210,7 +211,11 @@ public sealed class OpenAiLlmProvider(
             // OpenAI Structured Outputs: ALL properties must appear in "required".
             required.Add(jsonName);
 
-            var propSchema = BuildPropertySchema(propType, visited);
+            var maxLengthAttr = prop.GetCustomAttributes(typeof(JsonSchemaMaxLengthAttribute), false)
+                .OfType<JsonSchemaMaxLengthAttribute>()
+                .FirstOrDefault();
+
+            var propSchema = BuildPropertySchema(propType, visited, maxLengthAttr?.MaxLength);
 
             properties[jsonName] = isNullable
                 ? WrapNullable(propSchema)
@@ -229,7 +234,7 @@ public sealed class OpenAiLlmProvider(
     }
 
     /// <summary>Builds the schema node for a single property type (non-nullable).</summary>
-    private static object BuildPropertySchema(Type propType, HashSet<Type> visited)
+    private static object BuildPropertySchema(Type propType, HashSet<Type> visited, int? maxLength = null)
     {
         // T[] arrays
         if (propType.IsArray)
@@ -264,12 +269,16 @@ public sealed class OpenAiLlmProvider(
             var t when t == typeof(int) || t == typeof(long) => "integer",
             var t when t == typeof(decimal) || t == typeof(double) || t == typeof(float) => "number",
             var t when t == typeof(string) => "string",
-            // Nested complex object — recurse
             _ => null
         };
 
         if (jsonType is not null)
-            return new Dictionary<string, object> { ["type"] = jsonType };
+        {
+            var schema = new Dictionary<string, object> { ["type"] = jsonType };
+            if (jsonType == "string" && maxLength.HasValue)
+                schema["maxLength"] = maxLength.Value;
+            return schema;
+        }
 
         // Nested object type — recurse
         return BuildObjectSchema(propType, visited);

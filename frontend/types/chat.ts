@@ -20,11 +20,14 @@ export interface WorkClarificationInput {
   guarantees?: string;
 }
 
+export const PARTNER_ADVICE_URGENCY_VALUES = ["NotSpecified", "NotUrgent", "Urgent"] as const;
+export type PartnerAdviceUrgency = typeof PARTNER_ADVICE_URGENCY_VALUES[number];
+
 export interface PartnerAdviceInput {
   request: string;
   lat: number;
   lng: number;
-  urgency?: string;
+  urgency: PartnerAdviceUrgency;
 }
 
 export interface CreateChatRequest {

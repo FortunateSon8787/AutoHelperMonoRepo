@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using AutoHelper.Application.Common;
 using AutoHelper.Domain.Chats;
 
 namespace AutoHelper.Application.Features.Chats.Orchestration;
@@ -27,6 +28,7 @@ public sealed record ClassificationResult
     /// Null when is_valid = true.
     /// </summary>
     [JsonPropertyName("rejection_reason")]
+    [JsonSchemaMaxLength(64)]
     public string? RejectionReason { get; init; }
 
     /// <summary>

@@ -20,8 +20,7 @@ public sealed class CreateChatCommandValidator : AbstractValidator<CreateChatCom
                 .MaximumLength(500).WithMessage("Service request must not exceed 500 characters.");
 
             RuleFor(x => x.PartnerAdviceInput!.Urgency)
-                .MaximumLength(100).WithMessage("Urgency must not exceed 100 characters.")
-                .When(x => x.PartnerAdviceInput!.Urgency is not null);
+                .IsInEnum().WithMessage("Invalid urgency value.");
         });
     }
 }

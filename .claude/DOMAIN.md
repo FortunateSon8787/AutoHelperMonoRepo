@@ -279,22 +279,38 @@ Active → (ProcessWorkClarificationInitialAsync) → Completed
 ```
 Никаких follow-up. Форма → LLM → чат сразу закрывается.
 
+**PartnerAdvice (Mode 3) — строго одношаговый:**
+```
+Active → (ProcessPartnerAdviceInitialAsync) → Completed
+```
+Никаких follow-up. Отклонённый запрос (off-topic) также переводит чат в `Completed`.
+Порядок обработки: Step 0 — ClassifyAsync (валидация запроса) → Step 1 — LLM определяет категорию сервиса → Step 2 — Google Places поиск → Step 3 — LLM форматирует список партнёров.
+При отклонении (Step 0 fails): `AddInvalidUserMessage` + `chat.Complete()` + сохранение → `ProcessPartnerAdviceInitialAsync` возвращает `WasValid=false`.
+
 ---
 
 **DiagnosticsInput** _(Domain/Chats/DiagnosticsInput.cs)_ — входная форма Mode 1:
 ```
-├── Symptoms: string           (обязателен)
-├── RecentEvents: string?
-└── PreviousIssues: string?
+├── Symptoms: string           (обязателен; max 800 символов на фронтенде)
+├── RecentEvents: string?      (max 300 символов на фронтенде)
+└── PreviousIssues: string?    (max 300 символов на фронтенде)
 ```
 
 **WorkClarificationInput** _(Domain/Chats/WorkClarificationInput.cs)_ — входная форма Mode 2:
 ```
-├── WorksPerformed: string     (перечень работ и деталей; обязателен)
-├── WorkReason: string         (предлог для выполнения работ; обязателен)
+├── WorksPerformed: string     (перечень работ и деталей; обязателен; max 400 символов на фронтенде)
+├── WorkReason: string         (предлог для выполнения работ; обязателен; max 200 символов на фронтенде)
 ├── LaborCost: decimal         (стоимость работ)
 ├── PartsCost: decimal         (стоимость деталей)
-└── Guarantees: string?        (гарантии и обещания сервиса)
+└── Guarantees: string?        (гарантии и обещания сервиса; max 200 символов на фронтенде)
+```
+
+**PartnerAdviceInput** _(Domain/Chats/PartnerAdviceInput.cs)_ — входная форма Mode 3:
+```
+├── Request: string            (текст запроса; обязателен)
+├── Lat: double                (широта местоположения пользователя)
+├── Lng: double                (долгота местоположения пользователя)
+└── Urgency: PartnerAdviceUrgency  (степень срочности; по умолчанию NotSpecified)
 ```
 
 ---
@@ -306,7 +322,9 @@ Message : Entity<Guid>
 ├── Role: MessageRole          (User | Assistant)
 ├── Content: string
 ├── IsValid: bool              (false — off-topic/rejected; не уменьшает квоту подписки)
-├── DiagnosticResultJson: string?  (сериализованный DiagnosticsLlmResult; только для FaultHelp diagnostic_result, null в остальных случаях)
+├── DiagnosticResultJson: string?      (сериализованный DiagnosticsLlmResult; только для FaultHelp diagnostic_result, null в остальных случаях)
+├── WorkClarificationResultJson: string?  (сериализованный WorkClarificationLlmResult; только для WorkClarification, null в остальных)
+├── PartnerAdviceResultJson: string?   (сериализованный PartnerAdviceLlmResult; только для PartnerAdvice при валидном запросе, null в остальных)
 └── CreatedAt: DateTime
 ```
 
@@ -335,14 +353,17 @@ InvalidChatRequest : Entity<Guid>
 ├── ChatId: Guid
 ├── CustomerId: Guid
 ├── UserInput: string          (текст отклонённого запроса)
-├── RejectionReason: string    (off_topic | missing_context | unsafe | out_of_scope)
+├── RejectionReason: string    (varchar(64); off_topic | missing_context | unsafe | out_of_scope)
 └── CreatedAt: DateTime        (UTC)
 │
 └── Factory method:
     └── Create(chatId, customerId, userInput, rejectionReason)
+        ↳ RejectionReason обрезается до 64 символов (truncation-защита от длинных LLM-ответов)
+        ↳ Пустой rejectionReason → "unknown"
 ```
 
 Одна запись на каждый отклонённый запрос. Используется для аудита off-topic обращений.
+`ClassificationResult.RejectionReason` также ограничен через `[JsonSchemaMaxLength(64)]` в JSON Schema, отправляемой в LLM.
 
 ---
 
@@ -368,16 +389,6 @@ Max     → $12.99/мес, 300 запросов/мес
 - `ActivateSubscription(plan)` сбрасывает счётчик до месячного лимита плана
 
 ---
-
-### InvalidChatRequest (Epic AUT-4)
-
-```
-InvalidChatRequest : Entity<Guid>
-├── CustomerId: Guid
-├── InvalidAttemptsCount: int
-├── LastInvalidAt: DateTime
-└── Details: string            (JSON-массив: [{text, mode, timestamp}, ...])
-```
 
 ---
 
@@ -570,6 +581,19 @@ enum ChatbotPlan { Regular, Pro, Maximum }
 enum ChatMode { FaultHelp, WorkClarification, PartnerAdvice }
 ```
 
+### PartnerAdviceUrgency
+
+```csharp
+enum PartnerAdviceUrgency
+{
+    NotSpecified = 0,  // Срочность не указана (по умолчанию)
+    NotUrgent    = 1,  // Не срочно
+    Urgent       = 2,  // Срочно
+}
+```
+
+Используется в `PartnerAdviceInput.Urgency`. Передаётся в LLM как текст: `NotUrgent` → "not urgent", `Urgent` → "urgent", `NotSpecified` → не передаётся в промпт. Фронтенд отображает как dropdown.
+
 ### AuditOperationType
 
 ```csharp
@@ -596,3 +620,5 @@ enum AuditOperationType { Created, Updated, Deleted }
 | 12 | Невалидный запрос к чатботу не уменьшает счётчик запросов подписки |
 | 13 | Партнёр видит только свой кабинет; рекламные баннеры партнёрам не показываются |
 | 14 | На лендинге отображаются только одобренные администратором отзывы о платформе |
+| 15 | `PartnerAdvice` строго одношаговый — любой ответ (включая rejection) переводит чат в `Completed` |
+| 16 | `ClassificationResult.RejectionReason` ограничен 64 символами и в JSON Schema, и при сохранении |

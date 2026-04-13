@@ -577,7 +577,10 @@
       "submitButton": "Start Diagnostics",
       "submittingButton": "Starting...",
       "validation": {
-        "symptomsRequired": "Please describe the symptoms"
+        "symptomsRequired": "Please describe the symptoms",
+        "symptomsMaxLength": "Symptoms must not exceed 800 characters",
+        "recentEventsMaxLength": "Recent events must not exceed 300 characters",
+        "previousIssuesMaxLength": "Previous issues must not exceed 300 characters"
       }
     },
     "workClarificationForm": {
@@ -597,7 +600,10 @@
       "validation": {
         "worksRequired": "Please describe the works performed",
         "workReasonRequired": "Please provide the reason for work",
-        "costInvalid": "Cost cannot be negative"
+        "costInvalid": "Cost cannot be negative",
+        "worksMaxLength": "Works performed must not exceed 400 characters",
+        "workReasonMaxLength": "Work reason must not exceed 200 characters",
+        "guaranteesMaxLength": "Guarantees must not exceed 200 characters"
       }
     },
     "partnerAdviceForm": {
@@ -605,7 +611,11 @@
       "requestLabel": "What service do you need?",
       "requestPlaceholder": "e.g., brake repair, oil change, tire replacement...",
       "urgencyLabel": "Urgency (optional)",
-      "urgencyPlaceholder": "e.g., urgent, within a week...",
+      "urgencyOptions": {
+        "notSpecified": "Not specified",
+        "notUrgent": "Not urgent",
+        "urgent": "Urgent"
+      },
       "locationTitle": "Your location",
       "latLabel": "Latitude",
       "lngLabel": "Longitude",
@@ -618,7 +628,6 @@
       "validation": {
         "requestRequired": "Please describe what service you need",
         "requestMaxLength": "Maximum 500 characters",
-        "urgencyMaxLength": "Maximum 100 characters",
         "latInvalid": "Latitude: from -90 to 90",
         "lngInvalid": "Longitude: from -180 to 180"
       }

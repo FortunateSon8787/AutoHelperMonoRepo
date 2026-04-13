@@ -1,6 +1,6 @@
 "use client";
 
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Loader2, FileCheck } from "lucide-react";
@@ -20,15 +20,15 @@ export function WorkClarificationForm({ onSubmit, isLoading }: WorkClarification
   const t = useTranslations("chat.workClarificationForm");
 
   const schema = z.object({
-    worksPerformed: z.string().min(1, t("validation.worksRequired")),
-    workReason: z.string().min(1, t("validation.workReasonRequired")),
+    worksPerformed: z.string().min(1, t("validation.worksRequired")).max(400, t("validation.worksMaxLength")),
+    workReason: z.string().min(1, t("validation.workReasonRequired")).max(200, t("validation.workReasonMaxLength")),
     laborCost: z
       .number({ invalid_type_error: t("validation.costInvalid") })
       .min(0, t("validation.costInvalid")),
     partsCost: z
       .number({ invalid_type_error: t("validation.costInvalid") })
       .min(0, t("validation.costInvalid")),
-    guarantees: z.string().optional(),
+    guarantees: z.string().max(200, t("validation.guaranteesMaxLength")).optional(),
   });
 
   type FormValues = z.infer<typeof schema>;
@@ -36,11 +36,16 @@ export function WorkClarificationForm({ onSubmit, isLoading }: WorkClarification
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors },
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: { laborCost: 0, partsCost: 0 },
   });
+
+  const worksPerformed = useWatch({ control, name: "worksPerformed", defaultValue: "" });
+  const workReason = useWatch({ control, name: "workReason", defaultValue: "" });
+  const guarantees = useWatch({ control, name: "guarantees", defaultValue: "" });
 
   const onFormSubmit = async (values: FormValues) => {
     const title = values.worksPerformed.slice(0, 60) + (values.worksPerformed.length > 60 ? "..." : "");
@@ -67,10 +72,16 @@ export function WorkClarificationForm({ onSubmit, isLoading }: WorkClarification
 
       <form onSubmit={handleSubmit(onFormSubmit)} className="space-y-4">
         <div className="space-y-1.5">
-          <Label htmlFor="worksPerformed">{t("worksPerformedLabel")}</Label>
+          <div className="flex items-center justify-between">
+            <Label htmlFor="worksPerformed">{t("worksPerformedLabel")}</Label>
+            <span className={`text-xs ${(worksPerformed?.length ?? 0) > 400 ? "text-destructive" : "text-muted-foreground"}`}>
+              {worksPerformed?.length ?? 0}/400
+            </span>
+          </div>
           <textarea
             id="worksPerformed"
             rows={3}
+            maxLength={400}
             placeholder={t("worksPerformedPlaceholder")}
             {...register("worksPerformed")}
             className={`w-full px-3 py-2.5 text-sm border rounded-xl bg-input text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring resize-none ${
@@ -83,9 +94,15 @@ export function WorkClarificationForm({ onSubmit, isLoading }: WorkClarification
         </div>
 
         <div className="space-y-1.5">
-          <Label htmlFor="workReason">{t("workReasonLabel")}</Label>
+          <div className="flex items-center justify-between">
+            <Label htmlFor="workReason">{t("workReasonLabel")}</Label>
+            <span className={`text-xs ${(workReason?.length ?? 0) > 200 ? "text-destructive" : "text-muted-foreground"}`}>
+              {workReason?.length ?? 0}/200
+            </span>
+          </div>
           <Input
             id="workReason"
+            maxLength={200}
             placeholder={t("workReasonPlaceholder")}
             {...register("workReason")}
             className={errors.workReason ? "border-destructive" : ""}
@@ -130,12 +147,22 @@ export function WorkClarificationForm({ onSubmit, isLoading }: WorkClarification
         </div>
 
         <div className="space-y-1.5">
-          <Label htmlFor="guarantees">{t("guaranteesLabel")}</Label>
+          <div className="flex items-center justify-between">
+            <Label htmlFor="guarantees">{t("guaranteesLabel")}</Label>
+            <span className={`text-xs ${(guarantees?.length ?? 0) > 200 ? "text-destructive" : "text-muted-foreground"}`}>
+              {guarantees?.length ?? 0}/200
+            </span>
+          </div>
           <Input
             id="guarantees"
+            maxLength={200}
             placeholder={t("guaranteesPlaceholder")}
             {...register("guarantees")}
+            className={errors.guarantees ? "border-destructive" : ""}
           />
+          {errors.guarantees && (
+            <p className="text-xs text-destructive">{errors.guarantees.message}</p>
+          )}
         </div>
 
         <Button type="submit" className="w-full" disabled={isLoading}>

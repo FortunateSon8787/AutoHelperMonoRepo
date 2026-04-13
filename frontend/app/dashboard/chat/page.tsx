@@ -47,7 +47,7 @@ function parseDiagnosticsContent(content: string): DiagnosticsInput {
 function parsePartnerAdviceContent(content: string): PartnerAdviceInput {
   const lines = content.split("\n");
   let request = "";
-  let urgency: string | undefined;
+  let urgency: PartnerAdviceInput["urgency"] = "NotSpecified";
   let lat = 0;
   let lng = 0;
 
@@ -55,7 +55,8 @@ function parsePartnerAdviceContent(content: string): PartnerAdviceInput {
     if (line.startsWith("Request: ")) {
       request = line.slice("Request: ".length);
     } else if (line.startsWith("Urgency: ")) {
-      urgency = line.slice("Urgency: ".length);
+      const raw = line.slice("Urgency: ".length).trim();
+      if (raw === "NotUrgent" || raw === "Urgent") urgency = raw;
     } else if (line.startsWith("Location: ")) {
       const coords = line.slice("Location: ".length).split(",");
       if (coords.length === 2) {
