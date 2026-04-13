@@ -9,7 +9,8 @@ public sealed record MessageResponse(
     bool IsValid,
     DateTime CreatedAt,
     string? DiagnosticResultJson = null,
-    string? WorkClarificationResultJson = null)
+    string? WorkClarificationResultJson = null,
+    string? PartnerAdviceResultJson = null)
 {
     public static MessageResponse FromMessage(Message message) =>
         new(message.Id,
@@ -18,5 +19,6 @@ public sealed record MessageResponse(
             message.IsValid,
             message.CreatedAt,
             message.DiagnosticResultJson,
-            message.WorkClarificationResultJson);
+            message.WorkClarificationResultJson,
+            message.PartnerAdviceResultJson);
 }

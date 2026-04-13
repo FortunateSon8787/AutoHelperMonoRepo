@@ -38,8 +38,11 @@ export function PartnerAdviceForm({ onSubmit, isLoading }: PartnerAdviceFormProp
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
 
   const schema = z.object({
-    request: z.string().min(1, t("validation.requestRequired")),
-    urgency: z.string().optional(),
+    request: z
+      .string()
+      .min(1, t("validation.requestRequired"))
+      .max(500, t("validation.requestMaxLength")),
+    urgency: z.string().max(100, t("validation.urgencyMaxLength")).optional(),
     lat: z
       .number({ invalid_type_error: t("validation.latInvalid") })
       .min(-90, t("validation.latInvalid"))
@@ -56,8 +59,12 @@ export function PartnerAdviceForm({ onSubmit, isLoading }: PartnerAdviceFormProp
     register,
     handleSubmit,
     setValue,
+    watch,
     formState: { errors },
   } = useForm<FormValues>({ resolver: zodResolver(schema) });
+
+  const requestValue = watch("request") ?? "";
+  const urgencyValue = watch("urgency") ?? "";
 
   const handleLocate = () => {
     if (!navigator.geolocation) return;
@@ -103,11 +110,17 @@ export function PartnerAdviceForm({ onSubmit, isLoading }: PartnerAdviceFormProp
 
       <form onSubmit={handleSubmit(onFormSubmit)} className="space-y-4">
         <div className="space-y-1.5">
-          <Label htmlFor="request">{t("requestLabel")}</Label>
+          <div className="flex items-center justify-between">
+            <Label htmlFor="request">{t("requestLabel")}</Label>
+            <span className={`text-xs ${requestValue.length > 500 ? "text-destructive" : "text-muted-foreground"}`}>
+              {requestValue.length}/500
+            </span>
+          </div>
           <textarea
             id="request"
             rows={3}
             placeholder={t("requestPlaceholder")}
+            maxLength={500}
             {...register("request")}
             className={`w-full px-3 py-2.5 text-sm border rounded-xl bg-input text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring resize-none ${
               errors.request ? "border-destructive" : "border-border"
@@ -119,12 +132,21 @@ export function PartnerAdviceForm({ onSubmit, isLoading }: PartnerAdviceFormProp
         </div>
 
         <div className="space-y-1.5">
-          <Label htmlFor="urgency">{t("urgencyLabel")}</Label>
+          <div className="flex items-center justify-between">
+            <Label htmlFor="urgency">{t("urgencyLabel")}</Label>
+            <span className={`text-xs ${urgencyValue.length > 100 ? "text-destructive" : "text-muted-foreground"}`}>
+              {urgencyValue.length}/100
+            </span>
+          </div>
           <Input
             id="urgency"
             placeholder={t("urgencyPlaceholder")}
+            maxLength={100}
             {...register("urgency")}
           />
+          {errors.urgency && (
+            <p className="text-xs text-destructive">{errors.urgency.message}</p>
+          )}
         </div>
 
         {/* Location */}

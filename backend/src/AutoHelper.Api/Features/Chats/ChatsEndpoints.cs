@@ -120,7 +120,7 @@ public static class ChatsEndpoints
 
         return Results.Created(
             $"/api/chats/{result.Value.ChatId}",
-            new CreateChatApiResponse(result.Value.ChatId, result.Value.InitialAssistantReply, result.Value.DiagnosticResultJson, result.Value.WorkClarificationResultJson));
+            new CreateChatApiResponse(result.Value.ChatId, result.Value.InitialAssistantReply, result.Value.DiagnosticResultJson, result.Value.WorkClarificationResultJson, result.Value.PartnerAdviceResultJson));
     }
 
     private static async Task<IResult> GetChatMessages(
@@ -241,7 +241,7 @@ public static class ChatsEndpoints
         PartnerAdviceInputRequest? PartnerAdviceInput,
         string? Locale);
 
-    private sealed record CreateChatApiResponse(Guid ChatId, string? InitialAssistantReply, string? DiagnosticResultJson, string? WorkClarificationResultJson);
+    private sealed record CreateChatApiResponse(Guid ChatId, string? InitialAssistantReply, string? DiagnosticResultJson, string? WorkClarificationResultJson, string? PartnerAdviceResultJson);
 
     private sealed record SendMessageRequest(string Content, string? Locale);
 

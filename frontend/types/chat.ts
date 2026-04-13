@@ -49,6 +49,7 @@ export interface CreateChatResponse {
   initialAssistantReply?: string;
   diagnosticResultJson?: string | null;
   workClarificationResultJson?: string | null;
+  partnerAdviceResultJson?: string | null;
 }
 
 export interface SendMessageResponse {
@@ -86,10 +87,13 @@ export interface ChatMessage {
   createdAt: string;
   diagnosticResultJson?: string | null;
   workClarificationResultJson?: string | null;
+  partnerAdviceResultJson?: string | null;
   /** Structured input for the first FaultHelp user message — used to render a readonly form */
   diagnosticsInput?: DiagnosticsInput | null;
   /** Structured input for the first WorkClarification user message — used to render a readonly form */
   workClarificationInput?: WorkClarificationInput | null;
+  /** Structured input for the first PartnerAdvice user message — used to render a readonly form */
+  partnerAdviceInput?: PartnerAdviceInput | null;
 }
 
 // ─── Diagnostic Result (FaultHelp mode) ──────────────────────────────────────
@@ -109,6 +113,28 @@ export interface DiagnosticResult {
   safe_to_drive?: boolean | null;
   suggested_partner_category?: string | null;
   disclaimer?: string | null;
+}
+
+// ─── Partner Advice Result (PartnerAdvice mode) ───────────────────────────────
+
+export interface PartnerAdviceEntry {
+  name: string;
+  address?: string | null;
+  distance_km: number;
+  rating?: number | null;
+  reviews_count?: number | null;
+  is_open_now?: boolean | null;
+  phone?: string | null;
+  website?: string | null;
+  services?: string | null;
+  is_priority: boolean;
+  has_warning: boolean;
+}
+
+export interface PartnerAdviceResult {
+  /** Optional short summary / advice text shown above the partner list. */
+  summary?: string | null;
+  partners?: PartnerAdviceEntry[] | null;
 }
 
 // ─── Work Clarification Result (WorkClarification mode) ───────────────────────

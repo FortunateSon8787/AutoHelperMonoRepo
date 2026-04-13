@@ -522,7 +522,11 @@ public class AutoAssistantOrchestratorTests
         _llm.SetupSequence(l => l.GenerateStructuredAsync<PartnerAdviceLlmResult>(
                 It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new PartnerAdviceLlmResult { ServiceCategory = "tire_service", Urgency = "medium" })
-            .ReturnsAsync(new PartnerAdviceLlmResult { ResponseText = "Here are 2 tire shops near you." });
+            .ReturnsAsync(new PartnerAdviceLlmResult
+            {
+                Partners = [new PartnerAdviceEntry { Name = "TireMax", DistanceKm = 0.8, IsPriority = true }],
+                Summary = "Here are 2 tire shops near you."
+            });
 
         _partnerSearch
             .Setup(p => p.FindPartnersAsync(50.45, 30.52, "tire_service", "ru", 5, It.IsAny<CancellationToken>()))
@@ -538,7 +542,8 @@ public class AutoAssistantOrchestratorTests
         result.QuotaDecremented.ShouldBeFalse();
         result.ResponseStage.ShouldBe("partner_advice_result");
         result.ChatStatus.ShouldBe(ChatStatus.Completed);
-        result.AssistantReply.ShouldBe("Here are 2 tire shops near you.");
+        result.PartnerAdviceResultJson.ShouldNotBeNull();
+        result.AssistantReply.ShouldContain("TireMax");
     }
 
     [Fact]
@@ -552,7 +557,11 @@ public class AutoAssistantOrchestratorTests
         _llm.SetupSequence(l => l.GenerateStructuredAsync<PartnerAdviceLlmResult>(
                 It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new PartnerAdviceLlmResult { ServiceCategory = "car_service", Urgency = "low" })
-            .ReturnsAsync(new PartnerAdviceLlmResult { ResponseText = "Found 3 services." });
+            .ReturnsAsync(new PartnerAdviceLlmResult
+            {
+                Partners = [new PartnerAdviceEntry { Name = "AutoFix", DistanceKm = 1.2 }],
+                Summary = "Found 3 services."
+            });
 
         // Act
         var result = await _sut.ProcessPartnerAdviceInitialAsync(chat, customer, input, "ru", CancellationToken.None);
@@ -574,18 +583,18 @@ public class AutoAssistantOrchestratorTests
         _llm.SetupSequence(l => l.GenerateStructuredAsync<PartnerAdviceLlmResult>(
                 It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new PartnerAdviceLlmResult { ServiceCategory = "tow_truck", Urgency = "high" })
-            .ReturnsAsync(new PartnerAdviceLlmResult { ResponseText = "No partners found near you." });
+            .ReturnsAsync(new PartnerAdviceLlmResult { Partners = null, Summary = null });
 
         _partnerSearch
             .Setup(p => p.FindPartnersAsync(It.IsAny<double>(), It.IsAny<double>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new Exception("Search service unavailable"));
 
-        // Act — should not throw; fallback to empty cards
+        // Act — should not throw; fallback to "no partners found" message
         var result = await _sut.ProcessPartnerAdviceInitialAsync(chat, customer, input, "ru", CancellationToken.None);
 
         // Assert
         result.WasValid.ShouldBeTrue();
-        result.AssistantReply.ShouldBe("No partners found near you.");
+        result.AssistantReply.ShouldNotBeNullOrWhiteSpace();
     }
 
     // ─── Classifier failure — fail open ──────────────────────────────────────

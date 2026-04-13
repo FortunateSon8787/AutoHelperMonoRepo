@@ -44,6 +44,30 @@ function parseDiagnosticsContent(content: string): DiagnosticsInput {
   return { symptoms, recentEvents, previousIssues };
 }
 
+function parsePartnerAdviceContent(content: string): PartnerAdviceInput {
+  const lines = content.split("\n");
+  let request = "";
+  let urgency: string | undefined;
+  let lat = 0;
+  let lng = 0;
+
+  for (const line of lines) {
+    if (line.startsWith("Request: ")) {
+      request = line.slice("Request: ".length);
+    } else if (line.startsWith("Urgency: ")) {
+      urgency = line.slice("Urgency: ".length);
+    } else if (line.startsWith("Location: ")) {
+      const coords = line.slice("Location: ".length).split(",");
+      if (coords.length === 2) {
+        lat = parseFloat(coords[0]) || 0;
+        lng = parseFloat(coords[1]) || 0;
+      }
+    }
+  }
+
+  return { request, urgency, lat, lng };
+}
+
 function parseWorkClarificationContent(content: string): WorkClarificationInput {
   const lines = content.split("\n");
   let worksPerformed = "";
@@ -154,6 +178,9 @@ export default function ChatPage() {
           if (chat?.mode === "WorkClarification") {
             return { ...msg, workClarificationInput: parseWorkClarificationContent(msg.content) };
           }
+          if (chat?.mode === "PartnerAdvice") {
+            return { ...msg, partnerAdviceInput: parsePartnerAdviceContent(msg.content) };
+          }
         }
         return msg;
       });
@@ -243,6 +270,16 @@ export default function ChatPage() {
             workClarificationInput: modeInput as WorkClarificationInput,
           });
         }
+        if (mode === "PartnerAdvice") {
+          initialMessages.push({
+            id: "user-initial",
+            role: "User",
+            content: "",
+            isValid: true,
+            createdAt: new Date().toISOString(),
+            partnerAdviceInput: modeInput as PartnerAdviceInput,
+          });
+        }
         if (res.initialAssistantReply) {
           initialMessages.push({
             id: "initial",
@@ -252,6 +289,7 @@ export default function ChatPage() {
             createdAt: new Date().toISOString(),
             diagnosticResultJson: res.diagnosticResultJson,
             workClarificationResultJson: res.workClarificationResultJson,
+            partnerAdviceResultJson: res.partnerAdviceResultJson,
           });
         }
         setMessages(initialMessages);

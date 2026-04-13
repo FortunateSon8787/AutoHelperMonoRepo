@@ -617,9 +617,22 @@
       "submittingButton": "Searching...",
       "validation": {
         "requestRequired": "Please describe what service you need",
+        "requestMaxLength": "Maximum 500 characters",
+        "urgencyMaxLength": "Maximum 100 characters",
         "latInvalid": "Latitude: from -90 to 90",
         "lngInvalid": "Longitude: from -180 to 180"
       }
+    },
+    "partnerAdviceResult": {
+      "title": "Partners Found",
+      "summary": "Recommendation",
+      "noPartners": "No suitable partners were found near your location. Try expanding your search radius or check back later.",
+      "priorityBadge": "Verified Partner",
+      "warningBadge": "Requires Attention",
+      "openNow": "Open now",
+      "closed": "Closed",
+      "reviews": "reviews",
+      "km": "km"
     },
     "diagnosticResult": {
       "title": "Diagnostic Result",

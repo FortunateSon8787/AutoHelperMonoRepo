@@ -75,10 +75,15 @@ public sealed class Chat : AggregateRoot<Guid>
         string userContent,
         string assistantContent,
         string? diagnosticResultJson = null,
-        string? workClarificationResultJson = null)
+        string? workClarificationResultJson = null,
+        string? partnerAdviceResultJson = null)
     {
         var userMsg = Message.CreateUserMessage(Id, userContent);
-        var assistantMsg = Message.CreateAssistantMessage(Id, assistantContent, diagnosticResultJson, workClarificationResultJson);
+        var assistantMsg = Message.CreateAssistantMessage(
+            Id, assistantContent,
+            diagnosticResultJson,
+            workClarificationResultJson,
+            partnerAdviceResultJson);
         _messages.Add(userMsg);
         _messages.Add(assistantMsg);
         return [userMsg, assistantMsg];

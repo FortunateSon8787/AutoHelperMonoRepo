@@ -79,7 +79,7 @@ public sealed class CreateChatCommandHandler(
                 chat, customer, request.PartnerAdviceInput!, locale, ct);
 
             return Result<CreateChatResponse>.Success(
-                new CreateChatResponse(chat.Id, orchResult.AssistantReply));
+                new CreateChatResponse(chat.Id, orchResult.AssistantReply, PartnerAdviceResultJson: orchResult.PartnerAdviceResultJson));
         }
 
         await unitOfWork.SaveChangesAsync(ct);

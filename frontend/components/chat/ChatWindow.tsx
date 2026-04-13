@@ -12,6 +12,7 @@ import {
   Clock,
   Stethoscope,
   FileCheck,
+  MapPin,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 
@@ -21,6 +22,7 @@ import { WorkClarificationForm } from "@/components/chat/WorkClarificationForm";
 import { PartnerAdviceForm } from "@/components/chat/PartnerAdviceForm";
 import { DiagnosticResultCard } from "@/components/chat/DiagnosticResultCard";
 import { WorkClarificationResultCard } from "@/components/chat/WorkClarificationResultCard";
+import { PartnerAdviceResultCard } from "@/components/chat/PartnerAdviceResultCard";
 import type {
   ChatMode,
   ChatMessage,
@@ -29,6 +31,7 @@ import type {
   PartnerAdviceInput,
   DiagnosticResult,
   WorkClarificationResult,
+  PartnerAdviceResult,
 } from "@/types/chat";
 
 // ─── Props ────────────────────────────────────────────────────────────────────
@@ -386,6 +389,43 @@ function WorkClarificationInputReadonly({
   );
 }
 
+function PartnerAdviceInputReadonly({
+  input,
+}: {
+  input: NonNullable<ChatMessage["partnerAdviceInput"]>;
+}) {
+  const t = useTranslations("chat.partnerAdviceForm");
+
+  return (
+    <div className="flex justify-end">
+      <div className="max-w-3xl w-full bg-card border border-border rounded-2xl px-5 py-4 shadow-sm">
+        <div className="flex items-center gap-2 mb-4">
+          <div className="w-7 h-7 bg-gradient-to-br from-emerald-500 to-green-600 rounded-lg flex items-center justify-center">
+            <MapPin className="w-3.5 h-3.5 text-white" />
+          </div>
+          <span className="text-xs font-medium text-muted-foreground">{t("title")}</span>
+        </div>
+        <div className="space-y-3">
+          <div className="space-y-1">
+            <p className="text-xs font-medium text-muted-foreground">{t("requestLabel")}</p>
+            <div className="px-3 py-2 bg-secondary border border-border rounded-xl text-sm text-foreground leading-relaxed whitespace-pre-wrap">
+              {input.request}
+            </div>
+          </div>
+          {input.urgency && (
+            <div className="space-y-1">
+              <p className="text-xs font-medium text-muted-foreground">{t("urgencyLabel")}</p>
+              <div className="px-3 py-2 bg-secondary border border-border rounded-xl text-sm text-foreground leading-relaxed whitespace-pre-wrap">
+                {input.urgency}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ChatMessageBubble({
   message,
   aiLabel,
@@ -403,6 +443,9 @@ function ChatMessageBubble({
     }
     if (message.workClarificationInput) {
       return <WorkClarificationInputReadonly input={message.workClarificationInput} />;
+    }
+    if (message.partnerAdviceInput) {
+      return <PartnerAdviceInputReadonly input={message.partnerAdviceInput} />;
     }
     return (
       <div className="flex justify-end">
@@ -433,6 +476,15 @@ function ChatMessageBubble({
     }
   })();
 
+  const partnerAdviceResult: PartnerAdviceResult | null = (() => {
+    if (!message.partnerAdviceResultJson) return null;
+    try {
+      return JSON.parse(message.partnerAdviceResultJson) as PartnerAdviceResult;
+    } catch {
+      return null;
+    }
+  })();
+
   return (
     <div className="flex justify-start">
       <div className="max-w-4xl w-full bg-secondary border border-border rounded-2xl overflow-hidden shadow-sm">
@@ -452,6 +504,8 @@ function ChatMessageBubble({
             <DiagnosticResultCard result={diagnosticResult} />
           ) : workClarificationResult ? (
             <WorkClarificationResultCard result={workClarificationResult} />
+          ) : partnerAdviceResult ? (
+            <PartnerAdviceResultCard result={partnerAdviceResult} />
           ) : (
             <div className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">
               {message.content}

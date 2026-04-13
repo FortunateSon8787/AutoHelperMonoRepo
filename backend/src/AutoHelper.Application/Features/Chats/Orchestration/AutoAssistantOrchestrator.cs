@@ -118,19 +118,20 @@ public sealed class AutoAssistantOrchestrator(
         "Determine the best matching service category for the user's request. " +
         "Allowed values for service_category: tow_truck | tire_service | car_service | car_wash | electrician | auto_service | other. " +
         "Determine the urgency: low | medium | high. " +
-        "Set response_text to null — it will be filled in the next step. " +
+        "Set partners to null and summary to null — they will be filled in the next step. " +
         "Respond only with the structured JSON schema provided.";
 
-    // Step 2 of PartnerAdvice: format the final response using prepared partner cards
+    // Step 2 of PartnerAdvice: build structured partner list + optional summary
     private const string PartnerAdviceFormatterSystemPrompt =
         "You are an automotive services advisor. " +
-        "Your task is to present the list of nearby service partners to the user in a helpful and concise way. " +
-        "Use the PARTNER_CARDS section as your only data source — do not invent facts. " +
-        "Format the response as a numbered list with the most important details for each partner. " +
-        "Highlight own_partner sources (they are priority verified partners). " +
-        "If a partner has a warning flag, mention it clearly. " +
+        "Your task is to convert the PARTNER_CARDS list into a structured JSON response. " +
+        "Use PARTNER_CARDS as your ONLY data source — do not invent or modify any facts. " +
+        "For each card create one entry in the 'partners' array with all available fields. " +
+        "Mark is_priority = true for own_partner sources, false for google_places. " +
+        "Copy has_warning from the card's warning flag. " +
+        "Optionally write a short 'summary' (1-2 sentences) with general advice relevant to the request (e.g. urgency recommendation). " +
+        "Set service_category and urgency to null. " +
         "Do not recommend illegal or unsafe services. " +
-        "Set service_category and urgency to null — fill only response_text. " +
         "Respond only with the structured JSON schema provided.";
 
     // ─── WorkClarification initial processing ─────────────────────────────────
@@ -217,10 +218,14 @@ public sealed class AutoAssistantOrchestrator(
             userInput,
             ct);
 
-        var assistantReply = formatterResult.ResponseText
-            ?? BuildNoPartnersFoundMessage(locale);
+        var hasPartners = formatterResult.Partners is { Count: > 0 };
+        var assistantReply = hasPartners
+            ? BuildPartnerAdviceTextReply(formatterResult, locale)
+            : BuildNoPartnersFoundMessage(locale);
 
-        var newMessages = chat.AddExchange(userInput, assistantReply);
+        var partnerAdviceResultJson = JsonSerializer.Serialize(formatterResult);
+
+        var newMessages = chat.AddExchange(userInput, assistantReply, partnerAdviceResultJson: partnerAdviceResultJson);
         chats.AddMessages(newMessages);
         chat.Complete();
         await unitOfWork.SaveChangesAsync(ct);
@@ -231,7 +236,8 @@ public sealed class AutoAssistantOrchestrator(
             WasValid: true,
             QuotaDecremented: false,
             ResponseStage: "partner_advice_result",
-            ChatStatus: chat.Status);
+            ChatStatus: chat.Status,
+            PartnerAdviceResultJson: partnerAdviceResultJson);
     }
 
     private int GetPartnerAdviceMaxResults()
@@ -296,6 +302,39 @@ public sealed class AutoAssistantOrchestrator(
         if (!string.IsNullOrWhiteSpace(input.Urgency))
             parts.Add($"User-stated urgency: {input.Urgency}");
         return string.Join("\n", parts);
+    }
+
+    private static string BuildPartnerAdviceTextReply(PartnerAdviceLlmResult result, string locale)
+    {
+        var isEn = locale.StartsWith("en", StringComparison.OrdinalIgnoreCase);
+        var partners = result.Partners!;
+
+        var lines = new List<string>();
+
+        if (!string.IsNullOrWhiteSpace(result.Summary))
+            lines.Add(result.Summary);
+
+        var header = isEn
+            ? $"Found {partners.Count} partner(s) nearby:"
+            : $"Найдено {partners.Count} партнёров рядом:";
+        lines.Add(header);
+
+        foreach (var (p, i) in partners.Select((p, i) => (p, i + 1)))
+        {
+            var rating = p.Rating.HasValue ? $"⭐{p.Rating:F1} ({p.ReviewsCount} reviews)" : string.Empty;
+            var distance = p.DistanceKm > 0 ? $"{p.DistanceKm:F1} km" : string.Empty;
+            var openStatus = p.IsOpenNow.HasValue
+                ? (p.IsOpenNow.Value ? (isEn ? "Open now" : "Сейчас работает") : (isEn ? "Closed" : "Закрыто"))
+                : string.Empty;
+            var priority = p.IsPriority ? (isEn ? "★ Verified partner" : "★ Верифицированный партнёр") : string.Empty;
+            var warning = p.HasWarning ? (isEn ? "⚠ Warning" : "⚠ Предупреждение") : string.Empty;
+
+            var details = new[] { distance, rating, openStatus, priority, warning }
+                .Where(s => !string.IsNullOrEmpty(s));
+            lines.Add($"{i}. {p.Name ?? "Unknown"} — {string.Join(" | ", details)}");
+        }
+
+        return string.Join("\n", lines);
     }
 
     private static string BuildNoPartnersFoundMessage(string locale) =>

@@ -173,97 +173,51 @@ public sealed class OpenAiLlmProvider(
     /// </summary>
     private static string BuildJsonSchema<T>()
     {
-        var type = typeof(T);
-        var properties = new Dictionary<string, object>();
-        var required = new List<string>();
-
-        foreach (var prop in type.GetProperties())
-        {
-            var jsonAttr = prop.GetCustomAttributes(typeof(System.Text.Json.Serialization.JsonPropertyNameAttribute), false)
-                .OfType<System.Text.Json.Serialization.JsonPropertyNameAttribute>()
-                .FirstOrDefault();
-
-            var jsonName = jsonAttr?.Name ?? prop.Name;
-            var underlyingType = Nullable.GetUnderlyingType(prop.PropertyType);
-            var isNullable = underlyingType is not null
-                || !prop.PropertyType.IsValueType; // reference types (string, arrays) are nullable
-
-            var propType = underlyingType ?? prop.PropertyType;
-
-            // OpenAI Structured Outputs requires ALL properties in required.
-            // Optionality is expressed via ["type", "null"] union, not by omitting from required.
-            required.Add(jsonName);
-
-            if (propType.IsArray)
-            {
-                var elementType = propType.GetElementType()!;
-                var itemSchema = BuildObjectSchema(elementType);
-                var arraySchema = new Dictionary<string, object>
-                {
-                    ["type"] = "array",
-                    ["items"] = itemSchema
-                };
-                properties[jsonName] = isNullable
-                    ? (object)new Dictionary<string, object> { ["anyOf"] = new object[] { arraySchema, new Dictionary<string, object> { ["type"] = "null" } } }
-                    : arraySchema;
-            }
-            else
-            {
-                var jsonType = propType switch
-                {
-                    var t when t == typeof(bool) => "boolean",
-                    var t when t == typeof(int) || t == typeof(long) => "integer",
-                    var t when t == typeof(decimal) || t == typeof(double) || t == typeof(float) => "number",
-                    _ => "string"
-                };
-
-                properties[jsonName] = isNullable
-                    ? (object)new Dictionary<string, object> { ["type"] = new[] { jsonType, "null" } }
-                    : new Dictionary<string, object> { ["type"] = jsonType };
-            }
-        }
-
-        var schema = new Dictionary<string, object>
-        {
-            ["type"] = "object",
-            ["properties"] = properties,
-            ["required"] = required,
-            ["additionalProperties"] = false
-        };
-
+        var schema = BuildObjectSchema(typeof(T), []);
         return JsonSerializer.Serialize(schema);
     }
 
-    private static Dictionary<string, object> BuildObjectSchema(Type type)
+    /// <summary>
+    /// Recursively builds a JSON Schema object for <paramref name="type"/>.
+    /// Handles: primitives, nullable value types, strings, T[] arrays, List&lt;T&gt; / IReadOnlyList&lt;T&gt;
+    /// generic collections, and nested object types.
+    /// OpenAI Structured Outputs requires ALL properties listed in "required";
+    /// optionality is expressed via anyOf with null rather than omitting from required.
+    /// <paramref name="visited"/> guards against infinite recursion from self-referential types.
+    /// </summary>
+    private static Dictionary<string, object> BuildObjectSchema(Type type, HashSet<Type> visited)
     {
+        if (!visited.Add(type))
+            return new Dictionary<string, object> { ["type"] = "object", ["additionalProperties"] = false };
+
         var properties = new Dictionary<string, object>();
         var required = new List<string>();
 
         foreach (var prop in type.GetProperties())
         {
-            var jsonAttr = prop.GetCustomAttributes(typeof(System.Text.Json.Serialization.JsonPropertyNameAttribute), false)
+            var jsonAttr = prop.GetCustomAttributes(
+                    typeof(System.Text.Json.Serialization.JsonPropertyNameAttribute), false)
                 .OfType<System.Text.Json.Serialization.JsonPropertyNameAttribute>()
                 .FirstOrDefault();
 
             var jsonName = jsonAttr?.Name ?? prop.Name;
+
+            // Unwrap Nullable<T> (e.g. int? → int)
             var underlyingType = Nullable.GetUnderlyingType(prop.PropertyType);
             var isNullable = underlyingType is not null || !prop.PropertyType.IsValueType;
             var propType = underlyingType ?? prop.PropertyType;
 
+            // OpenAI Structured Outputs: ALL properties must appear in "required".
             required.Add(jsonName);
 
-            var jsonType = propType switch
-            {
-                var t when t == typeof(bool) => "boolean",
-                var t when t == typeof(int) || t == typeof(long) => "integer",
-                var t when t == typeof(decimal) || t == typeof(double) || t == typeof(float) => "number",
-                _ => "string"
-            };
+            var propSchema = BuildPropertySchema(propType, visited);
 
             properties[jsonName] = isNullable
-                ? (object)new Dictionary<string, object> { ["type"] = new[] { jsonType, "null" } }
-                : new Dictionary<string, object> { ["type"] = jsonType };
+                ? WrapNullable(propSchema)
+                : propSchema;
         }
+
+        visited.Remove(type);
 
         return new Dictionary<string, object>
         {
@@ -273,4 +227,88 @@ public sealed class OpenAiLlmProvider(
             ["additionalProperties"] = false
         };
     }
+
+    /// <summary>Builds the schema node for a single property type (non-nullable).</summary>
+    private static object BuildPropertySchema(Type propType, HashSet<Type> visited)
+    {
+        // T[] arrays
+        if (propType.IsArray)
+        {
+            var elementType = propType.GetElementType()!;
+            return BuildArraySchema(elementType, visited);
+        }
+
+        // Generic collections: List<T>, IReadOnlyList<T>, IEnumerable<T>, IList<T>, etc.
+        if (propType.IsGenericType)
+        {
+            var genericDef = propType.GetGenericTypeDefinition();
+            var isCollection =
+                genericDef == typeof(List<>) ||
+                genericDef == typeof(IList<>) ||
+                genericDef == typeof(IReadOnlyList<>) ||
+                genericDef == typeof(IEnumerable<>) ||
+                genericDef == typeof(ICollection<>) ||
+                genericDef == typeof(IReadOnlyCollection<>);
+
+            if (isCollection)
+            {
+                var elementType = propType.GetGenericArguments()[0];
+                return BuildArraySchema(elementType, visited);
+            }
+        }
+
+        // Primitive / string
+        var jsonType = propType switch
+        {
+            var t when t == typeof(bool) => "boolean",
+            var t when t == typeof(int) || t == typeof(long) => "integer",
+            var t when t == typeof(decimal) || t == typeof(double) || t == typeof(float) => "number",
+            var t when t == typeof(string) => "string",
+            // Nested complex object — recurse
+            _ => null
+        };
+
+        if (jsonType is not null)
+            return new Dictionary<string, object> { ["type"] = jsonType };
+
+        // Nested object type — recurse
+        return BuildObjectSchema(propType, visited);
+    }
+
+    private static Dictionary<string, object> BuildArraySchema(Type elementType, HashSet<Type> visited)
+    {
+        var itemSchema = IsPrimitive(elementType)
+            ? (object)new Dictionary<string, object> { ["type"] = MapPrimitiveType(elementType) }
+            : BuildObjectSchema(elementType, visited);
+
+        return new Dictionary<string, object>
+        {
+            ["type"] = "array",
+            ["items"] = itemSchema
+        };
+    }
+
+    /// <summary>Wraps a schema node in an anyOf with null to express optionality.</summary>
+    private static Dictionary<string, object> WrapNullable(object innerSchema) =>
+        new()
+        {
+            ["anyOf"] = new object[]
+            {
+                innerSchema,
+                new Dictionary<string, object> { ["type"] = "null" }
+            }
+        };
+
+    private static bool IsPrimitive(Type t) =>
+        t == typeof(bool) || t == typeof(int) || t == typeof(long) ||
+        t == typeof(decimal) || t == typeof(double) || t == typeof(float) ||
+        t == typeof(string);
+
+    private static string MapPrimitiveType(Type t) => t switch
+    {
+        var x when x == typeof(bool) => "boolean",
+        var x when x == typeof(int) || x == typeof(long) => "integer",
+        var x when x == typeof(decimal) || x == typeof(double) || x == typeof(float) => "number",
+        _ => "string"
+    };
 }
