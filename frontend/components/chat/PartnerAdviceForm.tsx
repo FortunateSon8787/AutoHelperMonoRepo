@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Loader2, MapPin, Navigation } from "lucide-react";
+import { Loader2, MapPin, Navigation, RefreshCw } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/ui/button";
@@ -17,9 +17,25 @@ interface PartnerAdviceFormProps {
   isLoading: boolean;
 }
 
+const GMAPS_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY ?? "";
+
+function buildStaticMapUrl(lat: number, lng: number): string {
+  const params = new URLSearchParams({
+    center: `${lat},${lng}`,
+    zoom: "14",
+    size: "600x200",
+    scale: "2",
+    maptype: "roadmap",
+    markers: `color:red|${lat},${lng}`,
+    key: GMAPS_KEY,
+  });
+  return `https://maps.googleapis.com/maps/api/staticmap?${params.toString()}`;
+}
+
 export function PartnerAdviceForm({ onSubmit, isLoading }: PartnerAdviceFormProps) {
   const t = useTranslations("chat.partnerAdviceForm");
   const [isLocating, setIsLocating] = useState(false);
+  const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
 
   const schema = z.object({
     request: z.string().min(1, t("validation.requestRequired")),
@@ -48,12 +64,19 @@ export function PartnerAdviceForm({ onSubmit, isLoading }: PartnerAdviceFormProp
     setIsLocating(true);
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        setValue("lat", parseFloat(pos.coords.latitude.toFixed(6)));
-        setValue("lng", parseFloat(pos.coords.longitude.toFixed(6)));
+        const lat = parseFloat(pos.coords.latitude.toFixed(6));
+        const lng = parseFloat(pos.coords.longitude.toFixed(6));
+        setValue("lat", lat);
+        setValue("lng", lng);
+        setLocation({ lat, lng });
         setIsLocating(false);
       },
       () => setIsLocating(false)
     );
+  };
+
+  const handleReset = () => {
+    setLocation(null);
   };
 
   const onFormSubmit = async (values: FormValues) => {
@@ -105,59 +128,68 @@ export function PartnerAdviceForm({ onSubmit, isLoading }: PartnerAdviceFormProp
         </div>
 
         {/* Location */}
-        <div className="bg-muted/40 rounded-xl p-4 border border-border space-y-3">
-          <div className="flex items-center justify-between">
+        <div className="bg-muted/40 rounded-xl border border-border overflow-hidden">
+          <div className="flex items-center justify-between px-4 py-3">
             <div className="text-sm font-medium text-foreground flex items-center gap-2">
               <Navigation className="w-4 h-4 text-muted-foreground" />
               {t("locationTitle")}
             </div>
-            <Button
-              type="button"
-              size="sm"
-              variant="outline"
-              onClick={handleLocate}
-              disabled={isLocating}
-              className="gap-1.5 h-7 text-xs"
-            >
-              {isLocating ? (
-                <Loader2 className="w-3 h-3 animate-spin" />
-              ) : (
-                <Navigation className="w-3 h-3" />
-              )}
-              {isLocating ? t("locating") : t("useMyLocation")}
-            </Button>
+            {location ? (
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={handleReset}
+                className="gap-1.5 h-7 text-xs"
+              >
+                <RefreshCw className="w-3 h-3" />
+                {t("changeLocation")}
+              </Button>
+            ) : (
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={handleLocate}
+                disabled={isLocating}
+                className="gap-1.5 h-7 text-xs"
+              >
+                {isLocating ? (
+                  <Loader2 className="w-3 h-3 animate-spin" />
+                ) : (
+                  <Navigation className="w-3 h-3" />
+                )}
+                {isLocating ? t("locating") : t("useMyLocation")}
+              </Button>
+            )}
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label htmlFor="lat">{t("latLabel")}</Label>
-              <Input
-                id="lat"
-                type="number"
-                step={0.000001}
-                placeholder="47.0000"
-                {...register("lat", { valueAsNumber: true })}
-                className={errors.lat ? "border-destructive" : ""}
+          {location ? (
+            <div className="relative w-full h-[200px]">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={buildStaticMapUrl(location.lat, location.lng)}
+                alt="Your location on map"
+                className="w-full h-full object-cover"
               />
-              {errors.lat && (
-                <p className="text-xs text-destructive">{errors.lat.message}</p>
-              )}
+              <div className="absolute bottom-2 right-2 bg-background/80 backdrop-blur-sm rounded-lg px-2.5 py-1 text-xs text-muted-foreground font-mono">
+                {location.lat.toFixed(4)}, {location.lng.toFixed(4)}
+              </div>
             </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="lng">{t("lngLabel")}</Label>
-              <Input
-                id="lng"
-                type="number"
-                step={0.000001}
-                placeholder="28.0000"
-                {...register("lng", { valueAsNumber: true })}
-                className={errors.lng ? "border-destructive" : ""}
-              />
-              {errors.lng && (
-                <p className="text-xs text-destructive">{errors.lng.message}</p>
+          ) : (
+            <div className="px-4 pb-4">
+              {(errors.lat || errors.lng) && (
+                <p className="text-xs text-destructive mt-1">
+                  {errors.lat?.message || errors.lng?.message}
+                </p>
               )}
+              <p className="text-xs text-muted-foreground mt-1">{t("locationHint")}</p>
             </div>
-          </div>
+          )}
+
+          {/* Hidden inputs to keep lat/lng in form state */}
+          <input type="hidden" {...register("lat", { valueAsNumber: true })} />
+          <input type="hidden" {...register("lng", { valueAsNumber: true })} />
         </div>
 
         <Button type="submit" className="w-full" disabled={isLoading}>

@@ -63,8 +63,18 @@ public sealed class GooglePlacesService(
 
         try
         {
+            if (logger.IsEnabled(LogLevel.Information))
+                logger.LogInformation("Google Places request body: {Request}", json);
             using var response = await httpClient.SendAsync(requestMessage, ct);
-            response.EnsureSuccessStatusCode();
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorBody = await response.Content.ReadAsStringAsync(ct);
+                logger.LogWarning(
+                    "Google Places Nearby Search returned {StatusCode} for lat={Lat} lng={Lng} type={Type}. Response: {ErrorBody}",
+                    (int)response.StatusCode, lat, lng, placeType, errorBody);
+                return [];
+            }
 
             var body = await response.Content.ReadFromJsonAsync<NearbySearchResponse>(JsonOpts, ct);
             if (body?.Places is null or { Length: 0 })

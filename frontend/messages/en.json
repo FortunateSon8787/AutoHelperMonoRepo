@@ -611,6 +611,8 @@
       "lngLabel": "Longitude",
       "useMyLocation": "Use my location",
       "locating": "Detecting...",
+      "changeLocation": "Change",
+      "locationHint": "Press «Use my location» to show your position on the map",
       "submitButton": "Find Partners",
       "submittingButton": "Searching...",
       "validation": {

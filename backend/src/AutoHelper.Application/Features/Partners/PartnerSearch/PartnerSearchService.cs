@@ -1,5 +1,6 @@
 using AutoHelper.Application.Common.Interfaces;
 using AutoHelper.Domain.Partners;
+using Microsoft.Extensions.Logging;
 
 namespace AutoHelper.Application.Features.Partners.PartnerSearch;
 
@@ -13,7 +14,8 @@ namespace AutoHelper.Application.Features.Partners.PartnerSearch;
 /// </summary>
 public sealed class PartnerSearchService(
     IPartnerRepository partnerRepository,
-    IGooglePlacesService googlePlaces) : IPartnerSearchService
+    IGooglePlacesService googlePlaces,
+    ILogger<PartnerSearchService> logger) : IPartnerSearchService
 {
     private const double EarthRadiusKm = 6371.0;
 
@@ -48,6 +50,7 @@ public sealed class PartnerSearchService(
         var needed = maxResults - ownCards.Count;
         var googleType = PartnerCategoryMapper.GetGooglePlaceType(serviceCategory);
 
+        logger.LogInformation("Google type is: {GoogleType}", googleType);
         var googleResults = await googlePlaces.SearchNearbyAsync(
             lat, lng,
             radiusMeters: (int)(50_000), // pass a broad radius; own-partner radius is handled by DB
@@ -68,7 +71,7 @@ public sealed class PartnerSearchService(
             .ToList();
 
         // ── Step 4: own first, then Google ────────────────────────────────────
-        return [..ownCards, ..googleCards];
+        return [.. ownCards, .. googleCards];
     }
 
     // ─── Mapping ──────────────────────────────────────────────────────────────

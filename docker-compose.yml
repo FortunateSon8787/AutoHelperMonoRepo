@@ -87,6 +87,7 @@ services:
       Stripe__SecretKey: ${STRIPE_SECRET_KEY}
       Stripe__WebhookSecret: ${STRIPE_WEBHOOK_SECRET}
       LLM__ApiKey: ${OPENAI_API_KEY}
+      GooglePlaces__ApiKey: ${GOOGLE_PLACES_API_KEY}
       LLM__DefaultModel: ${LLM_DefaultModel}
       LLM__EscalationModel: ${LLM_EscalationModel}
       LLM__RouterModel: ${LLM_RouterModel}
@@ -129,6 +130,7 @@ services:
       args:
         # NEXT_PUBLIC_* vars are baked in at build time
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8080}
+        NEXT_PUBLIC_GOOGLE_MAPS_KEY: ${NEXT_PUBLIC_GOOGLE_MAPS_KEY}
     image: autohelper-frontend:local
     container_name: autohelper-frontend
     restart: unless-stopped

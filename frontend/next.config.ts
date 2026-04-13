@@ -23,7 +23,7 @@ const securityHeaders = [
       "default-src 'self'",
       "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
       "style-src 'self' 'unsafe-inline'",
-      "img-src 'self' data: blob: https://*.tile.openstreetmap.org",
+      "img-src 'self' data: blob: https://*.tile.openstreetmap.org https://maps.googleapis.com",
       "font-src 'self'",
       "connect-src 'self' http://localhost:8080",
       "frame-ancestors 'self'",

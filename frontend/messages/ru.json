@@ -611,6 +611,8 @@
       "lngLabel": "Долгота",
       "useMyLocation": "Определить моё местоположение",
       "locating": "Определяю...",
+      "changeLocation": "Изменить",
+      "locationHint": "Нажмите «Определить моё местоположение», чтобы показать вашу позицию на карте",
       "submitButton": "Найти партнёров",
       "submittingButton": "Поиск...",
       "validation": {

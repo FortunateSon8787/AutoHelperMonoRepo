@@ -16,7 +16,16 @@
       "Bash(find c:/Users/DNK/Documents/Claude/Projects/AutoHelper/AutoHelperMonoRepo/backend -name appsettings*.json -type f)",
       "Skill(nextjs-anti-patterns)",
       "Skill(nextjs-anti-patterns:*)",
-      "Bash(npx next:*)"
+      "Bash(npx next:*)",
+      "mcp__microsoft-playwright-mcp__get_pages",
+      "Bash(uvx playwright-mcp:*)",
+      "Bash(uvx playwright:*)",
+      "mcp__microsoft-playwright-mcp__navigate",
+      "mcp__microsoft-playwright-mcp__take_screenshot",
+      "mcp__microsoft-playwright-mcp__get_page_content",
+      "Bash(cmd /c \"taskkill /PID 19200 /F 2>&1\")",
+      "Bash(powershell -Command \"Stop-Process -Id 19200 -Force\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000)"
     ],
     "additionalDirectories": [
       "c:\\Users\\DNK\\Documents\\Claude\\Projects\\AutoHelper\\AutoHelperMonoRepo\\.claude"
