@@ -129,6 +129,9 @@ export function ChatWindow({
   const isCompleted = chatStatus === "Completed" || chatStatus === "FinalAnswerSent";
   const isAwaiting = chatStatus === "AwaitingUserAnswers";
 
+  const lastAssistantMessage = [...messages].reverse().find((m) => m.role === "Assistant");
+  const isLastMessageInvalid = lastAssistantMessage?.isValid === false;
+
   // ─── Render ──────────────────────────────────────────────────────────────
 
   return (
@@ -240,8 +243,8 @@ export function ChatWindow({
         )}
       </div>
 
-      {/* Input area — only shown when chat is active and not completed */}
-      {activeChatId && !isCompleted && (
+      {/* Input area — only shown when chat is active, not completed, and last message was valid */}
+      {activeChatId && !isCompleted && !isLastMessageInvalid && (
         <div className="bg-card border-t border-border px-4 lg:px-6 py-4 flex-shrink-0">
           <div className="max-w-4xl mx-auto">
             <div className="flex items-end gap-3">
@@ -391,10 +394,20 @@ function WorkClarificationInputReadonly({
 
 function PartnerAdviceInputReadonly({
   input,
+  fallbackContent,
 }: {
   input: NonNullable<ChatMessage["partnerAdviceInput"]>;
+  fallbackContent?: string;
 }) {
   const t = useTranslations("chat.partnerAdviceForm");
+  const displayRequest = input.request || fallbackContent || "";
+
+  const urgencyLabel =
+    input.urgency === "Urgent"
+      ? t("urgencyOptions.urgent")
+      : input.urgency === "NotUrgent"
+        ? t("urgencyOptions.notUrgent")
+        : null;
 
   return (
     <div className="flex justify-end">
@@ -409,14 +422,14 @@ function PartnerAdviceInputReadonly({
           <div className="space-y-1">
             <p className="text-xs font-medium text-muted-foreground">{t("requestLabel")}</p>
             <div className="px-3 py-2 bg-secondary border border-border rounded-xl text-sm text-foreground leading-relaxed whitespace-pre-wrap">
-              {input.request}
+              {displayRequest}
             </div>
           </div>
-          {input.urgency && (
+          {urgencyLabel && (
             <div className="space-y-1">
               <p className="text-xs font-medium text-muted-foreground">{t("urgencyLabel")}</p>
               <div className="px-3 py-2 bg-secondary border border-border rounded-xl text-sm text-foreground leading-relaxed whitespace-pre-wrap">
-                {input.urgency}
+                {urgencyLabel}
               </div>
             </div>
           )}
@@ -445,7 +458,7 @@ function ChatMessageBubble({
       return <WorkClarificationInputReadonly input={message.workClarificationInput} />;
     }
     if (message.partnerAdviceInput) {
-      return <PartnerAdviceInputReadonly input={message.partnerAdviceInput} />;
+      return <PartnerAdviceInputReadonly input={message.partnerAdviceInput} fallbackContent={message.content} />;
     }
     return (
       <div className="flex justify-end">

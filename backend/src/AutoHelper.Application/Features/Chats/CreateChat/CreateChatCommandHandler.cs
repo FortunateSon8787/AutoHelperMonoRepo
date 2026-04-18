@@ -59,7 +59,7 @@ public sealed class CreateChatCommandHandler(
                 chat, customer, request.DiagnosticsInput!, locale, ct);
 
             return Result<CreateChatResponse>.Success(
-                new CreateChatResponse(chat.Id, orchResult.AssistantReply, orchResult.DiagnosticResultJson));
+                new CreateChatResponse(chat.Id, orchResult.AssistantReply, orchResult.DiagnosticResultJson, ChatStatus: orchResult.ChatStatus, WasValid: orchResult.WasValid));
         }
 
         // For WorkClarification, immediately process the work analysis form.
@@ -69,7 +69,7 @@ public sealed class CreateChatCommandHandler(
                 chat, customer, request.WorkClarificationInput!, locale, ct);
 
             return Result<CreateChatResponse>.Success(
-                new CreateChatResponse(chat.Id, orchResult.AssistantReply, WorkClarificationResultJson: orchResult.WorkClarificationResultJson));
+                new CreateChatResponse(chat.Id, orchResult.AssistantReply, WorkClarificationResultJson: orchResult.WorkClarificationResultJson, ChatStatus: orchResult.ChatStatus, WasValid: orchResult.WasValid));
         }
 
         // For PartnerAdvice, immediately process partner search + LLM formatting.
@@ -79,7 +79,7 @@ public sealed class CreateChatCommandHandler(
                 chat, customer, request.PartnerAdviceInput!, locale, ct);
 
             return Result<CreateChatResponse>.Success(
-                new CreateChatResponse(chat.Id, orchResult.AssistantReply, PartnerAdviceResultJson: orchResult.PartnerAdviceResultJson));
+                new CreateChatResponse(chat.Id, orchResult.AssistantReply, PartnerAdviceResultJson: orchResult.PartnerAdviceResultJson, ChatStatus: orchResult.ChatStatus, WasValid: orchResult.WasValid));
         }
 
         await unitOfWork.SaveChangesAsync(ct);

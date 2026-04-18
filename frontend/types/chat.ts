@@ -53,6 +53,8 @@ export interface CreateChatResponse {
   diagnosticResultJson?: string | null;
   workClarificationResultJson?: string | null;
   partnerAdviceResultJson?: string | null;
+  chatStatus?: ChatStatus;
+  wasValid?: boolean;
 }
 
 export interface SendMessageResponse {

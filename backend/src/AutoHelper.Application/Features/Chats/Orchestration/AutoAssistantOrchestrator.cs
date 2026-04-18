@@ -147,12 +147,40 @@ public sealed class AutoAssistantOrchestrator(
         string locale,
         CancellationToken ct)
     {
+        // ── Step 0: Validate request is on-topic ──────────────────────────────
+        var userInput = FormatWorkClarificationInput(input);
+        var classification = await ClassifyAsync(ChatMode.WorkClarification, userInput, ct);
+        if (!classification.IsValid)
+        {
+            logger.LogInformation(
+                "WorkClarification request rejected for chat {ChatId}, reason: {Reason}",
+                chat.Id, classification.RejectionReason);
+
+            var auditRecord = InvalidChatRequest.Create(
+                chat.Id,
+                customer.Id,
+                userInput,
+                classification.RejectionReason ?? "unknown");
+
+            invalidRequests.Add(auditRecord);
+            var invalidMsg = chat.AddInvalidUserMessage(userInput);
+            chats.AddMessages([invalidMsg]);
+            chat.Complete();
+            await unitOfWork.SaveChangesAsync(ct);
+
+            return new OrchestratorResult(
+                AssistantReply: BuildRejectionMessage(classification.RejectionReason, locale),
+                WasValid: false,
+                QuotaDecremented: false,
+                ResponseStage: null,
+                ChatStatus: chat.Status);
+        }
+
         var context = await AssembleContextAsync(chat, customer, locale, ct);
         var model = modelSelector.DefaultModel;
 
         var benchmarks = await FetchMarketPriceBenchmarksAsync(input, ct);
         var systemPrompt = BuildWorkClarificationSystemPrompt(context, benchmarks);
-        var userInput = FormatWorkClarificationInput(input);
 
         var result = await llm.GenerateStructuredAsync<WorkClarificationLlmResult>(
             model, systemPrompt, userInput, ct);

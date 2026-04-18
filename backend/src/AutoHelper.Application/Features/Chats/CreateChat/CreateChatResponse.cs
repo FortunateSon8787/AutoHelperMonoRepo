@@ -1,3 +1,5 @@
+using AutoHelper.Domain.Chats;
+
 namespace AutoHelper.Application.Features.Chats.CreateChat;
 
 /// <summary>
@@ -12,4 +14,6 @@ public sealed record CreateChatResponse(
     string? InitialAssistantReply,
     string? DiagnosticResultJson = null,
     string? WorkClarificationResultJson = null,
-    string? PartnerAdviceResultJson = null);
+    string? PartnerAdviceResultJson = null,
+    ChatStatus ChatStatus = ChatStatus.Active,
+    bool WasValid = true);

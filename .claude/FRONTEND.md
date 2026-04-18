@@ -110,12 +110,14 @@ frontend/
 │   │   ├── AdBanner.tsx      # Рекламный баннер
 │   │   └── OffersBlock.tsx   # Блок рекламных предложений
 │   ├── chat/
+│   │   ├── ChatSidebar.tsx                 # Боковая панель: выбор авто, режима, история чатов, кнопка "Новый чат"
 │   │   ├── ChatWindow.tsx                  # Окно чата (сообщения, инпут, статусы)
 │   │   ├── DiagnosticResultCard.tsx        # Карточка диагноза FaultHelp (urgency, проблемы, риски, рекомендации, safe-to-drive)
 │   │   ├── WorkClarificationResultCard.tsx # Карточка анализа работ (рыночные бенчмарки, оценка стоимости)
+│   │   ├── PartnerAdviceResultCard.tsx     # Карточка результата поиска партнёров (список партнёров с бейджами priority/warning, адрес, телефон, сайт, рейтинг, open/closed)
 │   │   ├── DiagnosticsForm.tsx             # Форма создания FaultHelp чата
 │   │   ├── WorkClarificationForm.tsx       # Форма создания WorkClarification чата
-│   │   └── PartnerAdviceForm.tsx           # Форма создания PartnerAdvice чата
+│   │   └── PartnerAdviceForm.tsx           # Форма создания PartnerAdvice чата (request + geolocation + urgency dropdown)
 │   ├── partners/
 │   │   └── PartnersMap.tsx   # Карта партнёров (Leaflet/OSM); принимает i18n-метки yourLocationLabel/openLabel/closedLabel/kmLabel как props
 │   └── ui/
@@ -145,8 +147,9 @@ frontend/
 │   ├── partner.ts            # PartnerProfile, PARTNER_TYPES, etc.
 │   ├── adCampaign.ts         # AdCampaign, AD_TYPES, TARGET_CATEGORIES
 │   └── chat.ts               # ChatMode, ChatMessage, DiagnosticsInput, WorkClarificationInput,
-│                             # PartnerAdviceInput, DiagnosticResult, DiagnosticProblem,
-│                             # SendMessageResponse, CreateChatResponse
+│                             # PartnerAdviceInput, PartnerAdviceUrgency, PARTNER_ADVICE_URGENCY_VALUES,
+│                             # DiagnosticResult, DiagnosticProblem, PartnerAdviceResult, PartnerAdviceEntry,
+│                             # WorkClarificationResult, SendMessageResponse, CreateChatResponse
 │
 ├── i18n/
 │   └── request.ts            # next-intl server конфиг (locale из cookie)
@@ -282,6 +285,32 @@ const diagnosticResult: DiagnosticResult | null = (() => {
 
 **i18n ключи:** `chat.diagnosticResult.*` в `messages/ru.json` и `messages/en.json`
 
+### PartnerAdviceResultCard
+
+Отображает структурированный результат поиска партнёров (`PartnerAdvice` режим). Рендерится вместо текстового сообщения ассистента когда `message.partnerAdviceResultJson != null`.
+
+**Структура карточки:**
+- Заголовок-бейдж с количеством найденных партнёров
+- Опциональный summary (совет/рекомендация от LLM)
+- Список карточек партнёров (`PartnerCard`):
+  - Индекс + имя + бейдж `★ Verified partner` (is_priority) + бейдж `⚠ Warning` (has_warning)
+  - Meta-строка: расстояние, open/closed, рейтинг + кол-во отзывов
+  - Детали: адрес, услуги, телефон (href=tel:), веб-сайт (href с валидацией URL)
+- Empty state при `partners.length === 0`
+
+**i18n ключи:** `chat.partnerAdviceResult.*`
+
+### ChatSidebar
+
+Боковая панель чат-страницы. Содержит:
+- Список автомобилей пользователя (выбор авто для сессии)
+- Переключатель режима чата (FaultHelp / WorkClarification / PartnerAdvice)
+- Кнопку "Новый чат"
+- Историю чатов с пагинацией (Load more) и возможностью удаления
+- Закрытие через кнопку `X` (мобильный вид)
+
+Props: `vehicles`, `chats`, `hasNextPage`, `isLoadingMore`, `subscription`, `selectedVehicleId`, `selectedMode`, `activeChatId`, `isOpen`, `onClose`, `onVehicleSelect`, `onModeChange`, `onChatSelect`, `onNewChat`, `onLoadMore`, `onDeleteChat`.
+
 ---
 
 ## i18n — next-intl
@@ -324,6 +353,7 @@ adCampaigns, adCampaigns.errors, adCampaigns.validation
 chat.window, chat.modes, chat.modeSubtitles
 chat.diagnosticResult           ← карточка диагноза FaultHelp
 chat.workClarificationResult    ← карточка анализа работ WorkClarification
+chat.partnerAdviceResult        ← карточка результата поиска партнёров PartnerAdvice (title, priorityBadge, warningBadge, km, openNow, closed, reviews, noPartners)
 chat.diagnosticsForm, chat.workClarificationForm, chat.partnerAdviceForm  ← формы режимов
 partners.search                 ← поиск партнёров (incl. yourLocationLabel, openLabel, closedLabel, kmLabel)
 common

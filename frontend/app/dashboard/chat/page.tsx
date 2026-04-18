@@ -50,10 +50,12 @@ function parsePartnerAdviceContent(content: string): PartnerAdviceInput {
   let urgency: PartnerAdviceInput["urgency"] = "NotSpecified";
   let lat = 0;
   let lng = 0;
+  let hasStructuredFormat = false;
 
   for (const line of lines) {
     if (line.startsWith("Request: ")) {
       request = line.slice("Request: ".length);
+      hasStructuredFormat = true;
     } else if (line.startsWith("Urgency: ")) {
       const raw = line.slice("Urgency: ".length).trim();
       if (raw === "NotUrgent" || raw === "Urgent") urgency = raw;
@@ -64,6 +66,11 @@ function parsePartnerAdviceContent(content: string): PartnerAdviceInput {
         lng = parseFloat(coords[1]) || 0;
       }
     }
+  }
+
+  // For invalid messages, content is stored as raw user text (no structured format)
+  if (!hasStructuredFormat) {
+    request = content;
   }
 
   return { request, urgency, lat, lng };
@@ -238,10 +245,11 @@ export default function ChatPage() {
           ...(mode === "PartnerAdvice" && { partnerAdviceInput: modeInput as PartnerAdviceInput }),
         };
         const res = await chatService.createChat(payload);
+        const resolvedStatus = res.chatStatus ?? "Active";
         const newChatSummary: ChatSummary = {
           id: res.chatId,
           mode,
-          status: "Active",
+          status: resolvedStatus,
           title,
           vehicleId: selectedVehicleId,
           messageCount: res.initialAssistantReply ? 1 : 0,
@@ -286,7 +294,7 @@ export default function ChatPage() {
             id: "initial",
             role: "Assistant",
             content: res.initialAssistantReply,
-            isValid: true,
+            isValid: res.wasValid !== false,
             createdAt: new Date().toISOString(),
             diagnosticResultJson: res.diagnosticResultJson,
             workClarificationResultJson: res.workClarificationResultJson,
@@ -294,7 +302,7 @@ export default function ChatPage() {
           });
         }
         setMessages(initialMessages);
-        setChatStatus("Active");
+        setChatStatus(resolvedStatus);
       } catch (err) {
         if (err instanceof ChatServiceError) {
           const key = err.code === "forbidden" ? "forbidden" : "createFailed";

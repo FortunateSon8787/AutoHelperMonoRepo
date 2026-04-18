@@ -78,7 +78,7 @@ Domain/Common/
 | Агрегат | Файл | Описание |
 |---------|------|----------|
 | `Chat` | `Chats/Chat.cs` | Чат-сессия AI-помощника. Реализован в AUT-17 |
-| `Message` | `Chats/Message.cs` | Сообщение чата (User/Assistant). Поле `DiagnosticResultJson` добавлено для FaultHelp diagnostic_result. |
+| `Message` | `Chats/Message.cs` | Сообщение чата (User/Assistant). Поля: `DiagnosticResultJson` (FaultHelp), `WorkClarificationResultJson` (WorkClarification), `PartnerAdviceResultJson` (PartnerAdvice — добавлено миграцией `20260413175155_AddPartnerAdviceResultJsonToMessage`). |
 | `ChatbotConfig` | `Chatbot/ChatbotConfig.cs` | Singleton-конфигурация АвтоПомощника (вкл/выкл, лимиты, цены). Реализован в AUT-162 |
 
 ---
@@ -151,6 +151,8 @@ Common/Interfaces/
   ├── ILlmProvider             — GenerateStructuredAsync, GenerateTextAsync, SummarizeConversationAsync — абстракция LLM (начальная реализация: OpenAI Responses API, модели gpt-5.4-nano / gpt-5.4-mini / gpt-5.4)
   ├── IBillingService          — абстракция биллинга (начальная реализация: Lemon Squeezy)
   ├── IAuditLogService         — LogAsync(operationType, entityType, entityId, performedBy, additionalInfo?)
+  ├── IPartnerSearchService    — FindPartnersAsync(lat, lng, serviceCategory, languageCode, maxResults, ct) → IReadOnlyList<PartnerCard>
+  ├── IGooglePlacesService     — SearchNearbyAsync(lat, lng, radiusMeters, placeType, languageCode, maxResults, ct)
   └── ICurrentUser             — UserId (из JWT claims)
 ```
 
@@ -242,6 +244,45 @@ Ai/
                               DefaultModel (gpt-4.1-mini), EscalationModel (gpt-4.1);
                               секция "LLM" в appsettings
 ```
+
+### ExternalServices
+
+```
+ExternalServices/
+  └── GooglePlacesService.cs — IGooglePlacesService реализация через Google Places API (Nearby Search v1).
+                               SearchNearbyAsync: lat/lng + radiusMeters + placeType + languageCode + maxResults.
+                               Возвращает List<GooglePlaceResult> (Name, Address, PhoneNumber, Website,
+                               Rating, UserRatingsTotal, IsOpenNow, DistanceMeters).
+```
+
+### PartnerSearch (Application Layer)
+
+```
+Features/Partners/PartnerSearch/
+  ├── PartnerSearchService.cs   — IPartnerSearchService реализация (в Application, не Infrastructure).
+  │                               Aggregation pipeline:
+  │                               1. Загружает own-партнёров из БД по типу + гео (все радиусы, сортировка Haversine)
+  │                               2. Если own >= maxResults — возвращает только own (Google не вызывается)
+  │                               3. Если own < maxResults — догружает из Google Places (overfetch × 3 + дедупликация по имени)
+  │                               4. Own-партнёры всегда идут первыми (is_priority = true)
+  ├── PartnerCategoryMapper.cs  — Маппинг serviceCategory (строка от LLM) → PartnerType + Google placeType
+  └── PartnerCard.cs            — DTO карточки партнёра (Source, IsPriorityPartner, Name, Address, Phone,
+                                  Website, Rating, ReviewsCount, IsOpenNow, DistanceKm, Services, HasWarning)
+```
+
+**PartnerAdvice пайплайн (`ProcessPartnerAdviceInitialAsync`):**
+
+```
+Step 0 → ClassifyAsync (RequestClassifier): валидация on-topic; при rejection → AddInvalidUserMessage + Complete + return WasValid=false
+Step 1 → LLM (RouterModel, PartnerAdviceClassifierPrompt, Structured): определяет serviceCategory + urgency (PartnerAdviceLlmResult)
+Step 2 → FetchPartnerCardsAsync: own DB (SearchByTypeAndLocationAsync) + Google Places fallback; own-партнёры всегда первыми
+Step 3 → LLM (DefaultModel, PartnerAdviceFormatterSystemPrompt + PARTNER_CARDS, Structured): форматирует список + опциональный summary (PartnerAdviceLlmResult с Partners)
+→ AddExchange(userInput, assistantReply, partnerAdviceResultJson) + Complete; quota НЕ уменьшается
+```
+
+`PartnerCard.Source`: `"own_partner"` | `"google_places"`. `PartnerCard.HasWarning` = `p.IsPotentiallyUnfit` у собственных партнёров.
+
+Конфигурация: `PartnerAdvice:MaxResults` в appsettings (default: 5, диапазон 1–10).
 
 **Трёхуровневая маршрутизация моделей (AutoAssistantOrchestrator):**
 
