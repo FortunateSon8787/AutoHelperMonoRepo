@@ -117,6 +117,7 @@ export default function ChatPage() {
   const [subscription, setSubscription] = useState<SubscriptionInfo | null>(null);
 
   const [activeChatId, setActiveChatId] = useState<string | undefined>(undefined);
+  const [ephemeralInvalidChatId, setEphemeralInvalidChatId] = useState<string | undefined>(undefined);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [chatStatus, setChatStatus] = useState<string | null>(null);
 
@@ -201,12 +202,22 @@ export default function ChatPage() {
     }
   }, [chats, t]);
 
+  // ─── Clear ephemeral invalid chat from state ─────────────────────────────
+
+  const clearEphemeralInvalidChat = useCallback((chatId: string | undefined) => {
+    if (chatId) {
+      setChats((prev) => prev.filter((c) => c.id !== chatId));
+      setEphemeralInvalidChatId(undefined);
+    }
+  }, []);
+
   const handleSelectChat = useCallback(async (chatId: string) => {
+    clearEphemeralInvalidChat(ephemeralInvalidChatId);
     setActiveChatId(chatId);
     const chat = chats.find((c) => c.id === chatId);
     if (chat) setSelectedMode(chat.mode);
     await loadMessages(chatId);
-  }, [chats, loadMessages]);
+  }, [chats, loadMessages, ephemeralInvalidChatId, clearEphemeralInvalidChat]);
 
   // ─── Delete chat ──────────────────────────────────────────────────────────
 
@@ -246,6 +257,7 @@ export default function ChatPage() {
         };
         const res = await chatService.createChat(payload);
         const resolvedStatus = res.chatStatus ?? "Active";
+        const isInvalid = res.wasValid === false;
         const newChatSummary: ChatSummary = {
           id: res.chatId,
           mode,
@@ -257,6 +269,9 @@ export default function ChatPage() {
         };
         setChats((prev) => [newChatSummary, ...prev]);
         setActiveChatId(res.chatId);
+        if (isInvalid) {
+          setEphemeralInvalidChatId(res.chatId);
+        }
 
         const initialMessages: ChatMessage[] = [];
         if (mode === "FaultHelp") {
@@ -349,6 +364,9 @@ export default function ChatPage() {
         };
         setMessages((prev) => [...prev, assistantMsg]);
         setChatStatus(res.chatStatus);
+        if (res.wasValid === false) {
+          setEphemeralInvalidChatId(activeChatId);
+        }
         setChats((prev) =>
           prev.map((c) =>
             c.id === activeChatId
@@ -384,12 +402,13 @@ export default function ChatPage() {
   // ─── New chat (reset state) ──────────────────────────────────────────────
 
   const handleNewChat = useCallback(() => {
+    clearEphemeralInvalidChat(ephemeralInvalidChatId);
     setActiveChatId(undefined);
     setMessages([]);
     setChatStatus(null);
     setError(null);
     setSidebarOpen(false);
-  }, []);
+  }, [ephemeralInvalidChatId, clearEphemeralInvalidChat]);
 
   // ─── Loading state ───────────────────────────────────────────────────────
 
@@ -408,6 +427,7 @@ export default function ChatPage() {
       <ChatSidebar
         vehicles={vehicles}
         chats={chats}
+        ephemeralInvalidChatId={ephemeralInvalidChatId}
         hasNextPage={hasNextPage}
         isLoadingMore={isLoadingMore}
         subscription={subscription}

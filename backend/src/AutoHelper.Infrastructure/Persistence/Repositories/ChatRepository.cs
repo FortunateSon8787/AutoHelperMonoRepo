@@ -9,19 +9,20 @@ public sealed class ChatRepository(AppDbContext context) : IChatRepository
 {
     public Task<Chat?> GetByIdAsync(Guid id, bool includeMessages, CancellationToken ct)
     {
-        var query = context.Chats.AsQueryable();
+        var query = context.Chats
+            .Where(c => c.Id == id && !c.IsDeleted);
 
         if (includeMessages)
             query = query.Include(c => c.Messages);
 
-        return query.FirstOrDefaultAsync(c => c.Id == id, ct);
+        return query.FirstOrDefaultAsync(ct);
     }
 
     public async Task<PagedResult<ChatSummary>> GetPagedSummariesByCustomerIdAsync(
         Guid customerId, int page, int pageSize, CancellationToken ct)
     {
         var baseQuery = context.Chats
-            .Where(c => c.CustomerId == customerId)
+            .Where(c => c.CustomerId == customerId && !c.IsDeleted)
             .OrderByDescending(c => c.CreatedAt);
 
         var totalCount = await baseQuery.CountAsync(ct);

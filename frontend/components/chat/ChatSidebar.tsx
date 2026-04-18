@@ -29,6 +29,7 @@ import type { SubscriptionInfo } from "@/types/client";
 interface ChatSidebarProps {
   vehicles: Vehicle[];
   chats: ChatSummary[];
+  ephemeralInvalidChatId: string | undefined;
   hasNextPage: boolean;
   isLoadingMore: boolean;
   subscription: SubscriptionInfo | null;
@@ -58,6 +59,7 @@ const MODES: { id: ChatMode; icon: React.ElementType; gradient: string }[] = [
 export function ChatSidebar({
   vehicles,
   chats,
+  ephemeralInvalidChatId,
   hasNextPage,
   isLoadingMore,
   subscription,
@@ -81,9 +83,13 @@ export function ChatSidebar({
 
   const selectedVehicle = vehicles.find((v) => v.id === selectedVehicleId);
 
-  const filteredChats = selectedVehicleId
-    ? chats.filter((c) => c.vehicleId === selectedVehicleId)
+  const visibleChats = ephemeralInvalidChatId
+    ? chats.filter((c) => c.id !== ephemeralInvalidChatId)
     : chats;
+
+  const filteredChats = selectedVehicleId
+    ? visibleChats.filter((c) => c.vehicleId === selectedVehicleId)
+    : visibleChats;
 
   const formatDate = (iso: string) => {
     const date = new Date(iso);

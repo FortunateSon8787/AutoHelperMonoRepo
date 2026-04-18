@@ -181,6 +181,7 @@ public sealed class AutoAssistantOrchestrator(
             var invalidMsg = chat.AddInvalidUserMessage(userInput);
             chats.AddMessages([invalidMsg]);
             chat.Complete();
+            chat.SoftDelete();
             await unitOfWork.SaveChangesAsync(ct);
 
             return new OrchestratorResult(
@@ -255,6 +256,7 @@ public sealed class AutoAssistantOrchestrator(
             var invalidMsg = chat.AddInvalidUserMessage(input.Request);
             chats.AddMessages([invalidMsg]);
             chat.Complete();
+            chat.SoftDelete();
             await unitOfWork.SaveChangesAsync(ct);
 
             return new OrchestratorResult(
@@ -510,6 +512,7 @@ public sealed class AutoAssistantOrchestrator(
             invalidRequests.Add(auditRecord);
             var invalidMsg = chat.AddInvalidUserMessage(userInput);
             chats.AddMessages([invalidMsg]);
+            chat.SoftDelete();
             await unitOfWork.SaveChangesAsync(ct);
 
             return new OrchestratorResult(
