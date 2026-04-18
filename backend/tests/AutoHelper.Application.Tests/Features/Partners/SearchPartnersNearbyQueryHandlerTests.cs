@@ -104,8 +104,9 @@ public class SearchPartnersNearbyQueryHandlerTests
         var result = await _sut.Handle(query, CancellationToken.None);
 
         result.IsSuccess.ShouldBeTrue();
-        // alwaysOpen (00:00–23:59) covers any current UTC time
-        result.Value.ShouldContain(p => p.IsOpenNow);
+        // alwaysOpen (00:00–23:59) covers any current UTC time; closed (01:00–01:30) should be excluded
+        result.Value.Count.ShouldBe(1);
+        result.Value.ShouldAllBe(p => p.IsOpenNow);
     }
 
     [Fact]
@@ -128,15 +129,17 @@ public class SearchPartnersNearbyQueryHandlerTests
     [Fact]
     public async Task Handle_RadiusExceeds100Km_ShouldCapAt100Km()
     {
-        // Place partner at exactly 80 km — would be included with cap but not beyond
+        // ~80 km from Moscow center — within the 100 km cap, so must be included even when raw input is 500 km
+        var withinCap = CreatePartner(56.47, 37.6173, PartnerType.AutoService, new TimeOnly(0, 0), new TimeOnly(23, 59));
+
         _partners.Setup(r => r.SearchByLocationAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync([]);
+            .ReturnsAsync([withinCap]);
 
         var query = new SearchPartnersNearbyQuery(OriginLat, OriginLng, RadiusKm: 500, Type: null, IsOpenNow: false);
         var result = await _sut.Handle(query, CancellationToken.None);
 
-        // Query should succeed — no error for oversized radius, it's silently capped
         result.IsSuccess.ShouldBeTrue();
+        result.Value.Count.ShouldBe(1); // partner within 100 km cap is included
     }
 
     [Fact]

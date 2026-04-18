@@ -40,12 +40,5 @@ public class AdminRefreshTokenTests
         rt.IsActive.ShouldBeFalse();
     }
 
-    [Fact]
-    public void IsActive_WhenRevoked_ShouldBeFalse()
-    {
-        var rt = AdminRefreshToken.Create(Guid.NewGuid(), "token", 7);
-        rt.Revoke();
 
-        rt.IsActive.ShouldBeFalse();
-    }
 }

@@ -1,4 +1,3 @@
-using AutoFixture;
 using AutoHelper.Application.Common.Interfaces;
 using AutoHelper.Application.Features.Auth.RefreshToken;
 using AutoHelper.Domain.Customers;
@@ -9,7 +8,6 @@ namespace AutoHelper.Application.Tests.Features.Auth;
 
 public class RefreshTokenCommandHandlerTests
 {
-    private readonly Fixture _fixture = new();
     private readonly Mock<IRefreshTokenRepository> _refreshTokens = new();
     private readonly Mock<ICustomerRepository> _customers = new();
     private readonly Mock<IJwtTokenService> _jwtTokenService = new();
@@ -60,11 +58,28 @@ public class RefreshTokenCommandHandlerTests
     }
 
     [Fact]
+    public async Task Handle_WithRevokedToken_ShouldReturnFailure()
+    {
+        // Arrange
+        var token = Domain.Customers.RefreshToken.Create(Guid.NewGuid(), "revoked-rt", expiryDays: 30);
+        token.Revoke();
+
+        _refreshTokens.Setup(r => r.GetByTokenAsync("revoked-rt", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(token);
+
+        // Act
+        var result = await _sut.Handle(new RefreshTokenCommand("revoked-rt"), CancellationToken.None);
+
+        // Assert
+        result.IsFailure.ShouldBeTrue();
+        _unitOfWork.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
     public async Task Handle_WithExpiredToken_ShouldReturnFailure()
     {
-        // Arrange — simulate an expired token by revoking it
-        var token = Domain.Customers.RefreshToken.Create(Guid.NewGuid(), "expired-rt", expiryDays: 30);
-        token.Revoke();
+        // Arrange — expiryDays: -1 places ExpiresAt in the past, making IsExpired = true immediately
+        var token = Domain.Customers.RefreshToken.Create(Guid.NewGuid(), "expired-rt", expiryDays: -1);
 
         _refreshTokens.Setup(r => r.GetByTokenAsync("expired-rt", It.IsAny<CancellationToken>()))
             .ReturnsAsync(token);

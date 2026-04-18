@@ -1,9 +1,11 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Text;
 using AutoHelper.Domain.Admins;
 using AutoHelper.Domain.Customers;
 using AutoHelper.Infrastructure.Security;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 using Shouldly;
 
 namespace AutoHelper.Infrastructure.Tests.Security;
@@ -219,5 +221,18 @@ public class JwtTokenServiceTests
         // Verify that tokens are structurally valid JWTs
         clientToken.Split('.').Length.ShouldBe(3);
         adminToken.Split('.').Length.ShouldBe(3);
+
+        // Admin token must NOT validate against the client secret — different signing keys
+        var handler2 = new JwtSecurityTokenHandler();
+        var clientValidationParams = new TokenValidationParameters
+        {
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_settings.Secret)),
+            ValidateIssuerSigningKey = true,
+            ValidateIssuer = false,
+            ValidateAudience = false,
+            ValidateLifetime = false
+        };
+        Should.Throw<Exception>(() =>
+            handler2.ValidateToken(adminToken, clientValidationParams, out _));
     }
 }

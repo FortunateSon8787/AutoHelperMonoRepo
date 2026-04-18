@@ -1,4 +1,3 @@
-using AutoFixture;
 using AutoHelper.Application.Common.Interfaces;
 using AutoHelper.Application.Features.Auth.Register;
 using Moq;
@@ -8,7 +7,6 @@ namespace AutoHelper.Application.Tests.Features.Auth;
 
 public class RegisterCustomerCommandHandlerTests
 {
-    private readonly Fixture _fixture = new();
     private readonly Mock<ICustomerRepository> _customers = new();
     private readonly Mock<IPasswordHasher> _passwordHasher = new();
     private readonly Mock<IUnitOfWork> _unitOfWork = new();

@@ -1,4 +1,3 @@
-using AutoFixture;
 using AutoHelper.Application.Common.Interfaces;
 using AutoHelper.Application.Features.Partners;
 using AutoHelper.Application.Features.Partners.RegisterPartner;
@@ -10,7 +9,6 @@ namespace AutoHelper.Application.Tests.Features.Partners;
 
 public class RegisterPartnerCommandHandlerTests
 {
-    private readonly Fixture _fixture = new();
     private readonly Mock<IPartnerRepository> _partners = new();
     private readonly Mock<ICurrentUser> _currentUser = new();
     private readonly Mock<IUnitOfWork> _unitOfWork = new();

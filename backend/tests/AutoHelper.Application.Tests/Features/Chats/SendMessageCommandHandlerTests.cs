@@ -1,4 +1,3 @@
-using AutoFixture;
 using AutoHelper.Application.Common;
 using AutoHelper.Application.Common.Interfaces;
 using AutoHelper.Application.Features.Chats.Orchestration;
@@ -14,7 +13,6 @@ namespace AutoHelper.Application.Tests.Features.Chats;
 
 public class SendMessageCommandHandlerTests
 {
-    private readonly Fixture _fixture = new();
     private readonly Mock<IChatRepository> _chats = new();
     private readonly Mock<ICustomerRepository> _customers = new();
     private readonly Mock<ILlmProvider> _llm = new();

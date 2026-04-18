@@ -1,4 +1,3 @@
-using AutoFixture;
 using AutoHelper.Application.Common.Interfaces;
 using AutoHelper.Application.Features.Auth.Login;
 using AutoHelper.Domain.Customers;
@@ -9,7 +8,6 @@ namespace AutoHelper.Application.Tests.Features.Auth;
 
 public class LoginCommandHandlerTests
 {
-    private readonly Fixture _fixture = new();
     private readonly Mock<ICustomerRepository> _customers = new();
     private readonly Mock<IRefreshTokenRepository> _refreshTokens = new();
     private readonly Mock<IPasswordHasher> _passwordHasher = new();

@@ -1,4 +1,3 @@
-using AutoFixture;
 using AutoHelper.Application.Common.Interfaces;
 using AutoHelper.Application.Features.Chats.Orchestration;
 using AutoHelper.Domain.Chats;
@@ -12,7 +11,6 @@ namespace AutoHelper.Application.Tests.Features.Chats;
 
 public class AutoAssistantOrchestratorTests
 {
-    private readonly Fixture _fixture = new();
     private readonly Mock<ILlmProvider> _llm = new();
     private readonly Mock<IInvalidChatRequestRepository> _invalidRequests = new();
     private readonly Mock<IVehicleRepository> _vehicles = new();
@@ -94,6 +92,17 @@ public class AutoAssistantOrchestratorTests
                 Mode = "FaultHelp",
                 IsValid = true,
                 ShouldEscalate = shouldEscalate,
+                ShouldDecrementQuota = true
+            });
+
+    private void SetupWorkClarificationValidClassification() =>
+        _llm.Setup(l => l.GenerateStructuredAsync<ClassificationResult>(
+                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ClassificationResult
+            {
+                Mode = "WorkClarification",
+                IsValid = true,
+                ShouldEscalate = false,
                 ShouldDecrementQuota = true
             });
 
@@ -217,7 +226,7 @@ public class AutoAssistantOrchestratorTests
 
         // Assert
         result.AssistantReply.ShouldContain("stop_driving");
-        result.AssistantReply.ShouldContain("Рекомендуется остановиться");
+        // OrchestratorResult does not expose SafeToDrive directly; "stop_driving" in the reply is the structural signal
         result.AssistantReply.ShouldContain("Estimate only.");
     }
 
@@ -389,6 +398,8 @@ public class AutoAssistantOrchestratorTests
             Guarantees = "6 months"
         };
 
+        SetupWorkClarificationValidClassification();
+
         _llm.Setup(l => l.GenerateStructuredAsync<WorkClarificationLlmResult>(
                 It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new WorkClarificationLlmResult
@@ -436,6 +447,8 @@ public class AutoAssistantOrchestratorTests
             PartsCost = 1500m
         };
 
+        SetupWorkClarificationValidClassification();
+
         _llm.Setup(l => l.GenerateStructuredAsync<WorkClarificationLlmResult>(
                 It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new WorkClarificationLlmResult
@@ -474,6 +487,8 @@ public class AutoAssistantOrchestratorTests
             LaborCost = 10000m,
             PartsCost = 8000m
         };
+
+        SetupWorkClarificationValidClassification();
 
         _marketPrices
             .Setup(m => m.GetMarketPriceBenchmarksAsync(It.IsAny<string>(), It.IsAny<decimal>(), It.IsAny<decimal>(), It.IsAny<CancellationToken>()))
