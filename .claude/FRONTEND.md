@@ -261,6 +261,25 @@ const PUBLIC_ROUTES = ["/auth/login", "/auth/register"];
 
 ## Чат-компоненты (`components/chat/`)
 
+### ChatMessageBubble — логика рендеринга ответа ассистента
+
+В `ChatWindow.tsx` функция `ChatMessageBubble` рендерит ответ ассистента по следующему приоритету:
+
+```tsx
+// 1. Невалидный запрос — всегда plain text, ResultCard не рендерится
+message.isValid === false → plain text (message.content)
+
+// 2. Результаты режимов (только если isValid !== false)
+diagnosticResultJson != null → DiagnosticResultCard
+workClarificationResultJson != null → WorkClarificationResultCard
+partnerAdviceResultJson != null → PartnerAdviceResultCard
+
+// 3. Fallback — обычное текстовое сообщение
+→ plain text (message.content)
+```
+
+**Важно:** guard `isValid === false` имеет наивысший приоритет — блокирует рендер ResultCard даже если JSON пришёл в ответе (защита от ситуации, когда LLM генерирует карточку для невалидного запроса).
+
 ### DiagnosticResultCard
 
 Отображает структурированный результат диагностики FaultHelp (`responseStage = "diagnostic_result"`).

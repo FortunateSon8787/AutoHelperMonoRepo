@@ -513,7 +513,11 @@ function ChatMessageBubble({
               </span>
             )}
           </div>
-          {diagnosticResult ? (
+          {message.isValid === false ? (
+            <div className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">
+              {message.content}
+            </div>
+          ) : diagnosticResult ? (
             <DiagnosticResultCard result={diagnosticResult} />
           ) : workClarificationResult ? (
             <WorkClarificationResultCard result={workClarificationResult} />

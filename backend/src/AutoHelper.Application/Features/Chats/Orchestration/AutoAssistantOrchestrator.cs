@@ -73,6 +73,21 @@ public sealed class AutoAssistantOrchestrator(
         ClassifierQuotaCriteria + " " +
         "Respond only with the structured JSON schema provided.";
 
+    private const string WorkClarificationClassifierSystemPrompt =
+        "You are a strict request classifier for the Work Review mode of an automotive AI assistant. " +
+        "Your ONLY job is to decide whether the submitted works_performed and work_reason describe REAL automotive service operations performed on a vehicle. " +
+        "Set is_valid = true ONLY when ALL of the following hold: " +
+        "1) works_performed contains at least one recognisable automotive service operation (e.g. oil change, brake pad replacement, tire rotation, engine repair, diagnostic scan, filter replacement, alignment, etc.). " +
+        "2) work_reason is plausible as a technical automotive justification (e.g. scheduled maintenance, worn parts, fault codes, customer complaint about vehicle behaviour). " +
+        "Set is_valid = false and rejection_reason = \"out_of_scope\" when: " +
+        "- The described works are NOT automotive (e.g. food, drinks, household items, non-vehicle activities, jokes, test inputs). " +
+        "- The work_reason is unrelated to vehicle maintenance or repair (e.g. personal desires, entertainment, non-technical reasons). " +
+        "- The input is gibberish, a test, or clearly off-topic. " +
+        "Do NOT attempt to assess or analyse the quality of work — only validate relevance. " +
+        "Set should_escalate = false. " +
+        ClassifierQuotaCriteria + " " +
+        "Respond only with the structured JSON schema provided.";
+
     private const string SummarisationSystemPrompt =
         "You are a conversation summariser for an automotive AI assistant. " +
         "Produce a concise factual summary of the conversation. " +
@@ -570,8 +585,12 @@ public sealed class AutoAssistantOrchestrator(
         string userInput,
         CancellationToken ct)
     {
+        var systemPrompt = mode == ChatMode.WorkClarification
+            ? WorkClarificationClassifierSystemPrompt
+            : ClassifierSystemPrompt;
+
         var prompt =
-            $"{ClassifierSystemPrompt}\n\n" +
+            $"{systemPrompt}\n\n" +
             $"Chat mode: {mode}\n" +
             $"Respond with JSON matching the ClassificationResult schema.";
 

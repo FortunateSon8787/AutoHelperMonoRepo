@@ -270,6 +270,22 @@ Features/Partners/PartnerSearch/
                                   Website, Rating, ReviewsCount, IsOpenNow, DistanceKm, Services, HasWarning)
 ```
 
+**WorkClarification пайплайн (`ProcessWorkClarificationInitialAsync`):**
+
+```
+Step 0 → ClassifyAsync (RequestClassifier): строгая валидация на автомобильность через WorkClarificationClassifierSystemPrompt;
+          при rejection → AddInvalidUserMessage + Complete + return WasValid=false (ResultCard НЕ генерируется)
+Step 1 → FetchMarketPriceBenchmarksAsync: рыночные ценовые бенчмарки
+Step 2 → LLM (DefaultModel или EscalationModel, WorkClarificationSystemPrompt + MARKET_BENCHMARKS, Structured):
+          генерирует WorkClarificationLlmResult (relevance, price, guarantee, honesty + объяснения)
+→ AddExchange(userInput, assistantReply, workClarificationResultJson) + Complete; quota уменьшается
+```
+
+**WorkClarificationClassifierSystemPrompt** — специализированный строгий классификатор:
+- `is_valid = true` только если `works_performed` содержит реальную автосервисную операцию И `work_reason` — техническое автомобильное обоснование
+- `is_valid = false, rejection_reason = "out_of_scope"` при: не-автомобильных работах, нетехнических причинах, тест-вводах, gibberish
+- Не оценивает качество работ — только валидирует релевантность
+
 **PartnerAdvice пайплайн (`ProcessPartnerAdviceInitialAsync`):**
 
 ```
