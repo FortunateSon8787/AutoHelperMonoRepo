@@ -1,4 +1,5 @@
-import axios, { AxiosError } from "axios";
+import { AxiosError } from "axios";
+import { apiClient as api } from "@/lib/apiClient";
 import type {
   ChatSummary,
   PagedResult,
@@ -8,14 +9,6 @@ import type {
   SendMessageRequest,
   SendMessageResponse,
 } from "@/types/chat";
-
-// ─── Axios Instance ───────────────────────────────────────────────────────────
-
-const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL,
-  headers: { "Content-Type": "application/json" },
-  withCredentials: true,
-});
 
 // ─── Error Types ─────────────────────────────────────────────────────────────
 

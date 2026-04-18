@@ -1,4 +1,5 @@
-import axios, { AxiosError } from "axios";
+import { AxiosError } from "axios";
+import { apiClient as api } from "@/lib/apiClient";
 import type {
   Vehicle,
   VehicleOwner,
@@ -7,14 +8,6 @@ import type {
   UpdateVehicleRequest,
   UpdateVehicleStatusRequest,
 } from "@/types/vehicle";
-
-// ─── Authenticated Axios Instance ─────────────────────────────────────────────
-
-const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL,
-  headers: { "Content-Type": "application/json" },
-  withCredentials: true,
-});
 
 // ─── Error Types ─────────────────────────────────────────────────────────────
 

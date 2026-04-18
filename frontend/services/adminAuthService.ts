@@ -1,15 +1,5 @@
-import axios, { AxiosError } from "axios";
-
-// ─── Axios Instance ───────────────────────────────────────────────────────────
-
-// Бэкенд выставляет admin auth-куки с флагами HttpOnly=true, Secure=true, SameSite=Strict —
-// это защищает от XSS (JS не может читать куки) и CSRF (cross-site запросы блокируются).
-// withCredentials=true обязателен, чтобы браузер отправлял эти куки при кросс-доменных запросах.
-const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL,
-  headers: { "Content-Type": "application/json" },
-  withCredentials: true,
-});
+import { AxiosError } from "axios";
+import { adminApiClient as api } from "@/lib/apiClient";
 
 // ─── Error Types ─────────────────────────────────────────────────────────────
 

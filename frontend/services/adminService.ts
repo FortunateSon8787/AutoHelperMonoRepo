@@ -1,4 +1,5 @@
-import axios, { AxiosError } from "axios";
+import { AxiosError } from "axios";
+import { adminApiClient as api } from "@/lib/apiClient";
 import type {
   AdminAdCampaign,
   AdminAdCampaignListResponse,
@@ -8,16 +9,6 @@ import type {
   AdminVehicle,
   AdminVehicleListResponse,
 } from "@/types/admin";
-
-// ─── Axios Instance ───────────────────────────────────────────────────────────
-
-// withCredentials=true обязателен, чтобы браузер отправлял httpOnly auth-куки
-// (adminAccessToken / adminRefreshToken), выставленные бэкендом с SameSite=Strict.
-const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL,
-  headers: { "Content-Type": "application/json" },
-  withCredentials: true,
-});
 
 // ─── Error Types ─────────────────────────────────────────────────────────────
 

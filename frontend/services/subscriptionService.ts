@@ -1,14 +1,7 @@
-import axios, { AxiosError } from "axios";
+import { AxiosError } from "axios";
 import { z } from "zod";
+import { apiClient as api } from "@/lib/apiClient";
 import type { SubscriptionInfo } from "@/types/client";
-
-// ─── Axios Instance ───────────────────────────────────────────────────────────
-
-const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL,
-  headers: { "Content-Type": "application/json" },
-  withCredentials: true,
-});
 
 // ─── Error Types ─────────────────────────────────────────────────────────────
 

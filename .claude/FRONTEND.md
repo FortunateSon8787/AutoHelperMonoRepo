@@ -126,6 +126,7 @@ frontend/
 │       └── label.tsx         # Label
 │
 ├── lib/
+│   ├── apiClient.ts          # Shared axios instances: apiClient + adminApiClient (с interceptor для auto-refresh)
 │   ├── utils.ts              # cn() — clsx + tailwind-merge
 │   └── form-styles.ts        # nativeSelectCn, nativeTextareaCn — классы для <select> и <textarea>
 │
@@ -363,22 +364,44 @@ common
 
 ## HTTP-клиент (Axios)
 
-Три паттерна:
+Все клиентские сервисы используют **единый shared axios-инстанс** из `lib/apiClient.ts`.
 
-**1. Auth (withCredentials):**
+### Shared инстансы
+
+| Экспорт | Используется в | Refresh endpoint |
+|---------|---------------|------------------|
+| `apiClient` | Все клиентские сервисы | `POST /api/auth/refresh` |
+| `adminApiClient` | `adminService.ts`, `adminAuthService.ts` | `POST /api/admin/auth/refresh` |
+
 ```typescript
-// services/authService.ts — httpOnly cookie (refresh token)
-const api = axios.create({ baseURL: ..., withCredentials: true });
+// lib/apiClient.ts — единый источник истины
+import { apiClient as api } from "@/lib/apiClient";
 ```
 
-**2. Authenticated (Bearer token):**
+### Автоматический refresh (interceptor)
+
+При получении 401 `apiClient` автоматически:
+1. Вызывает `POST /api/auth/refresh` (браузер отправляет refreshToken httpOnly-куку)
+2. Повторяет исходный запрос с новыми куками
+3. Если refresh тоже вернул 401 — пробрасывает оригинальную ошибку вызывающему коду
+
+Защиты: `_retry` флаг (не более одного refresh на запрос), guard на URL refresh-endpoint (нет бесконечного цикла), guard на `!originalRequest` (network errors без response).
+
+### Паттерны запросов
+
+**1. Authenticated (withCredentials=true, автоматический refresh):**
 ```typescript
-// services/profileService.ts, vehicleService.ts — interceptor добавляет Authorization
+// Все аутентифицированные сервисы
+import { apiClient as api } from "@/lib/apiClient";
+const response = await api.get<Vehicle[]>("/api/vehicles");
 ```
 
-**3. Public SSR (fetch):**
+**2. Public SSR (fetch, без auth):**
 ```typescript
-// services/vehicleService.ts — fetch + revalidate: 60
+// vehicleService.ts, serviceRecordService.ts — Server Components, SSR
+const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/vehicles/${vin}/owner`, {
+  next: { revalidate: 60 }
+});
 ```
 
 **Переменная окружения:** `NEXT_PUBLIC_API_URL` (по умолчанию `http://localhost:8080`)
@@ -393,8 +416,10 @@ const api = axios.create({ baseURL: ..., withCredentials: true });
 3. Если нет → redirect /auth/login
 4. Login → authService.login() → POST /api/auth/login
 5. Бэкенд устанавливает accessToken + refreshToken как httpOnly, Secure, SameSite=Strict cookies
-6. При 401 → authService.refreshToken() → POST /api/auth/refresh
-7. Logout → authService.logout() → POST /api/auth/logout → clear cookies
+6. accessToken протухает (15 мин) → apiClient interceptor автоматически вызывает POST /api/auth/refresh
+7. Бэкенд применяет token rotation: revoke старого refresh, выдаёт новую пару токенов
+8. Исходный запрос повторяется прозрачно для компонента
+9. Logout → authService.logout() → POST /api/auth/logout → clear cookies
 ```
 
 **Безопасность cookies:**
@@ -402,7 +427,7 @@ const api = axios.create({ baseURL: ..., withCredentials: true });
 - `Secure=true` — только HTTPS
 - `SameSite=Strict` — CSRF-защита (cross-site запросы не отправляют куки)
 
-**Admin Auth Flow:** аналогичен, но использует `/api/admin/auth/*` и куки `adminAccessToken` / `adminRefreshToken`.
+**Admin Auth Flow:** аналогичен, `adminApiClient` использует `/api/admin/auth/refresh` и куки `adminAccessToken` / `adminRefreshToken`.
 
 ---
 

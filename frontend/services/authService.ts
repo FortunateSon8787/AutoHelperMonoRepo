@@ -1,20 +1,10 @@
-import axios, { AxiosError } from "axios";
+import { AxiosError } from "axios";
+import { apiClient as api } from "@/lib/apiClient";
 import type {
   LoginRequest,
   RegisterRequest,
   RegisterResponse,
 } from "@/types/auth";
-
-// ─── Axios Instance ───────────────────────────────────────────────────────────
-
-// Бэкенд выставляет auth-куки с флагами HttpOnly=true, Secure=true, SameSite=Strict —
-// это защищает от XSS (JS не может читать куки) и CSRF (cross-site запросы блокируются).
-// withCredentials=true обязателен, чтобы браузер отправлял эти куки при кросс-доменных запросах.
-const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL,
-  headers: { "Content-Type": "application/json" },
-  withCredentials: true,
-});
 
 // ─── Error Types ─────────────────────────────────────────────────────────────
 
@@ -61,14 +51,6 @@ export const authService = {
         data
       );
       return response.data;
-    } catch (error) {
-      throw new AuthServiceError(resolveErrorCode(error));
-    }
-  },
-
-  async refreshToken(): Promise<void> {
-    try {
-      await api.post("/api/auth/refresh");
     } catch (error) {
       throw new AuthServiceError(resolveErrorCode(error));
     }
