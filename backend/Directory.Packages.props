@@ -31,6 +31,11 @@
     <PackageVersion Include="AWSSDK.S3" Version="3.7.415.6" />
   </ItemGroup>
 
+  <ItemGroup Label="SecurityOverrides">
+    <!-- Override vulnerable transitive dependency from AWSSDK -->
+    <PackageVersion Include="System.Security.Cryptography.Xml" Version="10.0.6" />
+  </ItemGroup>
+
   <ItemGroup Label="Payment">
     <PackageVersion Include="Stripe.net" Version="47.3.0" />
   </ItemGroup>

@@ -12,6 +12,7 @@
 
   <ItemGroup Label="ObjectStorage">
     <PackageReference Include="AWSSDK.S3" />
+    <PackageReference Include="System.Security.Cryptography.Xml" />
   </ItemGroup>
 
   <ItemGroup Label="Payment">
