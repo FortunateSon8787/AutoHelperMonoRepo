@@ -264,7 +264,7 @@ Features/Partners/PartnerSearch/
   │                               1. Загружает own-партнёров из БД по типу + гео (все радиусы, сортировка Haversine)
   │                               2. Если own >= maxResults — возвращает только own (Google не вызывается)
   │                               3. Если own < maxResults — догружает из Google Places (overfetch × 3 + дедупликация по имени)
-  │                               4. Own-партнёры всегда идут первыми (is_priority = true)
+  │                               4. Финальный список сортируется: сначала открытые (IsOpenNow=true), затем неизвестные (null), затем закрытые (false); внутри группы — по DistanceKm ASC
   ├── PartnerCategoryMapper.cs  — Маппинг serviceCategory (строка от LLM) → PartnerType + Google placeType
   └── PartnerCard.cs            — DTO карточки партнёра (Source, IsPriorityPartner, Name, Address, Phone,
                                   Website, Rating, ReviewsCount, IsOpenNow, DistanceKm, Services, HasWarning)
@@ -289,12 +289,18 @@ Step 2 → LLM (DefaultModel или EscalationModel, WorkClarificationSystemProm
 **PartnerAdvice пайплайн (`ProcessPartnerAdviceInitialAsync`):**
 
 ```
-Step 0 → ClassifyAsync (RequestClassifier): валидация on-topic; при rejection → AddInvalidUserMessage + Complete + return WasValid=false
+Step 0 → ClassifyAsync (RequestClassifier): строгая валидация через PartnerAdviceValidationSystemPrompt;
+          при rejection → AddInvalidUserMessage + Complete + return WasValid=false
 Step 1 → LLM (RouterModel, PartnerAdviceClassifierPrompt, Structured): определяет serviceCategory + urgency (PartnerAdviceLlmResult)
 Step 2 → FetchPartnerCardsAsync: own DB (SearchByTypeAndLocationAsync) + Google Places fallback; own-партнёры всегда первыми
 Step 3 → LLM (DefaultModel, PartnerAdviceFormatterSystemPrompt + PARTNER_CARDS, Structured): форматирует список + опциональный summary (PartnerAdviceLlmResult с Partners)
 → AddExchange(userInput, assistantReply, partnerAdviceResultJson) + Complete; quota НЕ уменьшается
 ```
+
+**PartnerAdviceValidationSystemPrompt** — специализированный строгий классификатор (аналог `WorkClarificationClassifierSystemPrompt`):
+- `is_valid = true` только если запрос явно ищет автомобильный сервис-партнёр: автосервис, шиномонтаж, эвакуатор, автомойка, автоэлектрик, магазин автозапчастей и т.п.
+- `is_valid = false, rejection_reason = "out_of_scope"` при: не-автомобильных запросах (магазины еды, рестораны, бытовые услуги), тест-вводах, gibberish
+- Не выполняет поиск — только валидирует автомобильную релевантность запроса
 
 `PartnerCard.Source`: `"own_partner"` | `"google_places"`. `PartnerCard.HasWarning` = `p.IsPotentiallyUnfit` у собственных партнёров.
 

@@ -73,6 +73,19 @@ public sealed class AutoAssistantOrchestrator(
         ClassifierQuotaCriteria + " " +
         "Respond only with the structured JSON schema provided.";
 
+    private const string PartnerAdviceValidationSystemPrompt =
+        "You are a strict request classifier for the Partner Search mode of an automotive AI assistant. " +
+        "Your ONLY job is to decide whether the user's request asks to find an AUTOMOTIVE service partner. " +
+        "Set is_valid = true ONLY when the request clearly asks to find one of the following: " +
+        "car repair shop, tire service, tow truck, car wash, auto electrician, auto parts store, or any other vehicle-related service. " +
+        "Set is_valid = false and rejection_reason = \"out_of_scope\" when: " +
+        "- The request is NOT related to automotive services (e.g. food stores, restaurants, entertainment, household services, non-vehicle activities). " +
+        "- The request is gibberish, a test, or clearly off-topic. " +
+        "Do NOT attempt to find or recommend any partners — only validate whether the request is automotive-related. " +
+        "Set should_escalate = false. " +
+        ClassifierQuotaCriteria + " " +
+        "Respond only with the structured JSON schema provided.";
+
     private const string WorkClarificationClassifierSystemPrompt =
         "You are a strict request classifier for the Work Review mode of an automotive AI assistant. " +
         "Your ONLY job is to decide whether the submitted works_performed and work_reason describe REAL automotive service operations performed on a vehicle. " +
@@ -588,9 +601,12 @@ public sealed class AutoAssistantOrchestrator(
         string userInput,
         CancellationToken ct)
     {
-        var systemPrompt = mode == ChatMode.WorkClarification
-            ? WorkClarificationClassifierSystemPrompt
-            : ClassifierSystemPrompt;
+        var systemPrompt = mode switch
+        {
+            ChatMode.WorkClarification => WorkClarificationClassifierSystemPrompt,
+            ChatMode.PartnerAdvice => PartnerAdviceValidationSystemPrompt,
+            _ => ClassifierSystemPrompt
+        };
 
         var prompt =
             $"{systemPrompt}\n\n" +

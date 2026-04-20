@@ -92,9 +92,16 @@ function PartnerCard({
       {/* Details */}
       <div className="space-y-1.5 pl-10">
         {partner.address && (
-          <div className="flex items-start gap-2 text-xs text-muted-foreground">
-            <MapPin className="w-3 h-3 mt-0.5 flex-shrink-0" />
-            <span>{partner.address}</span>
+          <div className="flex items-start gap-2 text-xs">
+            <MapPin className="w-3 h-3 mt-0.5 flex-shrink-0 text-muted-foreground" />
+            <a
+              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(partner.address)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary hover:underline"
+            >
+              {partner.address}
+            </a>
           </div>
         )}
         {partner.services && (

@@ -70,8 +70,11 @@ public sealed class PartnerSearchService(
             .Select(ToGoogleCard)
             .ToList();
 
-        // ── Step 4: own first, then Google ────────────────────────────────────
-        return [.. ownCards, .. googleCards];
+        // ── Step 4: open + nearest first ─────────────────────────────────────
+        return [.. ownCards.Concat(googleCards)
+            .OrderByDescending(c => c.IsOpenNow == true)
+            .ThenBy(c => c.IsOpenNow == false)
+            .ThenBy(c => c.DistanceKm)];
     }
 
     // ─── Mapping ──────────────────────────────────────────────────────────────
